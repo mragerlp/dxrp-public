@@ -9,11 +9,13 @@ jobs:
   notify:
     runs-on: ubuntu-latest
     steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 1
+
       - name: Post commit to Discord
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          COMMIT_MESSAGE: ${{ github.event.head_commit.message }}
-          COMMIT_SHA: ${{ github.sha }}
           REPO: ${{ github.repository }}
           REF_NAME: ${{ github.ref_name }}
           ACTOR: ${{ github.actor }}
@@ -21,27 +23,29 @@ jobs:
           set -euo pipefail
 
           if [ -z "${DISCORD_WEBHOOK_URL:-}" ]; then
-            echo "DISCORD_WEBHOOK_URL secret is not set — skipping."
-            exit 0
-          fi
-
-          WEBHOOK=$(printf '%s' "$DISCORD_WEBHOOK_URL" | tr -d '\r\n')
-          if [ "${#WEBHOOK}" -lt 80 ]; then
-            echo "DISCORD_WEBHOOK_URL looks invalid (too short after trim)."
+            echo "::error::DISCORD_WEBHOOK_URL secret is missing on mragerlp/dxrp-public."
             exit 1
           fi
 
-          COMMIT_URL="https://github.com/${REPO}/commit/${COMMIT_SHA}"
-          short_sha="${COMMIT_SHA:0:7}"
+          WEBHOOK=$(printf '%s' "$DISCORD_WEBHOOK_URL" | tr -d '\r\n' | tr -d ' ')
+          case "$WEBHOOK" in
+            https://discord.com/api/webhooks/*|https://discordapp.com/api/webhooks/*) ;;
+            *)
+              echo "::error::Secret must be the full Discord webhook URL (https://discord.com/api/webhooks/...)."
+              exit 1
+              ;;
+          esac
 
-          if [ -n "${COMMIT_MESSAGE:-}" ]; then
-            summary=$(printf '%s' "$COMMIT_MESSAGE" | head -n 1 | cut -c1-400)
-          else
+          COMMIT_SHA=$(git rev-parse HEAD)
+          short_sha="${COMMIT_SHA:0:7}"
+          COMMIT_URL="https://github.com/${REPO}/commit/${COMMIT_SHA}"
+          summary=$(git log -1 --pretty=format:%s | cut -c1-400)
+          if [ -z "$summary" ]; then
             summary="Manual workflow run by ${ACTOR}"
           fi
 
           payload=$(jq -n \
-            --arg content "**DXRP \`${REF_NAME}\`** · \`${short_sha}\`\n${summary}\n${COMMIT_URL}" \
+            --arg content "**DXRP ${REF_NAME}** · \`${short_sha}\`\n${summary}\n${COMMIT_URL}" \
             '{content: $content}')
 
           http_code=$(curl -sS -o /tmp/discord-response.txt -w "%{http_code}" \
@@ -50,7 +54,7 @@ jobs:
             "$WEBHOOK")
 
           if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
-            echo "Discord returned HTTP ${http_code}"
+            echo "::error::Discord returned HTTP ${http_code}"
             cat /tmp/discord-response.txt
             exit 1
           fi
