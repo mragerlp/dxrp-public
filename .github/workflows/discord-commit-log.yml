@@ -1,62 +1,72 @@
+# Requires DISCORD_WEBHOOK_URL to be configured in mragerlp/dxrp-public Actions secrets.
 name: Discord commit log
 
 on:
   push:
-    branches: [develop]
+    branches:
+      - develop
   workflow_dispatch:
+
+permissions:
+  contents: read
 
 jobs:
   notify:
     runs-on: ubuntu-latest
+
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout repository
+        uses: actions/checkout@v4
         with:
           fetch-depth: 1
 
       - name: Post commit to Discord
+        shell: bash
         env:
           DISCORD_WEBHOOK_URL: ${{ secrets.DISCORD_WEBHOOK_URL }}
-          REPO: ${{ github.repository }}
-          REF_NAME: ${{ github.ref_name }}
-          ACTOR: ${{ github.actor }}
+          REPO_URL: https://github.com/${{ github.repository }}
+          BRANCH_NAME: ${{ github.ref_name }}
         run: |
-          set -euo pipefail
+          set -u
 
           if [ -z "${DISCORD_WEBHOOK_URL:-}" ]; then
-            echo "::error::DISCORD_WEBHOOK_URL secret is missing on mragerlp/dxrp-public."
+            echo "::error::DISCORD_WEBHOOK_URL secret is missing or unavailable for this workflow run."
             exit 1
           fi
 
-          WEBHOOK=$(printf '%s' "$DISCORD_WEBHOOK_URL" | tr -d '\r\n' | tr -d ' ')
-          case "$WEBHOOK" in
-            https://discord.com/api/webhooks/*|https://discordapp.com/api/webhooks/*) ;;
-            *)
-              echo "::error::Secret must be the full Discord webhook URL (https://discord.com/api/webhooks/...)."
-              exit 1
-              ;;
-          esac
+          WEBHOOK=$(printf '%s' "$DISCORD_WEBHOOK_URL" | tr -d '\r\n')
 
-          COMMIT_SHA=$(git rev-parse HEAD)
-          short_sha="${COMMIT_SHA:0:7}"
-          COMMIT_URL="https://github.com/${REPO}/commit/${COMMIT_SHA}"
-          summary=$(git log -1 --pretty=format:%s | cut -c1-400)
-          if [ -z "$summary" ]; then
-            summary="Manual workflow run by ${ACTOR}"
-          fi
+          commit_sha="$(git rev-parse HEAD)"
+          short_sha="$(git rev-parse --short HEAD)"
+          commit_subject="$(git log -1 --pretty=%s)"
+          commit_url="${REPO_URL}/commit/${commit_sha}"
+          content="DXRP commit on ${BRANCH_NAME}: ${short_sha} - ${commit_subject} ${commit_url}"
+          payload="$(jq -nc --arg content "$content" '{content:$content}')"
 
-          payload=$(jq -n \
-            --arg content "**DXRP ${REF_NAME}** · \`${short_sha}\`\n${summary}\n${COMMIT_URL}" \
-            '{content: $content}')
+          response_file="$(mktemp)"
+          curl_status=0
+          http_code="$(curl -sS \
+            -o "$response_file" \
+            -w '%{http_code}' \
+            -H 'Content-Type: application/json' \
+            -X POST \
+            --data "$payload" \
+            "$WEBHOOK")" || curl_status=$?
 
-          http_code=$(curl -sS -o /tmp/discord-response.txt -w "%{http_code}" \
-            -H "Content-Type: application/json" \
-            -d "$payload" \
-            "$WEBHOOK")
-
-          if [ "$http_code" -lt 200 ] || [ "$http_code" -ge 300 ]; then
-            echo "::error::Discord returned HTTP ${http_code}"
-            cat /tmp/discord-response.txt
+          if [ "$curl_status" -ne 0 ]; then
+            echo "::error::curl failed while posting to Discord webhook (exit code $curl_status)."
+            echo "Discord response body:"
+            cat "$response_file"
+            rm -f "$response_file"
             exit 1
           fi
 
-          echo "Posted to Discord (HTTP ${http_code})"
+          if [ "$http_code" != "204" ] && [ "$http_code" != "200" ]; then
+            echo "::error::Discord webhook request failed with HTTP $http_code"
+            echo "Discord response body:"
+            cat "$response_file"
+            rm -f "$response_file"
+            exit 1
+          fi
+
+          rm -f "$response_file"
