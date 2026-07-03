@@ -46,14 +46,19 @@ public class ScaleTool : BaseTool
 			return false;
 		}
 
-		// Validate scale limits
-		if ( x < PropDefinition.MinPropScale || x > PropDefinition.MaxPropScale ||
-		     y < PropDefinition.MinPropScale || y > PropDefinition.MaxPropScale ||
-		     z < PropDefinition.MinPropScale || z > PropDefinition.MaxPropScale )
+		// Validate scale limits (epsilon-tolerant, see PropDefinition.ScaleEpsilon)
+		if ( x < PropDefinition.MinPropScale - PropDefinition.ScaleEpsilon || x > PropDefinition.MaxPropScale + PropDefinition.ScaleEpsilon ||
+		     y < PropDefinition.MinPropScale - PropDefinition.ScaleEpsilon || y > PropDefinition.MaxPropScale + PropDefinition.ScaleEpsilon ||
+		     z < PropDefinition.MinPropScale - PropDefinition.ScaleEpsilon || z > PropDefinition.MaxPropScale + PropDefinition.ScaleEpsilon )
 		{
 			Notify.Error( $"Scale must be between {PropDefinition.MinPropScale} and {PropDefinition.MaxPropScale}" );
 			return false;
 		}
+
+		// Snap values within epsilon of the boundary back onto it, so nothing slightly out-of-range is stored
+		x = Math.Clamp( x, PropDefinition.MinPropScale, PropDefinition.MaxPropScale );
+		y = Math.Clamp( y, PropDefinition.MinPropScale, PropDefinition.MaxPropScale );
+		z = Math.Clamp( z, PropDefinition.MinPropScale, PropDefinition.MaxPropScale );
 
 		scaleValues = new Vector3( x, y, z );
 		return true;
@@ -92,15 +97,19 @@ public class ScaleTool : BaseTool
 		}
 		else
 		{
-			// Validate factor scaling limits
-			if ( ScaleFactor is < PropDefinition.MinPropScale or > PropDefinition.MaxPropScale )
+			// Validate factor scaling limits (epsilon-tolerant, see PropDefinition.ScaleEpsilon)
+			if ( ScaleFactor < PropDefinition.MinPropScale - PropDefinition.ScaleEpsilon ||
+			     ScaleFactor > PropDefinition.MaxPropScale + PropDefinition.ScaleEpsilon )
 			{
 				Notify.Error( $"Scale must be between {PropDefinition.MinPropScale} and {PropDefinition.MaxPropScale}" );
 				return;
 			}
 
+			// Snap values within epsilon of the boundary back onto it, so nothing slightly out-of-range is stored
+			var clampedFactor = Math.Clamp( ScaleFactor, PropDefinition.MinPropScale, PropDefinition.MaxPropScale );
+
 			// Apply factor scaling
-			scaleValues = Vector3.One * ScaleFactor;
+			scaleValues = Vector3.One * clampedFactor;
 		}
 
 		if ( !Scale( targetObject, scaleValues ) )

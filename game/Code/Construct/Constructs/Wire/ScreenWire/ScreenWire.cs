@@ -312,9 +312,30 @@ public class ScreenWire() : BaseWireConstruct( ConstructType.ScreenWire ), IWire
 
 		var headerHeight = _data.ShowHeader ? _data.Height * 0.15f : 0;
 		var remainingHeight = _data.Height - headerHeight;
-		var scale = Math.Min( _data.Width, remainingHeight ) * 0.0045f;
 		var maxWidth = _data.Width * 0.9f;
-		var wrappedText = WrapText( CurrentValue, maxWidth, "Poppins", ScreenWireDefinition.ScreenDefaultFontSize * scale );
+		var maxHeight = remainingHeight * 0.9f;
+
+		var scale = Math.Min( _data.Width, remainingHeight ) * 0.0045f;
+		var minScale = scale * 0.2f;
+		var wrappedText = string.Empty;
+
+		// Shrink the scale until the wrapped text (which may have many lines, eg. the Meta wire's
+		// law list) actually fits within the screen's height instead of overflowing past its bounds.
+		for ( var i = 0; i < 6; i++ )
+		{
+			var fontSize = ScreenWireDefinition.ScreenDefaultFontSize * scale;
+			wrappedText = WrapText( CurrentValue, maxWidth, "Poppins", fontSize );
+
+			var lineCount = wrappedText.Count( c => c == '\n' ) + 1;
+			var textHeight = MeasureLineHeight( fontSize ) * lineCount;
+
+			if ( textHeight <= maxHeight || scale <= minScale )
+			{
+				break;
+			}
+
+			scale = Math.Max( minScale, scale * (maxHeight / textHeight) );
+		}
 
 		ValueTextRenderer.Text = wrappedText;
 		ValueTextRenderer.Color = Color.White;
@@ -595,6 +616,11 @@ public class ScreenWire() : BaseWireConstruct( ConstructType.ScreenWire ), IWire
 		return mesh;
 	}
 
+	private static float MeasureLineHeight( float fontSize )
+	{
+		return new TextRendering.Scope( "Ag", Color.White, fontSize, "Poppins" ).Measure().y;
+	}
+
 	// Wrapping text function
 	private string WrapText( string text, float maxWidth, string fontFamily, float fontSize )
 	{
@@ -608,6 +634,19 @@ public class ScreenWire() : BaseWireConstruct( ConstructType.ScreenWire ), IWire
 			text = text[..Wire.MaxWireStringLength];
 		}
 
+		// Respect hard line breaks already present in the value (eg. the Meta wire's law list)
+		// by wrapping each line independently instead of letting '\n' get glued onto a word.
+		var lines = text.Split( '\n' );
+		if ( lines.Length > 1 )
+		{
+			return string.Join( "\n", lines.Select( line => WrapLine( line, maxWidth, fontFamily, fontSize ).TrimEnd( '\n' ) ) );
+		}
+
+		return WrapLine( text, maxWidth, fontFamily, fontSize ).TrimEnd( '\n' );
+	}
+
+	private string WrapLine( string text, float maxWidth, string fontFamily, float fontSize )
+	{
 		var words = text.Split( ' ' );
 		var currentLine = "";
 		var result = "";

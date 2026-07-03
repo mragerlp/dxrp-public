@@ -861,14 +861,21 @@ public class GameManager : SingletonComponent<GameManager>, IGameEvents, IConfig
 			return;
 		}
 
-		// Server-side scale validation
-		if ( scaleValues.x < PropDefinition.MinPropScale || scaleValues.x > PropDefinition.MaxPropScale ||
-		     scaleValues.y < PropDefinition.MinPropScale || scaleValues.y > PropDefinition.MaxPropScale ||
-		     scaleValues.z < PropDefinition.MinPropScale || scaleValues.z > PropDefinition.MaxPropScale )
+		// Server-side scale validation (epsilon-tolerant, see PropDefinition.ScaleEpsilon)
+		if ( scaleValues.x < PropDefinition.MinPropScale - PropDefinition.ScaleEpsilon || scaleValues.x > PropDefinition.MaxPropScale + PropDefinition.ScaleEpsilon ||
+		     scaleValues.y < PropDefinition.MinPropScale - PropDefinition.ScaleEpsilon || scaleValues.y > PropDefinition.MaxPropScale + PropDefinition.ScaleEpsilon ||
+		     scaleValues.z < PropDefinition.MinPropScale - PropDefinition.ScaleEpsilon || scaleValues.z > PropDefinition.MaxPropScale + PropDefinition.ScaleEpsilon )
 		{
 			player.Error( "#notify.scale.invalid_target" );
 			return;
 		}
+
+		// Snap values within epsilon of the boundary back onto it, so nothing slightly out-of-range is stored
+		scaleValues = new Vector3(
+			Math.Clamp( scaleValues.x, PropDefinition.MinPropScale, PropDefinition.MaxPropScale ),
+			Math.Clamp( scaleValues.y, PropDefinition.MinPropScale, PropDefinition.MaxPropScale ),
+			Math.Clamp( scaleValues.z, PropDefinition.MinPropScale, PropDefinition.MaxPropScale )
+		);
 
 		// Apply the scaling directly - unified approach for all
 		entity.ApplyScaleOwner( scaleValues );

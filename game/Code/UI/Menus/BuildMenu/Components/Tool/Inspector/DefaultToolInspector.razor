@@ -36,11 +36,11 @@
 							               OnValueChanged=@( ( float value ) => { property.SetValue( value ); } )
 							               ShowTextEntry=@( false )
 							               style="flex: 1; min-width: 50px;"/>
-							<TextEntry 
+							<TextEntry
 								Value="@( property.GetValue<float>().ToString("F2") )"
 								class="text-tertiary"
 								style="width: 60px; flex-shrink: 0;"
-								OnTextEdited=@( ( string value ) => { 
+								OnTextEdited=@( ( string value ) => {
 									if ( float.TryParse( value, out var floatValue ) )
 									{
 										if ( range != null )

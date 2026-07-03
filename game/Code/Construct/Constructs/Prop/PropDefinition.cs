@@ -7,6 +7,7 @@ public class PropDefinition() : ConstructDefinition<Prop, PropData>
 
 	public const float MinPropScale = 0.3f;
 	public const float MaxPropScale = 2f;
+	public const float ScaleEpsilon = 0.0001f;
 	public const float MinFadingDoorDuration = 1.5f;
 	public const float MaxFadingDoorDuration = 60f;
 	public const float MinPropFriction = 0.02f;
@@ -23,10 +24,11 @@ public class PropDefinition() : ConstructDefinition<Prop, PropData>
 			return ConstructDataValidationResult.Failure( "Model path cannot be empty" );
 		}
 
-		// Validate scale bounds
-		if ( data.Scale.x < MinPropScale || data.Scale.x > MaxPropScale ||
-		     data.Scale.y < MinPropScale || data.Scale.y > MaxPropScale ||
-		     data.Scale.z < MinPropScale || data.Scale.z > MaxPropScale )
+		// Validate scale bounds (epsilon-tolerant so UI-driven values that land a hair outside the
+		// exact boundary due to float imprecision, e.g. 0.3, aren't incorrectly rejected)
+		if ( data.Scale.x < MinPropScale - ScaleEpsilon || data.Scale.x > MaxPropScale + ScaleEpsilon ||
+		     data.Scale.y < MinPropScale - ScaleEpsilon || data.Scale.y > MaxPropScale + ScaleEpsilon ||
+		     data.Scale.z < MinPropScale - ScaleEpsilon || data.Scale.z > MaxPropScale + ScaleEpsilon )
 		{
 			return ConstructDataValidationResult.Failure( $"Scale values must be between {MinPropScale} and {MaxPropScale}" );
 		}
