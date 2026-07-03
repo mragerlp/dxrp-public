@@ -95,6 +95,55 @@
 						</div>
 						break;
 
+					case PartyTab.Browse:
+						<div class="pane browse-pane flex flex-col">
+							@{
+								var browseParties = BrowseParties().ToList();
+								var browsePlayers = BrowsePlayers().ToList();
+							}
+							<label class="section-label">#party.browse_parties_label</label>
+							@if ( browseParties.Count == 0 )
+							{
+								<label class="pane-hint">#party.browse_no_parties</label>
+							}
+							else
+							{
+								<div class="browse-list flex flex-col">
+									@foreach ( var browseRoom in browseParties )
+									{
+										<div class="browse-row flex flex-row items-center gap-2">
+											<div class="party-color-dot" style="background-color: @PartySystem.Instance?.GetPartyColor( browseRoom.Id ).Hex()"></div>
+											<label class="browse-name">@PartySystem.Instance?.GetPartyName( browseRoom.Id )</label>
+											<label class="browse-leader">@LeaderName( browseRoom )</label>
+											<div class="flex-grow"></div>
+											<label class="browse-count">@browseRoom.Count / @( PartySystem.Instance?.GetDesiredPartySize( browseRoom.Id ) ?? OperatorPartySizeCap )</label>
+										</div>
+									}
+								</div>
+							}
+
+							<label class="section-label">#party.browse_players_label</label>
+							@if ( browsePlayers.Count == 0 )
+							{
+								<label class="pane-hint">#party.browse_no_players</label>
+							}
+							else
+							{
+								<div class="browse-list flex flex-col">
+									@foreach ( var browsePlayer in browsePlayers )
+									{
+										<div class="browse-row flex flex-row items-center gap-2 @(IsSelf( browsePlayer.SteamId ) ? "self" : "")">
+											<div class="browse-avatar" style="background-image: url(avatar:@browsePlayer.SteamId)"></div>
+											<label class="browse-name">@browsePlayer.DisplayName</label>
+											<div class="flex-grow"></div>
+											<label class="browse-tag" style="color: @BrowsePartyTagColorHex( browsePlayer )">@BrowsePartyTag( browsePlayer )</label>
+										</div>
+									}
+								</div>
+							}
+						</div>
+						break;
+
 					case PartyTab.Leave:
 						<div class="pane leave-pane flex flex-col items-center justify-center">
 							@if ( isLeader )
@@ -260,6 +309,7 @@
 	{
 		Start,
 		Join,
+		Browse,
 		Party,
 		Settings,
 		Leave
@@ -272,14 +322,16 @@
 	{
 		(PartyTab.Start, "party.tab_start", "group_add"),
 		(PartyTab.Join, "party.tab_join", "login"),
+		(PartyTab.Browse, "party.tab_browse", "groups"),
 		(PartyTab.Party, "party.tab_party", "group"),
 		(PartyTab.Settings, "party.tab_settings", "palette"),
 		(PartyTab.Leave, "party.tab_leave", "logout"),
 	};
 
 	// Tabs shown depend on party state: partyless players see only Start/Join (create or accept), party
-	// members see the roster (Party) + Settings + Leave. The old Admin tab is gone — the leader's kick
-	// control renders inline on each other member's roster row.
+	// members see the roster (Party) + Settings + Leave. Browse is read-only info and always visible
+	// regardless of party state. The old Admin tab is gone — the leader's kick control renders inline
+	// on each other member's roster row.
 	private static IEnumerable<(PartyTab Section, string LabelKey, string Icon)> VisibleTabs( bool inParty, bool isLeader )
 	{
 		foreach ( var tab in AllTabs )
@@ -288,6 +340,7 @@
 			{
 				PartyTab.Start => !inParty,
 				PartyTab.Join => !inParty,
+				PartyTab.Browse => true,
 				PartyTab.Party => inParty,
 				PartyTab.Settings => inParty,
 				PartyTab.Leave => inParty,
@@ -576,6 +629,32 @@
 		return room.Members.Count > 0 ? room.Members[0].Name : string.Empty;
 	}
 
+	// ── Browse tab helpers (read-only; no join/kick actions live here) ────────────────────────────
+
+	private static IEnumerable<PartyRoom> BrowseParties() =>
+		PartySystem.Instance?.GetActiveParties() ?? Enumerable.Empty<PartyRoom>();
+
+	private static IEnumerable<Player> BrowsePlayers() =>
+		GameUtils.Players
+			.Where( p => p.IsValid() && p.IsConnected )
+			.OrderBy( p => p.DisplayName, StringComparer.OrdinalIgnoreCase );
+
+	private static string BrowsePartyTag( Player player )
+	{
+		var partyId = PartySystem.Instance?.GetPartyId( player.SteamId );
+		return partyId.HasValue
+			? PartySystem.Instance!.GetPartyName( partyId.Value )
+			: Language.GetPhrase( "party.browse_no_party_tag" );
+	}
+
+	private static string BrowsePartyTagColorHex( Player player )
+	{
+		var partyId = PartySystem.Instance?.GetPartyId( player.SteamId );
+		return partyId.HasValue
+			? PartySystem.Instance!.GetPartyColor( partyId.Value ).Hex()
+			: "#888888";
+	}
+
 	// The roster shows the FULL party including the local player; the leader's inline kick button is
 	// gated per-row to other members only (you can't kick yourself — use Leave/Disband).
 	private static IEnumerable<PartyMember> OrderedMembers( PartyRoom room ) =>
@@ -594,7 +673,7 @@
 		if ( inParty )
 		{
 			// Prefer current if still valid for this state; else fall back.
-			if ( _tab == PartyTab.Party || _tab == PartyTab.Leave || _tab == PartyTab.Settings )
+			if ( _tab == PartyTab.Party || _tab == PartyTab.Leave || _tab == PartyTab.Settings || _tab == PartyTab.Browse )
 			{
 				activeTabForHash = _tab;
 			}
@@ -605,7 +684,7 @@
 		}
 		else
 		{
-			activeTabForHash = ( _tab == PartyTab.Start || _tab == PartyTab.Join ) ? _tab : PartyTab.Start;
+			activeTabForHash = ( _tab == PartyTab.Start || _tab == PartyTab.Join || _tab == PartyTab.Browse ) ? _tab : PartyTab.Start;
 		}
 
 		var hash = new HashCode();
@@ -631,6 +710,23 @@
 			hash.Add( CurrentPartySize );
 			hash.Add( _colorDirty );
 			hash.Add( _colorHolder.Color.ToPacked() );
+		}
+
+		// Browse is read-only, but still needs to react live to parties forming/disbanding and
+		// players connecting/disconnecting while the tab is open.
+		if ( activeTabForHash == PartyTab.Browse )
+		{
+			foreach ( var browseRoom in BrowseParties() )
+			{
+				hash.Add( browseRoom.Id );
+				hash.Add( browseRoom.Count );
+			}
+
+			foreach ( var browsePlayer in BrowsePlayers() )
+			{
+				hash.Add( browsePlayer.SteamId );
+				hash.Add( BrowsePartyTag( browsePlayer ) );
+			}
 		}
 
 		if ( room is not null )

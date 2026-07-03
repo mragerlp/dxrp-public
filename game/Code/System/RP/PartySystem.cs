@@ -233,6 +233,20 @@ public sealed class PartySystem : SingletonComponent<PartySystem>, Component.INe
 		}
 	}
 
+	/// <summary>
+	/// Client-readable snapshot of every active party, for the /party menu "Browse" tab. Read-only —
+	/// built entirely from already-synced state, ordered by name then id for a stable display order.
+	/// </summary>
+	public IEnumerable<PartyRoom> GetActiveParties()
+	{
+		return Parties.Keys
+			.Select( GetRoomView )
+			.Where( room => room is not null )
+			.Select( room => room! )
+			.OrderBy( room => GetPartyName( room.Id ), StringComparer.OrdinalIgnoreCase )
+			.ThenBy( room => room.Id );
+	}
+
 	// ── Host mutations (invoked from PartyCommand.ExecuteHost, which already runs on the host) ──
 
 	/// <summary>Invite <paramref name="target"/> to the caller's party, auto-creating one if needed.</summary>
