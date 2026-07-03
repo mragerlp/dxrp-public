@@ -12,7 +12,7 @@
 	{
 		<div class="party-tag">
 			<i class="material-icons text-accent">group</i>
-			<span style="color: @PartyColorHex">#party.nameplate_tag</span>
+			<span style="color: @PartyColorHex">@PartyTagLabel</span>
 		</div>
 	}
 
@@ -107,6 +107,10 @@
 
 	private string PartyColorHex => PartyColorValue.Hex();
 
+	private string PartyTagLabel => PartySystem.Instance is { } party && Player.IsValid()
+		? party.GetPartyNameForMember( Player.SteamId )
+		: PartySystem.DefaultPartyName;
+
 	// When member outlines are on, skip the redundant PARTY chip — name/job nameplate stays visible.
 	private bool ShowPartyNameplateTag
 	{
@@ -117,14 +121,13 @@
 				return false;
 			}
 
-			var party = PartySystem.Instance;
-			if ( party is null || !Player.Local.IsValid() )
+			if ( !Player.Local.IsValid() )
 			{
 				return true;
 			}
 
-			var partyId = party.GetPartyId( Player.Local.SteamId );
-			return !partyId.HasValue || !party.IsMemberOutlineEnabled( partyId.Value );
+			var systemAllowsOutline = PartySystem.Instance?.Settings.AllowMemberOutline == true;
+			return !( systemAllowsOutline && PartyPreferences.MemberOutlineEnabled );
 		}
 	}
 	
@@ -203,6 +206,7 @@
 		var isPartyMember = IsPartyMember;
 		hash.Add( isPartyMember );
 		hash.Add( isPartyMember ? PartyColorValue : 0u );
+		hash.Add( isPartyMember ? PartyTagLabel : string.Empty );
 		hash.Add( ShowPartyNameplateTag );
 		return hash.ToHashCode();
 	}

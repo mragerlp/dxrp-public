@@ -1,4 +1,5 @@
 using System.Globalization;
+using Dxura.RP.Game;
 using Dxura.RP.Game.UI;
 using Dxura.RP.Shared;
 
@@ -25,6 +26,16 @@ public class PartyCommand : ICommand
 	/// </summary>
 	public bool ExecuteLocal( string[] args, string raw )
 	{
+		if ( args.Length > 0 && args[0].Equals( "outline", StringComparison.OrdinalIgnoreCase ) )
+		{
+			if ( args.Length >= 2 && TryParseOnOff( args[1], out var enabled ) )
+			{
+				PartyPreferences.SetMemberOutlineEnabled( enabled );
+			}
+
+			return true;
+		}
+
 		if ( args.Length == 0 || args[0].Equals( "menu", StringComparison.OrdinalIgnoreCase ) )
 		{
 			PartyMenu.Toggle();
@@ -119,19 +130,7 @@ public class PartyCommand : ICommand
 				return true;
 
 			case "outline":
-				if ( args.Length < 2 )
-				{
-					caller.SendMessage( Language.GetPhrase( "party.outline_usage" ) );
-					return true;
-				}
-
-				if ( !TryParseOnOff( args[1], out var outlineEnabled ) )
-				{
-					caller.Error( Language.GetPhrase( "party.outline_invalid" ) );
-					return true;
-				}
-
-				system.HostSetMemberOutline( caller, outlineEnabled );
+				// /party outline is a per-member local preference handled client-side in ExecuteLocal.
 				return true;
 
 			default:

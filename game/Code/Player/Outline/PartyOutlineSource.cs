@@ -8,7 +8,7 @@ public sealed class PartyOutlineSource : IPlayerOutlineSource
 	public PlayerOutlineRequest? GetOutlineRequest( Player viewer, Player target )
 	{
 		var party = PartySystem.Instance;
-		if ( party is null || !party.Settings.AllowMemberOutline )
+		if ( party is null || !party.Settings.AllowMemberOutline || !PartyPreferences.MemberOutlineEnabled )
 		{
 			return null;
 		}
@@ -21,7 +21,7 @@ public sealed class PartyOutlineSource : IPlayerOutlineSource
 				continue;
 			}
 
-			if ( !members.Contains( target.SteamId ) || !kv.Value.MemberOutlineEnabled )
+			if ( !members.Contains( target.SteamId ) )
 			{
 				return null;
 			}

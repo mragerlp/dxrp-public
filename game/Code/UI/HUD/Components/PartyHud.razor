@@ -25,7 +25,7 @@
 		<HandleContent>
 			<div class="party-header-content flex flex-row items-center">
 				<i class="material-icons party-header-icon" style="color: @AccentHex">group</i>
-				<label class="party-header-title">#party.hud_title</label>
+				<label class="party-header-title">@PartyHeaderLabel</label>
 				<div class="flex-grow"></div>
 				<button class="party-header-toggle"
 				        tooltip="@Language.GetPhrase( _collapsed ? "party.hud_expand" : "party.hud_collapse" )"
@@ -58,6 +58,10 @@
 		: PartySystem.DefaultPartyColor;
 
 	private string AccentHex => AccentColor.Hex();
+
+	private string PartyHeaderLabel => PartySystem.Instance is { } system && Player.Local.IsValid()
+		? system.GetPartyNameForMember( Player.Local.SteamId )
+		: PartySystem.DefaultPartyName;
 
 	/// <summary>Client-side toggle to minimize the always-on roster. Restored from the /party menu.</summary>
 	public static bool Hidden { get; set; }
