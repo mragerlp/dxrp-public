@@ -147,6 +147,13 @@ PartyMenu {
     text-align: center;
   }
 
+  .settings-pane {
+    .pane-hint {
+      font-size: 11px;
+      text-align: center;
+    }
+  }
+
   .pane-note {
     font-size: 12px;
     color: $color-gray-400;
@@ -193,6 +200,67 @@ PartyMenu {
       font-weight: 600;
       color: $color-white;
     }
+  }
+
+  // ── Browse (read-only parties + online players) ─────────────────────────────────────────────
+  .browse-pane {
+    gap: 6px;
+    overflow-y: scroll;
+  }
+
+  .browse-list {
+    gap: 4px;
+    margin-bottom: 6px;
+  }
+
+  .browse-row {
+    background-color: rgba(white, 0.05);
+    border-radius: $rounding;
+    padding: 6px 10px;
+
+    &.self {
+      background-color: rgba($color-accent, 0.08);
+    }
+  }
+
+  .party-color-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+  }
+
+  .browse-avatar {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    background-size: cover;
+    background-position: center;
+    flex-shrink: 0;
+  }
+
+  .browse-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: $color-white;
+  }
+
+  .browse-leader {
+    font-size: 11px;
+    color: $color-gray-400;
+  }
+
+  .browse-count {
+    font-size: 12px;
+    font-weight: 600;
+    color: $color-tertiary;
+  }
+
+  .browse-tag {
+    font-size: 11px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
   }
 
   // ── Buttons ──────────────────────────────────────────────────────────────────────────────────
@@ -306,6 +374,29 @@ PartyMenu {
     margin-top: 4px;
   }
 
+  .settings-apply-row {
+    width: 100%;
+
+    .primary-btn {
+      margin-left: auto;
+    }
+  }
+
+  .size-control-block {
+    flex-grow: 1;
+    min-width: 0;
+    margin-top: 4px;
+    margin-bottom: 8px;
+    padding: 8px 10px;
+    border-radius: $rounding;
+    background-color: rgba(black, 0.2);
+    pointer-events: all;
+
+    &:hover {
+      background-color: rgba(black, 0.28);
+    }
+  }
+
   .color-preview {
     width: 28px;
     height: 28px;
@@ -377,6 +468,18 @@ PartyMenu {
 
       &:hover {
         background-color: rgba($color-bad, 0.18);
+      }
+    }
+
+    &.size-step {
+      background-color: rgba($color-accent, 0.14);
+
+      i {
+        color: $color-accent;
+      }
+
+      &:hover {
+        background-color: rgba($color-accent, 0.24);
       }
     }
   }
