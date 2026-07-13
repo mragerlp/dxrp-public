@@ -75,6 +75,7 @@ public enum GateType
 	Substring = 502,
 	ToUpper = 503,
 	ToLower = 504,
+	Contains = 505,
 
 	// Time functions (600-699)
 	Time = 600,

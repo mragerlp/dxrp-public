@@ -717,6 +717,7 @@
   "gatetype.substring": "Подстрока",
   "gatetype.toupper": "В ВЕРХНИЙ РЕГИСТР",
   "gatetype.tolower": "в нижний регистр",
+  "gatetype.contains": "Содержит (A содержит B)",
   "gatetype.time": "Текущее время",
   "gatetype.deltatime": "Дельта времени",
   "gatetype.vector2": "Вектор2 (A, B)",

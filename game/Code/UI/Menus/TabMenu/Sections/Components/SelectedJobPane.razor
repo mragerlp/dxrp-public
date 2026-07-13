@@ -22,6 +22,7 @@
 	                          && !prerequisiteJobs.Any( p => p.Id == Player.Local.Job?.Id )
 	                          && !isCurrentJob;
 	var canChange = !isCurrentJob && Job.Selectable && !needsMorePlayTime && !missingPrerequisite && !isFull;
+	var displayedSalary = (uint)(Job.Salary * GameManager.Instance.SalaryMultiplier);
 	var loadout = GetDisplayLoadout( Job ).ToList();
 	var visibleLoadout = loadout.Take( MaxVisibleLoadoutIcons ).ToList();
 	var hiddenLoadoutCount = loadout.Count - visibleLoadout.Count;
@@ -43,7 +44,7 @@
 				<div class="job-detail-stats">
 					<div class="stat-chip salary">
 						<i class="material-icons">payments</i>
-						<span>$@( Job.Salary.ToString( "N0" ) )/hr</span>
+						<span>$@( displayedSalary.ToString( "N0" ) )/hr</span>
 					</div>
 					<div class="stat-chip player-count @( isFull ? "full" : "" )">
 						<i class="material-icons">group</i>

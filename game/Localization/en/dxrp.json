@@ -819,6 +819,7 @@
   "gatetype.substring": "Substring (extract from A at index B, length C → Out)",
   "gatetype.toupper": "To Upper (upper(A) → Out)",
   "gatetype.tolower": "To Lower (lower(A) → Out)",
+  "gatetype.contains": "Contains (A contains B → Out)",
   "gatetype.time": "Time (current time → Out)",
   "gatetype.deltatime": "Delta Time (frame time → Out)",
   "gatetype.vector2": "Vector2 ( (A, B) → Out )",

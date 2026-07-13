@@ -717,6 +717,7 @@
   "gatetype.substring": "Podtekst (wyciąg z A od indeksu B, długość C → Wyj)",
   "gatetype.toupper": "Wielkie litery (upper(A) → Wyj)",
   "gatetype.tolower": "Małe litery (lower(A) → Wyj)",
+  "gatetype.contains": "Zawiera (A zawiera B → Wyj)",
   "gatetype.time": "Czas (aktualny czas → Wyj)",
   "gatetype.deltatime": "Czas klatki (czas klatki → Wyj)",
   "gatetype.vector2": "Wektor2 ( (A, B) → Wyj )",

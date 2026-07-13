@@ -105,7 +105,7 @@ public partial class Player
 	private bool ApplyGovernanceDamageMultipliers( ref DamageInfo damageInfo )
 	{
 		var attackerPlayer = GameUtils.GetPlayerFromComponent( damageInfo.Attacker );
-		if ( !attackerPlayer.IsValid() )
+		if ( !attackerPlayer.IsValid() || attackerPlayer == this )
 		{
 			return false;
 		}

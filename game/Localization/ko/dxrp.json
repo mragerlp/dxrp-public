@@ -717,6 +717,7 @@
   "gatetype.substring": "부분 문자열 (A에서 B 위치부터 C 길이 추출 → 출력)",
   "gatetype.toupper": "대문자 변환 (upper(A) → 출력)",
   "gatetype.tolower": "소문자 변환 (lower(A) → 출력)",
+  "gatetype.contains": "포함 (A에 B 포함 → 출력)",
   "gatetype.time": "현재 시간 (time → 출력)",
   "gatetype.deltatime": "프레임 시간 (delta time → 출력)",
   "gatetype.vector2": "벡터2 (A, B → 출력)",

@@ -43,6 +43,22 @@ public class GateWire() : BaseWireConstruct( ConstructType.GateWire ), IWireEven
 		_data = newData as GateWireData ?? new GateWireData();
 	}
 
+	public override IEnumerable<WirePort> GetInputPorts()
+	{
+		var inputCount = GetOperandInputCount( _data.Type );
+
+		return base.GetInputPorts().Where( port => port.Id switch
+		{
+			"a" => inputCount >= 1,
+			"b" => inputCount >= 2,
+			"c" => inputCount >= 3,
+			"d" => inputCount >= 4,
+			"e" => inputCount >= 5,
+			"process" => true,
+			_ => false
+		} );
+	}
+
 	protected override void OnStart()
 	{
 		base.OnStart();
@@ -190,6 +206,9 @@ public class GateWire() : BaseWireConstruct( ConstructType.GateWire ), IWireEven
 			GateType.Substring => ProcessSubstring( strA, numB, numC ),
 			GateType.ToUpper => strA.ToUpper(),
 			GateType.ToLower => strA.ToLower(),
+			GateType.Contains => strA.Contains( strB, StringComparison.Ordinal )
+				? GateWireDefinition.GateLogicHigh
+				: GateWireDefinition.GateLogicLow,
 
 			// Time functions
 			GateType.Time => Time.Now,
@@ -242,6 +261,32 @@ public class GateWire() : BaseWireConstruct( ConstructType.GateWire ), IWireEven
 			bool b => b ? 1f : 0f,
 			string s when float.TryParse( s, out var f ) => f,
 			_ => 0f
+		};
+	}
+
+	private static int GetOperandInputCount( GateType type )
+	{
+		return type switch
+		{
+			GateType.And or GateType.Or or GateType.Nand or GateType.Nor or
+			GateType.Add or GateType.Subtract or GateType.Concat => 5,
+
+			GateType.If or GateType.Clamp or GateType.Lerp or GateType.Select or
+			GateType.Substring or GateType.Vector3 => 3,
+
+			GateType.Xor or GateType.Multiply or GateType.Divide or GateType.Modulo or
+			GateType.Power or GateType.Min or GateType.Max or GateType.Equal or
+			GateType.NotEqual or GateType.GreaterThan or GateType.LessThan or
+			GateType.GreaterEqual or GateType.LessEqual or GateType.Random or
+			GateType.Round or GateType.Threshold or GateType.Latch or GateType.Contains or
+			GateType.Vector2 or GateType.VectorGet => 2,
+
+			GateType.Not or GateType.Abs or GateType.Floor or GateType.Ceiling or
+			GateType.Sin or GateType.Cos or GateType.Tan or GateType.Sqrt or GateType.Log or
+			GateType.Invert or GateType.Length or GateType.ToUpper or GateType.ToLower => 1,
+
+			GateType.Time or GateType.DeltaTime => 0,
+			_ => 5
 		};
 	}
 

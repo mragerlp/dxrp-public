@@ -160,7 +160,7 @@
 		}
 
 		return HashCode.Combine(
-			HashCode.Combine( GameModeJobs.All, (int)(Player.Local.PlayTime / 60f), Player.Local.Job, IgnoreJobRequirements, _selectedJob?.Id, collapsedHash, BuildJobOccupancyHash() ),
+			HashCode.Combine( GameModeJobs.All, (int)(Player.Local.PlayTime / 60f), Player.Local.Job, IgnoreJobRequirements, _selectedJob?.Id, collapsedHash, BuildJobOccupancyHash(), GameManager.Instance.SalaryMultiplier ),
 			_searchQuery,
 			_showLockedJobs );
 	}

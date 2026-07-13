@@ -717,6 +717,7 @@
   "gatetype.substring": "Sous-chaîne (A à l'index B, longueur C → Out)",
   "gatetype.toupper": "Majuscules (upper(A) → Out)",
   "gatetype.tolower": "Minuscules (lower(A) → Out)",
+  "gatetype.contains": "Contient (A contient B → Out)",
   "gatetype.time": "Temps (temps actuel → Out)",
   "gatetype.deltatime": "Delta Time (temps par frame → Out)",
   "gatetype.vector2": "Vecteur2 ( (A, B) → Out )",
