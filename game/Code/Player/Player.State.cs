@@ -208,7 +208,7 @@ public partial class Player : IDescription
 	{
 		Assert.True( Networking.IsHost );
 
-		if ( !job.IsValid() || Job == job )
+		if ( !job.IsValid() || Job.IsSameJob( job ) )
 		{
 			return;
 		}

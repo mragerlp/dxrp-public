@@ -1,0 +1,6 @@
+[
+  { "section": "player", "title": "Player", "icon": "pi pi-play" },
+  { "section": "operators", "title": "Operators", "icon": "pi pi-server" },
+  { "section": "developers", "title": "Developers", "icon": "pi pi-code" },
+  { "section": "api", "title": "API", "icon": "pi pi-key" }
+]

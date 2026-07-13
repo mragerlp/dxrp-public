@@ -6,7 +6,7 @@
     "Name": "elevator",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
-    "Scale": "-3.211698,-3.831641,0.09999951",
+    "Scale": "-3.21169806,-3.83164096,0.0999995098",
     "Tags": "map",
     "Enabled": true,
     "NetworkMode": 1,
@@ -27,7 +27,7 @@
         "OnComponentStart": null,
         "OnComponentUpdate": null,
         "Speed": 50,
-        "TopPosition": "-80.40446,1679.508,669.224",
+        "TopPosition": "-80.4044571,1679.50806,669.223999",
         "WaitPeriod": 4
       },
       {
@@ -100,7 +100,9 @@
         "AgentStepSize": 18,
         "AgentMaxSlope": 40,
         "ExcludedBodies": "",
-        "IncludedBodies": ""
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
       }
     },
     "__variables": [
@@ -151,6 +153,7 @@
   "MenuIcon": null,
   "DontBreakAsTemplate": false,
   "__references": [
+    "facepunch.carpet_b#85498"
   ],
   "__version": 2
 }

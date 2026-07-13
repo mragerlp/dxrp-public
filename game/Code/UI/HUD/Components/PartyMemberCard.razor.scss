@@ -13,7 +13,8 @@ PartyMemberCard {
   border-radius: $rounding;
   transition: opacity 0.15s ease;
 
-  &.dead {
+  &.dead,
+  &.disconnected {
     opacity: 0.5;
   }
 
@@ -35,6 +36,11 @@ PartyMemberCard {
   }
 
   .leader-star {
+    font-size: 12px;
+  }
+
+  .disconnected-icon {
+    color: $color-gray-400;
     font-size: 12px;
   }
 

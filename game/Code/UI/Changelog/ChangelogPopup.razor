@@ -1,0 +1,16 @@
+@namespace Dxura.RP.Game.UI
+@inherits PanelComponent
+
+@attribute [StyleSheet]
+
+<root>
+	<div class="changelog-panel">
+		<div class="changelog-header">
+			<span class="changelog-title">Changelog</span>
+			<div class="close-button" @onclick="@Close">
+				<i class="material-icons">close</i>
+			</div>
+		</div>
+		<WebPanel class="web-panel" Url="@Url"/>
+	</div>
+</root>

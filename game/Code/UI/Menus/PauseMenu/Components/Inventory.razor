@@ -39,6 +39,7 @@
 
 			var grouped = filtered
 				.OrderBy( x => x.Definition.Type )
+				.ThenByDescending( x => IsRaritySorted( x.Definition.Type ) ? (int)x.Definition.Rarity : 0 )
 				.ThenBy( x => GetDisplayName( x.Definition.Name ) )
 				.GroupBy( x => GetTypeLabel( x.Definition.Type ) )
 				.OrderBy( g => g.Key );
@@ -348,6 +349,8 @@
 		_cachedItems = items.ToList();
 		_cacheUpdatedAt = DateTime.UtcNow;
 	}
+
+	private static bool IsRaritySorted( ItemType type ) => type is ItemType.Title or ItemType.Emote;
 
 	private static string GetTypeLabel( ItemType type ) => type switch
 	{

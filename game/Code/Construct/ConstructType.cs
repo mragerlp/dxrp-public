@@ -29,5 +29,6 @@ public enum ConstructType
 	TargetWire = 1016,
 	SynthesizerWire = 1017,
 	MetaWire = 1018,
-	PressurePlateWire = 1019
+	PressurePlateWire = 1019,
+	ArrayWire = 1020
 }

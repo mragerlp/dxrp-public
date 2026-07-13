@@ -29,7 +29,37 @@ JobTabMenuSection {
     flex-shrink: 1;
     min-height: 0;
     border-right: 1px solid rgba(white, 0.06);
-    background-color: rgba($color-secondary, 0.5);
+  }
+
+  .job-search-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-2;
+    margin: $space-4 $space-5 $space-3;
+    flex-shrink: 0;
+  }
+
+  .job-lock-toggle {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    padding: 0 $space-4;
+    height: 30px;
+    flex-shrink: 0;
+    background-color: $color-primary;
+    border-radius: $space-3;
+    border: 1px solid transparent;
+    cursor: pointer;
+    font-size: $text-sm;
+    color: $color-gray-400;
+    transition: all 0.15s ease;
+
+    i { font-size: $text-lg; }
+
+    &:hover {
+      color: $color-tertiary;
+    }
   }
 
   .job-list-scroll {
@@ -41,7 +71,7 @@ JobTabMenuSection {
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding: $space-4;
+    padding: 0 $space-5 $space-4;
   }
 
   .job-group {
@@ -139,6 +169,17 @@ JobTabMenuSection {
       border-color: rgba($color-accent, 0.35);
     }
 
+    &.locked {
+      opacity: 0.55;
+
+      .job-card-name {
+        color: $color-gray-400;
+      }
+
+      &.selected {
+        border-color: rgba(#e04c4c, 0.4);
+      }
+    }
 
     JobSlotRing .ring-center {
       background-color: $color-primary;
@@ -214,6 +255,18 @@ JobTabMenuSection {
     overflow: hidden;
     text-overflow: ellipsis;
     min-width: 0;
+  }
+
+  .job-card-lock {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+
+    i {
+      font-size: $text-lg;
+      color: rgba(#e04c4c, 0.8);
+    }
   }
 
   .job-card-slots {

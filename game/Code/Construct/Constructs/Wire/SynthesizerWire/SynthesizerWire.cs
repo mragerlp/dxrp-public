@@ -29,7 +29,7 @@ public class SynthesizerWire() : BaseWireConstruct( ConstructType.SynthesizerWir
 			}
 
 			// Store the text for later playback
-			_lastText = value;
+			_lastText = value.Length > Chat.TtsMaxLength ? value[..Chat.TtsMaxLength] : value;
 
 			// Autoplay if enabled
 			if ( _data.AutoPlay )

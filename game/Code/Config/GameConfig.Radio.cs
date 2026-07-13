@@ -7,10 +7,11 @@ public abstract partial class GameConfig
 	[
 		"Smooth Jazz|https://ais-edge89-dal02.cdnstream.com/2124_128.mp3",
 		"Dance FM|https://broadcast.dancefmlive.com/radio/8010/radio.mp3",
-		"Oldies 103 FM|https://das-edge14-live365-dal02.cdnstream.com/a88248",
-		"Radio Paradise|https://stream-dc1.radioparadise.com/mp3-128",
-		"90's HipHop|https://streams.90s90s.de/hiphop/mp3-192/streams.90s90s.de/",
-		"EDM Hits|http://geostream.cdn.shoutdrive.com/sd-mp3",
-		"Fox News|https://live.amperwave.net/direct/foxnewsradio-foxnewsradioaac-imc",
+		"Fox News|https://tunein.cdnstream1.com/2869_96_nn.mp3",
+		"NPR News|https://npr-ice.streamguys1.com/live.mp3",
+		"Groove Salad|https://ice1.somafm.com/groovesalad-128-mp3",
+		"Seventies|https://ice2.somafm.com/seventies-128-mp3",
+		"Underground 80s|https://ice1.somafm.com/u80s-128-mp3",
+		"PopTron|https://ice4.somafm.com/poptron-128-mp3",
 	];
 }

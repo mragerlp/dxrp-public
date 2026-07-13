@@ -925,9 +925,53 @@ $text-6xl: 50px;
   color: rgba($color-white, 0.5);
   pointer-events: none;
   cursor: not-allowed;
-  
+
   &:hover {
     transform: none;
+  }
+}
+
+.tabmenu-search-bar {
+  display: flex;
+  align-items: center;
+  gap: $space-1;
+  padding: 0 $space-2;
+  background-color: $color-secondary;
+  border-radius: $space-1;
+  width: 240px;
+  height: 30px;
+  flex-shrink: 0;
+
+  .tabmenu-search-input {
+    flex: 1;
+    background-color: transparent;
+    color: white;
+    font-size: $text-sm;
+    border: none;
+    outline: none;
+    border-radius: 0;
+    box-shadow: none;
+    transition: none;
+
+    &:hover,
+    &:focus,
+    &.is-focused {
+      box-shadow: none;
+    }
+
+    .inner {
+      padding: 0;
+    }
+  }
+
+  .tabmenu-search-clear {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    &:hover {
+      color: white;
+    }
   }
 }
 

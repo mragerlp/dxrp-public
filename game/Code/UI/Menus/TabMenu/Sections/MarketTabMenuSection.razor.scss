@@ -1,7 +1,7 @@
 @import "../../../styles.scss";
 
 MarketTabMenuSection {
-  padding: $space-3 $space-5;
+  padding: $space-4 $space-5;
   display: flex;
   width: 100%;
   height: 100%;
@@ -21,24 +21,23 @@ MarketTabMenuSection {
   .market-toolbar {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: $space-2;
     margin-bottom: $space-3;
-    background-color: rgba($color-secondary, 0.6);
+    padding: 0;
+    background-color: transparent;
     border-bottom: none;
-    border-radius: $space-1;
   }
 
-  .market-toolbar-actions {
-    display: flex;
-    align-items: center;
-    gap: $space-2;
+  .tabmenu-search-bar {
+    margin-right: auto;
   }
 
   .lock-toggle {
     display: flex;
     align-items: center;
     gap: $space-2;
-    padding: $space-2 $space-4;
+    padding: 0 $space-4;
+    height: 30px;
     background-color: $color-primary;
     border-radius: $space-3;
     border: 1px solid transparent;

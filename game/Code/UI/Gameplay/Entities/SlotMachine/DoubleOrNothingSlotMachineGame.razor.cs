@@ -8,7 +8,8 @@ public partial class DoubleOrNothingSlotMachineGame : BaseSlotMachineGame
 	{
 		Idle,
 		Revealing,
-		Result
+		Result,
+		CashingOut
 	}
 
 	/// <summary>
@@ -250,6 +251,8 @@ public partial class DoubleOrNothingSlotMachineGame : BaseSlotMachineGame
 			return;
 		}
 
+		CurrentState = GameState.CashingOut;
+
 		_ = CashOutAsync();
 	}
 
@@ -257,6 +260,7 @@ public partial class DoubleOrNothingSlotMachineGame : BaseSlotMachineGame
 	{
 		if ( !CurrentPlayer.IsValid() )
 		{
+			ResetGame();
 			return;
 		}
 
@@ -264,7 +268,16 @@ public partial class DoubleOrNothingSlotMachineGame : BaseSlotMachineGame
 		var player = CurrentPlayer;
 
 		// Give player their winnings
-		await PayPlayer( player, winnings, "Double or Nothing winnings" );
+		var success = await PayPlayer( player, winnings, "Double or Nothing winnings" );
+
+		if ( !success )
+		{
+			// Payout failed - let the player retry instead of losing their winnings.
+			CurrentState = GameState.Result;
+			return;
+		}
+
+		_ = ServerApiClient.Audit( "SlotMachineCashOut", $"{player.SteamName} ({player.SteamId}) cashed out ${winnings:N0} from Double or Nothing (multiplier: x{CurrentMultiplier})", player.SteamId );
 
 		// Reset the game
 		ResetGame();
@@ -277,7 +290,13 @@ public partial class DoubleOrNothingSlotMachineGame : BaseSlotMachineGame
 	private void ResetGameHost()
 	{
 		var callerId = Rpc.CallerId;
-		
+
+		// Never allow a reset while a cash-out payout is in flight
+		if ( CurrentState == GameState.CashingOut )
+		{
+			return;
+		}
+
 		// Only allow reset when in result state (after loss) or by the current player
 		if ( CurrentState == GameState.Result && !IsWin )
 		{

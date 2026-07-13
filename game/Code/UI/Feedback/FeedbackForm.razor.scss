@@ -1,0 +1,155 @@
+@import "../styles.scss";
+
+FeedbackForm {
+  .feedback-container {
+    width: 34vw;
+    display: flex;
+    flex-direction: column;
+    background-color: $color-secondary;
+    border-radius: $space-2;
+    box-shadow: 0 8px 40px rgba(black, 0.6);
+    overflow: hidden;
+  }
+
+  .feedback-header {
+    padding: $space-4 $space-5;
+    background-color: rgba(black, 0.2);
+    flex-shrink: 0;
+  }
+
+  .feedback-title {
+    font-size: $text-2xl;
+    font-weight: bold;
+    color: $color-white;
+  }
+
+  .feedback-close {
+    color: $color-gray-400;
+    cursor: pointer;
+    transition: color 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      color: $color-white;
+      transform: scale(1.1);
+    }
+  }
+
+  .feedback-body {
+    padding: $space-5;
+  }
+
+  .feedback-type-pill {
+    display: flex;
+    align-items: center;
+    gap: $space-1;
+    padding: $space-2 $space-3;
+    border-radius: $space-1;
+    background-color: rgba(black, 0.25);
+    color: $color-gray-400;
+    cursor: pointer;
+    transition: background-color 0.15s ease, color 0.15s ease, transform 0.15s ease;
+
+    &:hover {
+      color: $color-white;
+      transform: scale(1.03);
+    }
+
+    &.active {
+      background-color: rgba($color-accent, 0.3);
+      color: $color-white;
+    }
+  }
+
+  .feedback-input {
+    width: 100%;
+    background-color: rgba(black, 0.25);
+  }
+
+  .feedback-description {
+    height: 140px;
+    align-items: flex-start;
+    padding-top: $space-2;
+    overflow-y: scroll;
+  }
+
+  .feedback-disclosure {
+    padding: $space-2 $space-3;
+    border-radius: $space-1;
+    background-color: rgba(black, 0.2);
+    color: $color-gray-400;
+    font-size: $text-xs;
+
+    i {
+      font-size: $text-base;
+    }
+  }
+
+  .feedback-checkbox {
+    color: $color-gray-400;
+    font-size: $text-sm;
+    cursor: pointer;
+    transition: color 0.15s ease;
+
+    i {
+      font-size: $text-lg;
+    }
+
+    &:hover {
+      color: $color-white;
+    }
+  }
+
+  .feedback-status {
+    padding: $space-3;
+    border-radius: $space-1;
+    font-size: $text-sm;
+    font-weight: 600;
+
+    i {
+      font-size: $text-lg;
+    }
+
+    &.success {
+      background-color: rgba($color-good, 0.12);
+      color: $color-good;
+    }
+
+    &.warn {
+      background-color: rgba(255, 204, 0, 0.1);
+      color: #ffcc00;
+    }
+
+    &.error {
+      background-color: rgba($color-bad, 0.12);
+      color: $color-bad;
+    }
+  }
+
+  .feedback-issue-link {
+    padding: $space-2 $space-3;
+    border-radius: $space-1;
+    background-color: rgba(black, 0.2);
+    color: $color-gray-400;
+    font-size: $text-xs;
+
+    i {
+      font-size: $text-base;
+    }
+  }
+
+  .feedback-copy {
+    cursor: pointer;
+    color: $color-accent;
+    transition: transform 0.15s ease;
+    flex-shrink: 0;
+
+    &:hover {
+      transform: scale(1.15);
+    }
+  }
+
+  .feedback-footer {
+    padding: $space-4 $space-5;
+    background-color: rgba(black, 0.15);
+  }
+}

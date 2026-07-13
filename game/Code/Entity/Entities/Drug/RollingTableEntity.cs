@@ -1,5 +1,15 @@
 ﻿namespace Dxura.RP.Game.Entities;
 
+public sealed class RollingTableEntityConfig
+{
+	public float AutoProcessInterval { get; init; } = 30f;
+	public uint AutoProcessCost { get; init; } = 2000;
+	public uint UnprocessedWeedCapacity { get; init; } = 6;
+	public uint ProcessedWeedCapacity { get; init; } = 6;
+	public uint JointOutputCount { get; init; } = 3;
+	public uint BundleOutputCount { get; init; } = 1;
+}
+
 [Title( "Rolling Table" )]
 [Category( "Entities" )]
 public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameEvents
@@ -16,8 +26,7 @@ public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameE
 	[Sync( SyncFlags.FromHost )]
 	public TimeUntil? AutoProcessTime { get; set; }
 
-	public const float AutoProcessInterval = 30f;
-	public const uint AutoProcessCost = 2000;
+	public RollingTableEntityConfig RollingTableConfig { get; private set; } = new();
 
 	[Property]
 	public required GameObject JointGameObject { get; set; }
@@ -30,6 +39,13 @@ public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameE
 
 	private readonly object _makeLock = new();
 
+	protected override void OnStart()
+	{
+		base.OnStart();
+
+		RollingTableConfig = GetConfig( new RollingTableEntityConfig() );
+	}
+
 	[Rpc.Host]
 	public void OnProcess()
 	{
@@ -41,7 +57,7 @@ public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameE
 
 		lock ( _makeLock )
 		{
-			if ( UnprocessedWeed == 0 || ProcessedWeed >= 6 )
+			if ( UnprocessedWeed == 0 || ProcessedWeed >= RollingTableConfig.ProcessedWeedCapacity )
 			{
 				return;
 			}
@@ -78,9 +94,9 @@ public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameE
 			ProcessedWeed--;
 
 			var spawnGameObject = isJoint ? JointGameObject : PackedGameObject;
-			var count = isJoint ? 3 : 1;
+			var count = isJoint ? RollingTableConfig.JointOutputCount : RollingTableConfig.BundleOutputCount;
 
-			for ( var i = 0; i < count; i++ )
+			for ( var i = 0u; i < count; i++ )
 			{
 				var toSpawn = spawnGameObject.Clone();
 
@@ -112,7 +128,7 @@ public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameE
 
 		lock ( _makeLock )
 		{
-			if ( weed.IsValid() && weed.Dried && UnprocessedWeed < 6 )
+			if ( weed.IsValid() && weed.Dried && UnprocessedWeed < RollingTableConfig.UnprocessedWeedCapacity )
 			{
 				weed.GameObject.Destroy();
 				UnprocessedWeed++;
@@ -141,12 +157,12 @@ public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameE
 		}
 
 		// Charge the player for auto-plucking
-		if ( !await player.ChargeHost( AutoProcessCost, "Auto Processing (Rolling table)" ) )
+		if ( !await player.ChargeHost( RollingTableConfig.AutoProcessCost, "Auto Processing (Rolling table)" ) )
 		{
 			return;
 		}
 
-		AutoProcessTime = AutoProcessInterval;
+		AutoProcessTime = MathF.Max( 1f, RollingTableConfig.AutoProcessInterval );
 		GameManager.Instance.PurchaseSound.BroadcastHost( WorldPosition );
 	}
 
@@ -161,7 +177,7 @@ public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameE
 		{
 			lock ( _makeLock )
 			{
-				if ( UnprocessedWeed > 0 && ProcessedWeed < 6 )
+				if ( UnprocessedWeed > 0 && ProcessedWeed < RollingTableConfig.ProcessedWeedCapacity )
 				{
 					UnprocessedWeed--;
 					ProcessedWeed++;
@@ -169,7 +185,7 @@ public class RollingTableEntity : BaseEntity, Component.ITriggerListener, IGameE
 				}
 			}
 
-			AutoProcessTime = AutoProcessInterval;
+			AutoProcessTime = MathF.Max( 1f, RollingTableConfig.AutoProcessInterval );
 		}
 	}
 

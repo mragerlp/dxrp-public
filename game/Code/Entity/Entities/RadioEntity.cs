@@ -41,6 +41,8 @@ public sealed class RadioEntity : BaseEntity, IOcclusionEvents
 	private bool _hasInitializedLocalPlaybackState;
 	private bool _occluded;
 	private float _currentPop;
+	private Vector3 _baseModelScale = Vector3.One;
+	private GameObject? _scaleSourceModel;
 	
 	public bool CanControl => Player.Local.IsValid() && GameUtils.HasPermission( Player.Local.SteamId, GameObject, false );
 	public bool ShouldShowWorldPanel => !_occluded && IsLocalPlayerWithinDistance();
@@ -93,6 +95,7 @@ public sealed class RadioEntity : BaseEntity, IOcclusionEvents
 		base.OnStart();
 
 		InitializePlaybackState();
+		CaptureBaseModelScale();
 		
 		if ( ShouldHavePlayback() )
 		{
@@ -143,10 +146,11 @@ public sealed class RadioEntity : BaseEntity, IOcclusionEvents
 		// Pop scale to the beat
 		if ( Model.IsValid() )
 		{
+			CaptureBaseModelScale();
 			var amplitude = _musicPlayer.Amplitude;
 			var target = amplitude > PopThreshold ? ( amplitude - PopThreshold ) * PopAmplitude : 0f;
 			_currentPop = _currentPop.LerpTo( target, Time.Delta * PopSmoothing );
-			Model.LocalScale = Vector3.One * ( 1f + _currentPop );
+			Model.LocalScale = _baseModelScale * ( 1f + _currentPop );
 		}
 	}
 
@@ -221,7 +225,22 @@ public sealed class RadioEntity : BaseEntity, IOcclusionEvents
 		
 		if ( Model.IsValid() )
 		{
-			Model.LocalScale = Vector3.One;
+			CaptureBaseModelScale();
+			Model.LocalScale = _baseModelScale;
+		}
+	}
+
+	private void CaptureBaseModelScale()
+	{
+		if ( !Model.IsValid() )
+		{
+			return;
+		}
+
+		if ( _scaleSourceModel != Model )
+		{
+			_scaleSourceModel = Model;
+			_baseModelScale = Model.LocalScale;
 		}
 	}
 
@@ -285,6 +304,11 @@ public sealed class RadioEntity : BaseEntity, IOcclusionEvents
 	public void TogglePlayLocal()
 	{
 		IsPlaying = !IsPlaying;
+	}
+
+	public override bool CanScale( Player player )
+	{
+		return player.IsValid() && GameUtils.HasPermission( player.SteamId, GameObject, false );
 	}
 
 	private void SyncUiVisibility()

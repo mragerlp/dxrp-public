@@ -4,154 +4,203 @@
 @page "/tabmenu/faction/browse"
 
 <root>
-@if ( !FactionSystem.Instance.IsValid() )
+@if ( !FactionSystem.Instance.IsValid() || !FactionSystem.Instance.IsLoaded )
 {
-	<p class="text-base text-gray-400 p-3">#faction.loading</p>
-	return;
+	<div class="faction-state-view"><h2>#faction.loading</h2></div>
 }
-
-@{
-	var factions = FactionSystem.Instance.Factions.Values
-		.OrderByDescending( f => f.Level )
-		.ThenBy( f => f.Name )
+else
+{
+	var system = FactionSystem.Instance;
+	var allFactions = system.Factions.Values
+		.OrderByDescending( faction => faction.Level )
+		.ThenByDescending( faction => faction.Experience )
+		.ThenBy( faction => faction.Name )
 		.ToList();
-}
+	var factions = allFactions
+		.Where( faction => MatchesSearch( faction, _search ) )
+		.ToList();
+	var selectedId = _selectedFactionId ?? factions.FirstOrDefault().Id;
+	var selected = factions.FirstOrDefault( faction => faction.Id == selectedId );
 
-<div class="section-group">
-	<div class="section-group-title">@string.Format( Language.GetPhrase( "faction.count" ), factions.Count )</div>
-	<div class="p-3">
-		@if ( factions.Count > 0 )
+	<div class="faction-page faction-browser-page">
+		@if ( Player.Local.PendingFactionInviteId.HasValue )
 		{
-			<div class="flex flex-col gap-1">
-				<div class="flex text-xs text-gray-400 uppercase pb-1" style="border-bottom: 1px solid rgba(136,139,145,0.2)">
-					<span style="width: 80px; flex-shrink: 0;">#faction.browse.tag</span>
-					<span style="flex: 1; min-width: 120px;">#faction.browse.name</span>
-					<span style="width: 60px; flex-shrink: 0;">#faction.browse.level</span>
-					<span style="width: 100px; flex-shrink: 0;">#faction.browse.members</span>
+			var inviteId = Player.Local.PendingFactionInviteId.Value;
+			var hasInvitedFaction = system.Factions.TryGetValue( inviteId, out var invitedFaction );
+			var inviter = GameUtils.GetPlayerById( Player.Local.PendingFactionInviterId );
+			<div class="faction-invite-banner">
+				<div class="invite-icon"><i class="material-icons">mark_email_unread</i></div>
+				<div class="invite-copy">
+					<span class="invite-label">#faction.invite.title</span>
+					@if ( hasInvitedFaction )
+					{
+						<span class="invite-faction">@invitedFaction.Name <b>@invitedFaction.Tag</b></span>
+						<span class="invite-from">@string.Format( Language.GetPhrase( "faction.invite.from" ), inviter.IsValid() ? inviter.DisplayName : Language.GetPhrase( "generic.unknown" ) )</span>
+					}
+					else
+					{
+						<span class="invite-faction">#faction.invite.invalid</span>
+					}
 				</div>
-
-				@foreach ( var f in factions )
+				<button class="faction-action" onclick="@(() => RespondToInvite( false ))">
+					<i class="material-icons">close</i><span>#faction.invite.decline</span>
+				</button>
+				@if ( hasInvitedFaction && !Player.Local.IsInFaction )
 				{
-					var isSelected = _selectedFactionId == f.Id;
-					<div class="flex items-center text-sm py-2 cursor-pointer @( isSelected ? "bg-secondary rounded" : "" )"
-					     @onclick="@(() => _selectedFactionId = isSelected ? null : f.Id)">
-						<span class="text-accent text-bold" style="width: 80px; flex-shrink: 0;">[@f.Tag]</span>
-						<span style="flex: 1; min-width: 120px;">@f.Name</span>
-						<span class="text-gray-400" style="width: 60px; flex-shrink: 0;">@f.Level</span>
-						<span class="text-gray-400" style="width: 100px; flex-shrink: 0;">@f.MemberCount / @f.MaxMembers</span>
-					</div>
+					<button class="faction-action positive" onclick="@(() => RespondToInvite( true ))">
+						<i class="material-icons">check</i><span>#faction.invite.accept</span>
+					</button>
 				}
 			</div>
 		}
-		else
-		{
-			<p class="text-base text-gray-400">#faction.none_exist</p>
-		}
-	</div>
-</div>
 
-@if ( _selectedFactionId.HasValue )
-{
-	var selected = factions.FirstOrDefault( f => f.Id == _selectedFactionId.Value );
-	if ( selected.Id != Guid.Empty )
-	{
-		var selectedRoles = FactionSystem.Instance.GetFactionRoles( _selectedFactionId.Value ).OrderBy( r => r.Order ).ToList();
-		var selectedMembers = GameUtils.Players
-			.Where( p => p.IsValid() && p.FactionId == selected.Id )
-			.OrderBy( p => p.DisplayName )
-			.ToList();
-
-		<div class="section-group">
-			<div class="section-group-title">@selected.Name <span class="text-gray-400">[@selected.Tag]</span></div>
-			<div class="flex flex-col gap-3 p-3">
-				<div class="flex items-center gap-4">
-					<div class="flex flex-col">
-						<span class="text-xs text-gray-400">#faction.browse.members</span>
-						<span class="text-lg text-accent text-bold">@selected.MemberCount / @selected.MaxMembers</span>
-					</div>
-					<div class="flex flex-col">
-						<span class="text-xs text-gray-400">#faction.browse.balance</span>
-						<span class="text-lg text-cash text-bold">$@selected.Balance.ToString( "N0" )</span>
-					</div>
-					<div class="flex flex-col">
-						<span class="text-xs text-gray-400">#faction.browse.xp</span>
-						<span class="text-lg text-accent text-bold">@selected.Experience.ToString( "N0" )</span>
-					</div>
-					<div class="flex flex-col">
-						<span class="text-xs text-gray-400">#faction.browse.level</span>
-						<span class="text-lg text-bold">@selected.Level</span>
-					</div>
-				</div>
-
-				@if ( !string.IsNullOrWhiteSpace( selected.Description ) )
-				{
-					<p class="text-sm text-gray-400">@selected.Description</p>
-				}
-
-				@if ( selectedMembers.Count > 0 )
-				{
-					<div class="flex flex-col gap-1">
-						<span class="text-xs text-gray-400 uppercase">@string.Format( Language.GetPhrase( "faction.browse.online_members" ), selectedMembers.Count )</span>
-						@foreach ( var member in selectedMembers )
-						{
-							var memberRole = member.GetFactionRole();
-							<div class="flex items-center gap-2 p-1">
-								<img style="width: 24px; height: 24px; border-radius: 4px;" src="avatar:@member.SteamId" alt="avatar"/>
-								<span class="text-sm">@member.DisplayName</span>
-								@if ( memberRole != null )
-								{
-									<span class="text-xs text-accent">@memberRole?.Name</span>
-								}
-							</div>
-						}
-					</div>
-				}
-
-				@if ( selectedRoles.Count > 0 )
-				{
-					<div class="flex flex-col gap-1">
-						<span class="text-xs text-gray-400 uppercase">#faction.browse.roles</span>
-						<div class="flex gap-1">
-							@foreach ( var role in selectedRoles )
-							{
-								<span class="bg-secondary rounded px-2 py-1 text-xs text-accent">@role.Name</span>
-							}
-						</div>
-					</div>
-				}
+		<div class="page-toolbar">
+			<div class="toolbar-title">
+				<h2>#faction.browse.directory</h2>
+				<span class="toolbar-meta">@string.Format( Language.GetPhrase( "faction.count" ), allFactions.Count )</span>
+			</div>
+			<div class="faction-search">
+				<i class="material-icons">search</i>
+				<TabMenuTextEntry placeholder="#faction.browse.search" Value:bind="@_search" />
 			</div>
 		</div>
-	}
-}
 
-@if ( !Player.Local.IsInFaction )
-{
-	<div class="section-group">
-		<div class="section-group-title">#faction.create</div>
-		<div class="flex flex-col gap-2 p-3">
-			<TabMenuTextEntry
-				class="bg-secondary text-tertiary rounded"
-				placeholder="#faction.name_label"
-				MaxLength=@( 30 )
-				Value:bind="@_createName"/>
+		<div class="faction-columns">
+			<div class="faction-column-main">
+				<section class="faction-surface faction-directory">
+					<div class="directory-header">
+						<span class="directory-rank">#</span>
+						<span class="directory-identity">#faction.browse.name</span>
+						<span class="directory-level">#faction.browse.level</span>
+						<span class="directory-members">#faction.browse.members</span>
+						<span class="directory-online">#faction.browse.online</span>
+					</div>
 
-			<div class="flex gap-2">
-				<TabMenuTextEntry
-					class="bg-secondary text-tertiary rounded"
-					placeholder="#faction.tag_label"
-					MaxLength=@( 5 )
-					style="width: 120px;"
-					Value:bind="@_createTag"/>
-				<TabMenuTextEntry
-					class="bg-secondary text-tertiary rounded flex-grow"
-					placeholder="#faction.description_label"
-					MaxLength=@( 200 )
-					Value:bind="@_createDescription"/>
+					@if ( factions.Count > 0 )
+					{
+						var rank = 1;
+						@foreach ( var faction in factions )
+						{
+							var online = GameUtils.Players.Count( player => player.IsValid() && player.IsConnected && player.FactionId == faction.Id );
+							<div class="directory-row @( selected.Id == faction.Id ? "selected" : "" )" onclick="@(() => _selectedFactionId = faction.Id)">
+								<span class="directory-rank">@rank</span>
+								<div class="directory-identity">
+									<span class="directory-tag">@faction.Tag</span>
+									<span class="directory-name">@faction.Name</span>
+								</div>
+								<span class="directory-level">@faction.Level</span>
+								<span class="directory-members">@faction.MemberCount / @faction.MaxMembers</span>
+								<span class="directory-online"><span class="status-dot @( online > 0 ? "online" : "" )"></span>@online</span>
+								<i class="material-icons directory-chevron">chevron_right</i>
+							</div>
+							rank++;
+						}
+					}
+					else
+					{
+						<div class="empty-state">
+							<i class="material-icons">account_tree</i>
+							<span>@( string.IsNullOrWhiteSpace( _search ) ? Language.GetPhrase( "faction.none_exist" ) : Language.GetPhrase( "faction.browse.no_results" ) )</span>
+						</div>
+					}
+				</section>
 			</div>
 
-			<div class="flex items-center justify-between">
-				<span class="text-sm text-gray-400"><span>#faction.cost</span> <span class="text-cash text-bold">$@(Config.Current.Game.FactionCreateCost.ToString( "N0" ))</span></span>
-				<button class="btn btn-good" onclick="@TryCreateFaction">#faction.create</button>
+			<div class="faction-column-side">
+				@if ( selected.Id != Guid.Empty )
+				{
+					var selectedRoles = system.GetFactionRoles( selected.Id ).OrderBy( role => role.Order ).ToList();
+					var selectedMembers = system.GetFactionMembers( selected.Id ).OrderBy( member => FactionUi.GetMemberName( member ) ).ToList();
+					var onlineMembers = selectedMembers.Where( member => FactionUi.IsMemberOnline( member.PlayerId ) ).ToList();
+					<section class="faction-surface faction-detail">
+						<div class="detail-banner">
+							<div class="detail-monogram">@selected.Tag</div>
+							<div class="detail-title">
+								<h3>@selected.Name</h3>
+								<span>@string.Format( Language.GetPhrase( "faction.tab.level" ), selected.Level )</span>
+							</div>
+						</div>
+
+						<div class="detail-stats">
+							<div><span>#faction.browse.members</span><b>@selected.MemberCount / @selected.MaxMembers</b></div>
+							<div><span>#faction.browse.online</span><b class="positive-text">@onlineMembers.Count</b></div>
+							<div><span>#faction.browse.xp</span><b>@selected.Experience.ToString( "N0" )</b></div>
+							<div><span>#faction.browse.balance</span><b class="positive-text">$@selected.Balance.ToString( "N0" )</b></div>
+						</div>
+
+						<div class="detail-section">
+							<span class="detail-label">#faction.overview.description</span>
+							<p>@( string.IsNullOrWhiteSpace( selected.Description ) ? Language.GetPhrase( "faction.no_description" ) : selected.Description )</p>
+						</div>
+
+						<div class="detail-section">
+							<span class="detail-label">@string.Format( Language.GetPhrase( "faction.browse.online_members" ), onlineMembers.Count )</span>
+							@if ( onlineMembers.Count > 0 )
+							{
+								<div class="compact-member-list">
+									@foreach ( var member in onlineMembers.Take( 5 ) )
+									{
+										<div class="compact-member">
+											<img src="avatar:@member.PlayerId" alt="avatar" />
+											<span>@FactionUi.GetMemberName( member )</span>
+											<small>@FactionUi.GetRoleName( member.RoleId )</small>
+										</div>
+									}
+								</div>
+							}
+							else
+							{
+								<span class="detail-empty">#faction.overview.none_online</span>
+							}
+						</div>
+
+						@if ( selectedRoles.Count > 0 )
+						{
+							<div class="detail-section">
+								<span class="detail-label">#faction.browse.roles</span>
+								<div class="role-badges">
+									@foreach ( var role in selectedRoles )
+									{
+										<span class="role-badge">@role.Name</span>
+									}
+								</div>
+							</div>
+						}
+					</section>
+				}
+
+				@if ( !Player.Local.IsInFaction )
+				{
+					<section class="faction-surface faction-create">
+						<div class="surface-header">
+							<i class="material-icons">add_business</i>
+							<h3>#faction.create</h3>
+						</div>
+						<div class="surface-body">
+							<div class="form-field">
+								<label>#faction.name_label</label>
+								<TabMenuTextEntry class="faction-input" MaxLength="@( FactionSystem.FactionNameMaxLength )" Value:bind="@_createName" />
+							</div>
+							<div class="form-field">
+								<label>#faction.tag_label</label>
+								<TabMenuTextEntry class="faction-input" MaxLength="@( FactionSystem.FactionTagMaxLength )" Value:bind="@_createTag" />
+							</div>
+							<div class="form-field">
+								<label>#faction.description_label</label>
+								<TabMenuTextEntry class="faction-input multiline" Multiline="@true" MaxLength="@( FactionSystem.FactionDescriptionMaxLength )" Value:bind="@_createDescription" />
+							</div>
+							<div class="create-footer">
+								<div class="create-cost">
+									<span>#faction.cost</span>
+									<b>$@Config.Current.Game.FactionCreateCost.ToString( "N0" )</b>
+								</div>
+								<button class="faction-action positive" onclick="@TryCreateFaction">
+									<i class="material-icons">add</i><span>#faction.create</span>
+								</button>
+							</div>
+						</div>
+					</section>
+				}
 			</div>
 		</div>
 	</div>
@@ -160,15 +209,38 @@
 
 @code {
 	private Guid? _selectedFactionId;
+	private string _search = "";
 	private string _createName = "";
 	private string _createTag = "";
 	private string _createDescription = "";
 
+	private static bool MatchesSearch( FactionInfo faction, string search )
+	{
+		if ( string.IsNullOrWhiteSpace( search ) ) return true;
+		return faction.Name.Contains( search, StringComparison.OrdinalIgnoreCase ) ||
+		       faction.Tag.Contains( search, StringComparison.OrdinalIgnoreCase ) ||
+		       (faction.Description?.Contains( search, StringComparison.OrdinalIgnoreCase ) ?? false);
+	}
+
+	private void RespondToInvite( bool accept )
+	{
+		FactionSystem.Instance.RespondFactionInviteHost( accept );
+	}
+
 	private void TryCreateFaction()
 	{
-		if ( string.IsNullOrWhiteSpace( _createName ) || string.IsNullOrWhiteSpace( _createTag ) )
+		var name = _createName.Trim();
+		var tag = _createTag.Trim().ToUpperInvariant();
+		if ( name.Length is < 1 or > FactionSystem.FactionNameMaxLength )
 		{
-			Notify.Error( Language.GetPhrase( "faction.name_tag_required" ) );
+			Notify.Error( "#faction.name_invalid" );
+			return;
+		}
+
+		if ( tag.Length is < 1 or > FactionSystem.FactionTagMaxLength ||
+		     tag.Any( character => character is not (>= 'A' and <= 'Z' or >= '0' and <= '9') ) )
+		{
+			Notify.Error( "#faction.tag_invalid" );
 			return;
 		}
 
@@ -183,24 +255,21 @@
 			return;
 		}
 
-		FactionSystem.Instance.CreateFactionHost( _createName.Trim(), _createTag.Trim(),
-			string.IsNullOrWhiteSpace( _createDescription ) ? null : _createDescription.Trim() );
-
-		_createName = "";
-		_createTag = "";
-		_createDescription = "";
+		FactionSystem.Instance.CreateFactionHost( name, tag, _createDescription );
 	}
 
 	protected override int BuildHash()
 	{
 		if ( !FactionSystem.Instance.IsValid() ) return 0;
+		var formHash = HashCode.Combine( _createName, _createTag, _createDescription );
 		return HashCode.Combine(
 			_selectedFactionId,
+			_search,
 			Player.Local?.FactionId,
-			FactionSystem.Instance.Factions.Count,
-			FactionSystem.Instance.FactionRoles.Count,
+			Player.Local?.PendingFactionInviteId,
+			FactionSystem.Instance.Revision,
 			GameUtils.Players.Count(),
-			_createName, _createTag
+			formHash
 		);
 	}
 }

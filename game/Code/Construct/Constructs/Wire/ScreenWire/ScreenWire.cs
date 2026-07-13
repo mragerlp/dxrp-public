@@ -21,9 +21,13 @@ public class ScreenWire() : BaseWireConstruct( ConstructType.ScreenWire ), IWire
 
 	public override string Name => "Screen";
 
+	// The label is already drawn as the header text on the screen itself, so skip the floating context bubble.
+	public override string? DisplayText => null;
+
 	private DisplayMode _mode = DisplayMode.Text;
 
 	private bool _playerWithinRaycast;
+	private bool _wasVisibleToPlayer;
 
 	private CameraWire? _cachedCameraWire;
 
@@ -85,17 +89,25 @@ public class ScreenWire() : BaseWireConstruct( ConstructType.ScreenWire ), IWire
 		{
 			return;
 		}
-
-		if ( !Cooldown.Current.CheckAndStartCooldown( $"camera:{Id}", Config.Current.Game.WireScreenCameraRaycastInterval ) )
+		if ( !RenderWireScreenCamera )
 		{
-			if ( !RenderWireScreenCamera )
-			{
-				_playerWithinRaycast = false;
-			}
-			else
-			{
-				RaycastPlayerCheck();
-			}
+			_playerWithinRaycast = false;
+			_wasVisibleToPlayer = false;
+			return;
+		}
+
+		if ( !IsVisibleToPlayer() )
+		{
+			_playerWithinRaycast = false;
+			_wasVisibleToPlayer = false;
+			return;
+		}
+
+		var raycastIntervalElapsed = !Cooldown.Current.CheckAndStartCooldown( $"camera:{Id}", Config.Current.Game.WireScreenCameraRaycastInterval );
+		if ( !_wasVisibleToPlayer || raycastIntervalElapsed )
+		{
+			_wasVisibleToPlayer = true;
+			RaycastPlayerCheck();
 		}
 
 		if ( !_playerWithinRaycast )
@@ -123,6 +135,25 @@ public class ScreenWire() : BaseWireConstruct( ConstructType.ScreenWire ), IWire
 			.Run();
 
 		_playerWithinRaycast = tr.GameObject == GameObject;
+	}
+
+	private bool IsVisibleToPlayer()
+	{
+		var camera = Scene.Camera;
+		if ( !camera.IsValid() )
+		{
+			return false;
+		}
+
+		var directionToScreen = (GameObject.WorldPosition - camera.WorldPosition).Normal;
+		if ( Vector3.Dot( camera.WorldRotation.Forward, directionToScreen ) < 0 )
+		{
+			return false;
+		}
+
+		var screenPosition = camera.PointToScreenNormal( GameObject.WorldPosition );
+		return screenPosition.x is >= 0 and <= 1
+			&& screenPosition.y is >= 0 and <= 1;
 	}
 
 	private void OnCurrentValueChanged( string oldValue, string newValue )
@@ -213,8 +244,6 @@ public class ScreenWire() : BaseWireConstruct( ConstructType.ScreenWire ), IWire
 		// Update top area of the camera texture with header bytes
 		_cameraTexture.Update( _cachedHeaderBytesCamera, 0, 0, (int)textureWidth, headerHeight );
 
-		// Ensure DisplayRenderer material is using the camera texture
-		UpdateScreenTexture();
 	}
 
 	private void CleanupCameraTexture()

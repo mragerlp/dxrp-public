@@ -23,6 +23,8 @@ We welcome:
 
 Please avoid submitting large unsolicited features without an approved issue first. For feature proposals, open or comment on an issue so scope, ownership, and acceptance criteria can be agreed before implementation.
 
+Documentation for players, operators, and developers lives under [docs/](docs/) and publishes to the site's `/docs` section, see [docs/README.md](docs/README.md) for the page format and how to add or edit a page.
+
 ## Bounties
 
 Dxura may occasionally attach bounties to specific issues. A bounty is only valid when it is explicitly posted, assigned, or confirmed by Dxura through an approved project channel.

@@ -46,16 +46,16 @@
 
 
 		<div class="player-toolbar">
-			<div class="search-bar">
+			<div class="tabmenu-search-bar">
 				<i class="material-icons text-gray-400 text-sm">search</i>
 				<TabMenuTextEntry
 					@ref="_searchTextEntry"
-					class="search-input"
+					class="tabmenu-search-input"
 					placeholder="#tabmenu.players.search_placeholder"
 					Value:bind="@_searchQuery"/>
 				@if ( !string.IsNullOrEmpty( _searchQuery ) )
 				{
-					<div class="search-clear cursor-pointer" onclick="@( () => ClearSearch() )">
+					<div class="tabmenu-search-clear cursor-pointer" onclick="@( () => ClearSearch() )">
 						<i class="material-icons text-gray-400 text-sm">close</i>
 					</div>
 				}
@@ -80,6 +80,14 @@
 				}
 				<span>)</span>
 			</div>
+			@if ( PartySystem.Instance.IsValid() )
+			{
+				<div class="flex-grow"></div>
+				<button class="btn-compact btn-primary flex flex-row items-center gap-1" onclick="@OpenPartyMenu" tooltip="#party.window_title">
+					<i class="material-icons">groups</i>
+					<span>#party.menu_title</span>
+				</button>
+			}
 		</div>
 
 		<div class="player-list overflow-y-scroll">
@@ -93,7 +101,7 @@
 				
 				<div class="cell-player">#tabmenu.players.player</div>
 				
-				@if ( Config.Current.Game.FactionsEnabled )
+				@if ( FactionSystem.Instance.IsValid() )
 				{
 					<div class="cell-faction">#generic.faction</div>
 				}
@@ -201,7 +209,7 @@
 						</div>
 					</div>
 					
-					@if ( Config.Current.Game.FactionsEnabled && FactionSystem.Instance.IsValid() )
+					@if ( FactionSystem.Instance.IsValid() )
 					{
 						<div class="cell-faction">
 							@if ( player.FactionId != null && FactionSystem.Instance.Factions.TryGetValue( player.FactionId.Value, out var faction ) )
@@ -285,6 +293,13 @@
 		_searchQuery = string.Empty;
 		if ( _searchTextEntry != null )
 			_searchTextEntry.Text = string.Empty;
+	}
+
+	private static void OpenPartyMenu()
+	{
+		Sound.Play( "pop" );
+		TabMenu.RequestCloseMenu();
+		PartyMenu.SetOpen( true );
 	}
 
 	private void ToggleConstructPermission(long steamId, bool hasPermission)

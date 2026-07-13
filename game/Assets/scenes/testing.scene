@@ -1947,6 +1947,38 @@
               }
             },
             {
+              "__guid": "110d2d99-7d1b-4160-ba74-28999e93195e",
+              "__version": 2,
+              "__Prefab": "prefabs/debug/debug_content_spawner.prefab",
+              "__PrefabInstancePatch": {
+                "AddedObjects": [],
+                "RemovedObjects": [],
+                "PropertyOverrides": [
+                  {
+                    "Target": {
+                      "Type": "GameObject",
+                      "IdValue": "2596d2b4-7e3b-484b-b26a-410bbf46ed4c"
+                    },
+                    "Property": "Position",
+                    "Value": "96,-128,5.24520874E-06"
+                  },
+                  {
+                    "Target": {
+                      "Type": "Component",
+                      "IdValue": "426defc1-eeb8-4667-9652-fba08261a4c0"
+                    },
+                    "Property": "ContentId",
+                    "Value": "5384a292-16e4-43e4-a9fb-065fb361f3b3"
+                  }
+                ],
+                "MovedObjects": []
+              },
+              "__PrefabIdToInstanceId": {
+                "2596d2b4-7e3b-484b-b26a-410bbf46ed4c": "110d2d99-7d1b-4160-ba74-28999e93195e",
+                "426defc1-eeb8-4667-9652-fba08261a4c0": "649a6b6a-ebc2-43dd-af24-84a66bbafda5"
+              }
+            },
+            {
               "__guid": "3c37b484-0915-8002-a640-7ed58a526f83",
               "__version": 2,
               "__Prefab": "prefabs/debug/debug_content_spawner.prefab",
@@ -10791,6 +10823,7 @@
               "__guid": "ed1f00f1-80fa-4e06-a25a-82c5c9bac013",
               "__enabled": true,
               "Flags": 0,
+              "ContactShadows": true,
               "Contribution": "Diffuse, Specular, Transmissive",
               "FogMode": "Enabled",
               "FogStrength": 1,
@@ -10838,7 +10871,7 @@
             "Property": "LastRepairTime",
             "Value": {
               "Absolute": 0,
-              "Relative": 2107.8677
+              "Relative": 327.28058
             }
           }
         ],
@@ -10897,7 +10930,8 @@
         "4950a2cc-a4d0-4364-b5ca-af94930dc002": "66522d63-0b33-4020-bd50-37af8ddc6f63",
         "6afda59a-a84d-43bb-8582-8f648efbff63": "f7267caa-75b9-4051-a56f-657e7ea1b48b",
         "5a75dc11-00d7-4291-83c0-4770ef8dfb6f": "ac998f7f-e447-45cf-b3f3-e70153d6f510",
-        "b3f1d6a2-4e57-4c8b-9a10-7d2e6f9c4a51": "f920c708-fd4d-87c4-b032-9e42f00e7a4d"
+        "b3f1d6a2-4e57-4c8b-9a10-7d2e6f9c4a51": "f920c708-fd4d-87c4-b032-9e42f00e7a4d",
+        "e4f487bf-e749-4126-a6b0-219a4b8522a5": "0b348a7b-506e-8fc3-afd9-b639c54a186f"
       }
     },
     {
@@ -11869,11 +11903,18 @@
           },
           {
             "Target": {
-              "Type": "GameObject",
-              "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
+              "Type": "Component",
+              "IdValue": "e80756c7-d883-4183-832e-e9030703d996"
             },
-            "Property": "Tags",
-            "Value": "world"
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "550117d2-4c93-4a51-8467-34c66aeb9a39"
+              },
+              "Materials": [
+                "materials/metal/metal_01a.vmat"
+              ]
+            }
           }
         ],
         "MovedObjects": []
@@ -13609,7 +13650,8 @@
         "501862d2-144d-40b2-b7b8-e055f5d61626": "80b718bf-8531-41f1-ac46-cbbe7e8cb84f",
         "60c9b039-2ef7-462e-b773-5b292a0ea35f": "8b062eac-be14-4a11-bd44-fdcdd955a2d5",
         "801ec88d-ec7f-4a24-9d71-24240fb22817": "d67fa1f1-df77-4a24-930a-6cf87ac33f51",
-        "b538cdf2-f45d-4b18-9ca1-84cbfc21b647": "b1a32103-1ad3-4233-b329-6f1689ab3792"
+        "b538cdf2-f45d-4b18-9ca1-84cbfc21b647": "b1a32103-1ad3-4233-b329-6f1689ab3792",
+        "f2a2e6b1-0e6f-4b8f-9e2b-6a6f2b6f5c9a": "d8507edc-488a-815f-9d8f-255d3701e641"
       }
     },
     {
@@ -13645,7 +13687,8 @@
         "501862d2-144d-40b2-b7b8-e055f5d61626": "00020667-9359-4036-8939-7e8fb209d435",
         "60c9b039-2ef7-462e-b773-5b292a0ea35f": "0df91009-009c-40b0-ad2e-850a8d558189",
         "801ec88d-ec7f-4a24-9d71-24240fb22817": "e19e6364-1dfb-4ee0-b053-ea4a4db35e63",
-        "b538cdf2-f45d-4b18-9ca1-84cbfc21b647": "f9013932-cdc1-47a2-83ba-6926a8e812bc"
+        "b538cdf2-f45d-4b18-9ca1-84cbfc21b647": "f9013932-cdc1-47a2-83ba-6926a8e812bc",
+        "f2a2e6b1-0e6f-4b8f-9e2b-6a6f2b6f5c9a": "3c616f2c-19e2-831e-ba48-c1e1454adff4"
       }
     },
     {
@@ -13901,8 +13944,8 @@
             "Property": "TimeUntilDestroy",
             "Value": {
               "Absolute": 0,
-              "Relative": -2107.8677,
-              "Passed": 2107.8677,
+              "Relative": -327.28058,
+              "Passed": 327.28058,
               "Fraction": 1
             }
           }
@@ -13917,35 +13960,6 @@
         "1f5fa396-ae46-48be-94e1-741a904ca6d5": "98bfb5d1-4afd-43f3-81c4-4767b0b57a80",
         "f04a7681-9293-42ce-b3c5-48c2252548eb": "4d6c6c31-e41b-4325-afd2-67df15c40431",
         "aa26090b-1744-4ef2-b863-eeb7a5c4daaa": "d8849786-df63-46f3-b48e-ed35e1a1329c"
-      }
-    },
-    {
-      "__guid": "2a9e2bae-b40d-4bb3-89ae-7007f4cd3f22",
-      "__version": 2,
-      "__Prefab": "gameplay/entities/planter/planter.prefab",
-      "__PrefabInstancePatch": {
-        "AddedObjects": [],
-        "RemovedObjects": [],
-        "PropertyOverrides": [
-          {
-            "Target": {
-              "Type": "GameObject",
-              "IdValue": "aa0f4419-8c53-4251-b8fa-b0950f2cd81e"
-            },
-            "Property": "Position",
-            "Value": "-599.999878,415.999908,1.5"
-          }
-        ],
-        "MovedObjects": []
-      },
-      "__PrefabIdToInstanceId": {
-        "aa0f4419-8c53-4251-b8fa-b0950f2cd81e": "2a9e2bae-b40d-4bb3-89ae-7007f4cd3f22",
-        "bc3a94a1-44d0-403f-9eea-6f6772a17c9f": "945ddb2b-11ed-4311-8118-4b143a8b1a4a",
-        "9ec8c777-8c2a-4735-bc85-36d648214052": "9e28684c-ef67-4573-ba19-0245bde0e9db",
-        "877376b7-059a-4e15-8167-e598274ad719": "2ad4aed7-9ab6-4c99-a715-497a167a039e",
-        "0dc19023-7e47-4ccf-886d-73614db0cc8c": "75c1972a-f9ef-461a-ad64-086f58541400",
-        "dbb18c8b-c43d-4e46-a84e-e1a68774c54f": "90b5980a-27ba-4660-bb51-3708595af8f4",
-        "11ff152b-d579-433e-99b5-0c89ddf3ea6b": "56340b32-081f-4dfc-895c-278f5e87a18b"
       }
     },
     {
@@ -17875,56 +17889,9 @@
           "HideInGame": false,
           "IsTrigger": false,
           "Mesh": {
-            "Topology": "H4sIAAAAAAAACk2MCQoAIQzE4qqr//9wJdiCA6WQOQawgcbVBwzgT+bJXi0gIkLeM68q69fXm7n1bsv1a6skN2tH394B6DpJeKAAAAA=",
-            "Positions": [
-              "-1938.21106,-2173.10107,64",
-              "1938.21106,-2173.10107,64",
-              "1938.21106,2173.10107,64",
-              "-1938.21106,2173.10107,64"
-            ],
-            "Blends": [
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0"
-            ],
-            "Colors": [
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0"
-            ],
-            "TextureCoord": [
-              "3.785568,4.24433804",
-              "0,0",
-              "3.785568,-4.24433804",
-              "0,0",
-              "-3.785568,-4.24433804",
-              "0,0",
-              "-3.785568,4.24433804",
-              "0,0"
-            ],
-            "MaterialIndex": [
-              0
-            ],
-            "EdgeFlags": [
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
+            "Data": {
+              "$blob": "9637ec40-639c-4657-ba85-f0857652ff6b"
+            },
             "Materials": [
               "materials/tiles/floor/rubber_tiles_a.vmat"
             ]
@@ -17978,56 +17945,9 @@
           "HideInGame": false,
           "IsTrigger": false,
           "Mesh": {
-            "Topology": "H4sIAAAAAAAACk2MCQoAIQzE4qqr//9wJdiCA6WQOQawgcbVBwzgT+bJXi0gIkLeM68q69fXm7n1bsv1a6skN2tH394B6DpJeKAAAAA=",
-            "Positions": [
-              "-1938.21106,-2173.10107,64",
-              "1938.21106,-2173.10107,64",
-              "1938.21106,2173.10107,64",
-              "-1938.21106,2173.10107,64"
-            ],
-            "Blends": [
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0"
-            ],
-            "Colors": [
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0"
-            ],
-            "TextureCoord": [
-              "3.785568,4.24433804",
-              "0,0",
-              "3.785568,-4.24433804",
-              "0,0",
-              "-3.785568,-4.24433804",
-              "0,0",
-              "-3.785568,4.24433804",
-              "0,0"
-            ],
-            "MaterialIndex": [
-              0
-            ],
-            "EdgeFlags": [
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
+            "Data": {
+              "$blob": "b0359a15-837f-44a4-85f0-5be19a5dd19c"
+            },
             "Materials": [
               "materials/tiles/floor/rubber_tiles_a.vmat"
             ]
@@ -18384,129 +18304,9 @@
           "HideInGame": false,
           "IsTrigger": false,
           "Mesh": {
-            "Topology": "H4sIAAAAAAAACl2QCQ7CMAwEp4Qj3NBy/f+laMRGsohUVbFn1+t04ANs+Z0VsM69AwfgBFyAKZ9MPXdgk3qLnsI+Um/h/me9i2ZXfFvYOazafTJN0XRgKZmPyWtfXvYVL73PZRd52WdYPa7xtC8veys7u6t17/7t6Tn0ZtFjvIXZR895zjKjPWf4NiOrGt+ivpXZ3XnozaOndVn9vvVkkTjEAQAA",
-            "Positions": [
-              "-30.1204796,-28.4502602,3.760849",
-              "30.1204796,-28.4502602,3.760849",
-              "30.1204796,28.4502602,3.760849",
-              "-30.1204796,28.4502602,3.760849",
-              "-30.1204796,28.4502602,-3.760849",
-              "30.1204796,28.4502602,-3.760849",
-              "30.1204796,-28.4502602,-3.760849",
-              "-30.1204796,-28.4502602,-3.760849"
-            ],
-            "Blends": [
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0"
-            ],
-            "Colors": [
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0",
-              "0,0,0,0"
-            ],
-            "TextureCoord": [
-              "0.235316306,0.222267598",
-              "-0.235316306,-0.0293816291",
-              "0.235316306,-0.222267598",
-              "-0.222267598,-0.0293816291",
-              "-0.235316306,-0.222267598",
-              "-0.235316306,-0.0293816291",
-              "-0.235316306,0.222267598",
-              "-0.222267598,-0.0293816291",
-              "0.235316306,-0.222267598",
-              "0.235316306,0.0293816291",
-              "0.235316306,0.222267598",
-              "0.222267598,0.0293816291",
-              "-0.235316306,0.222267598",
-              "0.235316306,0.0293816291",
-              "-0.235316306,-0.222267598",
-              "0.222267598,0.0293816291",
-              "0.222267598,-0.0293816291",
-              "-0.235316306,0.0293816291",
-              "-0.222267598,0.0293816291",
-              "0.235316306,-0.0293816291",
-              "-0.222267598,0.0293816291",
-              "0.235316306,-0.0293816291",
-              "0.222267598,-0.0293816291",
-              "-0.235316306,0.0293816291"
-            ],
-            "MaterialIndex": [
-              0,
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
-            "EdgeFlags": [
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0,
-              0
-            ],
+            "Data": {
+              "$blob": "61037c55-6052-4f07-8610-a1763301f130"
+            },
             "Materials": [
               "materials/dev/reflectivity_30.vmat"
             ]
@@ -25107,7 +24907,7 @@
           {
             "Id": {
               "Type": "GameObject",
-              "IdValue": "5d334f6d-19ad-4620-8b04-3e1c9fd04ac6"
+              "IdValue": "21801d64-0de8-47f6-8534-f473a24a3a7e"
             },
             "Parent": {
               "Type": "GameObject",
@@ -25120,7 +24920,7 @@
             "ContainerProperty": "Children",
             "IsContainerArray": true,
             "Data": {
-              "__guid": "5d334f6d-19ad-4620-8b04-3e1c9fd04ac6",
+              "__guid": "21801d64-0de8-47f6-8534-f473a24a3a7e",
               "__version": 2,
               "Flags": 0,
               "Name": "Clothing - flatcap",
@@ -25141,18 +24941,18 @@
           {
             "Id": {
               "Type": "Component",
-              "IdValue": "72361848-4157-4097-bbb8-e9a325a7bd57"
+              "IdValue": "71a08e42-1928-427f-8921-fb147fb162fe"
             },
             "Parent": {
               "Type": "GameObject",
-              "IdValue": "5d334f6d-19ad-4620-8b04-3e1c9fd04ac6"
+              "IdValue": "21801d64-0de8-47f6-8534-f473a24a3a7e"
             },
             "PreviousElement": null,
             "ContainerProperty": "Components",
             "IsContainerArray": true,
             "Data": {
               "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "72361848-4157-4097-bbb8-e9a325a7bd57",
+              "__guid": "71a08e42-1928-427f-8921-fb147fb162fe",
               "__enabled": true,
               "Flags": 0,
               "AnimationGraph": null,
@@ -25204,7 +25004,7 @@
           {
             "Id": {
               "Type": "GameObject",
-              "IdValue": "b5399779-518d-4455-920a-e091987d3d4b"
+              "IdValue": "51957cd5-c3ed-48a1-8359-0172ad4dc5cb"
             },
             "Parent": {
               "Type": "GameObject",
@@ -25212,12 +25012,12 @@
             },
             "PreviousElement": {
               "Type": "GameObject",
-              "IdValue": "5d334f6d-19ad-4620-8b04-3e1c9fd04ac6"
+              "IdValue": "21801d64-0de8-47f6-8534-f473a24a3a7e"
             },
             "ContainerProperty": "Children",
             "IsContainerArray": true,
             "Data": {
-              "__guid": "b5399779-518d-4455-920a-e091987d3d4b",
+              "__guid": "51957cd5-c3ed-48a1-8359-0172ad4dc5cb",
               "__version": 2,
               "Flags": 0,
               "Name": "Clothing - boxing_shorts",
@@ -25238,18 +25038,18 @@
           {
             "Id": {
               "Type": "Component",
-              "IdValue": "16952681-500a-4e19-8a63-54256ed321e0"
+              "IdValue": "ed0f92cc-6999-4678-a4a5-3d573b930cc6"
             },
             "Parent": {
               "Type": "GameObject",
-              "IdValue": "b5399779-518d-4455-920a-e091987d3d4b"
+              "IdValue": "51957cd5-c3ed-48a1-8359-0172ad4dc5cb"
             },
             "PreviousElement": null,
             "ContainerProperty": "Components",
             "IsContainerArray": true,
             "Data": {
               "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "16952681-500a-4e19-8a63-54256ed321e0",
+              "__guid": "ed0f92cc-6999-4678-a4a5-3d573b930cc6",
               "__enabled": true,
               "Flags": 0,
               "AnimationGraph": null,
@@ -25301,7 +25101,7 @@
           {
             "Id": {
               "Type": "GameObject",
-              "IdValue": "c01858b9-61d6-4bd2-9e55-5403aae2539c"
+              "IdValue": "7268f7c1-5064-44dc-a625-6ce3a2a390c4"
             },
             "Parent": {
               "Type": "GameObject",
@@ -25309,12 +25109,12 @@
             },
             "PreviousElement": {
               "Type": "GameObject",
-              "IdValue": "b5399779-518d-4455-920a-e091987d3d4b"
+              "IdValue": "51957cd5-c3ed-48a1-8359-0172ad4dc5cb"
             },
             "ContainerProperty": "Children",
             "IsContainerArray": true,
             "Data": {
-              "__guid": "c01858b9-61d6-4bd2-9e55-5403aae2539c",
+              "__guid": "7268f7c1-5064-44dc-a625-6ce3a2a390c4",
               "__version": 2,
               "Flags": 0,
               "Name": "Clothing - tshirt",
@@ -25335,18 +25135,18 @@
           {
             "Id": {
               "Type": "Component",
-              "IdValue": "c977e8aa-7a5a-4e43-9018-f2924bd0c689"
+              "IdValue": "b811d54c-53be-4793-9e96-5e4a96bd4b93"
             },
             "Parent": {
               "Type": "GameObject",
-              "IdValue": "c01858b9-61d6-4bd2-9e55-5403aae2539c"
+              "IdValue": "7268f7c1-5064-44dc-a625-6ce3a2a390c4"
             },
             "PreviousElement": null,
             "ContainerProperty": "Components",
             "IsContainerArray": true,
             "Data": {
               "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "c977e8aa-7a5a-4e43-9018-f2924bd0c689",
+              "__guid": "b811d54c-53be-4793-9e96-5e4a96bd4b93",
               "__enabled": true,
               "Flags": 0,
               "AnimationGraph": null,
@@ -25398,7 +25198,7 @@
           {
             "Id": {
               "Type": "GameObject",
-              "IdValue": "6e3553dd-426b-4e5a-8200-8fb049188752"
+              "IdValue": "5619fead-3412-4aee-94dd-41d946585a96"
             },
             "Parent": {
               "Type": "GameObject",
@@ -25406,12 +25206,12 @@
             },
             "PreviousElement": {
               "Type": "GameObject",
-              "IdValue": "c01858b9-61d6-4bd2-9e55-5403aae2539c"
+              "IdValue": "7268f7c1-5064-44dc-a625-6ce3a2a390c4"
             },
             "ContainerProperty": "Children",
             "IsContainerArray": true,
             "Data": {
-              "__guid": "6e3553dd-426b-4e5a-8200-8fb049188752",
+              "__guid": "5619fead-3412-4aee-94dd-41d946585a96",
               "__version": 2,
               "Flags": 0,
               "Name": "Clothing - black_boots",
@@ -25432,18 +25232,18 @@
           {
             "Id": {
               "Type": "Component",
-              "IdValue": "67df1b41-8159-49d7-b8cc-7e1fb90c871a"
+              "IdValue": "22937335-8afd-4146-b2a6-c7dee7111358"
             },
             "Parent": {
               "Type": "GameObject",
-              "IdValue": "6e3553dd-426b-4e5a-8200-8fb049188752"
+              "IdValue": "5619fead-3412-4aee-94dd-41d946585a96"
             },
             "PreviousElement": null,
             "ContainerProperty": "Components",
             "IsContainerArray": true,
             "Data": {
               "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "67df1b41-8159-49d7-b8cc-7e1fb90c871a",
+              "__guid": "22937335-8afd-4146-b2a6-c7dee7111358",
               "__enabled": true,
               "Flags": 0,
               "AnimationGraph": null,
@@ -25495,7 +25295,7 @@
           {
             "Id": {
               "Type": "GameObject",
-              "IdValue": "d2e93ef7-91da-4689-8a7e-7ba2d5ad74e0"
+              "IdValue": "20ae318b-395f-4546-a175-c500dd10af6a"
             },
             "Parent": {
               "Type": "GameObject",
@@ -25503,12 +25303,12 @@
             },
             "PreviousElement": {
               "Type": "GameObject",
-              "IdValue": "6e3553dd-426b-4e5a-8200-8fb049188752"
+              "IdValue": "5619fead-3412-4aee-94dd-41d946585a96"
             },
             "ContainerProperty": "Children",
             "IsContainerArray": true,
             "Data": {
-              "__guid": "d2e93ef7-91da-4689-8a7e-7ba2d5ad74e0",
+              "__guid": "20ae318b-395f-4546-a175-c500dd10af6a",
               "__version": 2,
               "Flags": 0,
               "Name": "Clothing - cardigan_colored",
@@ -25529,18 +25329,18 @@
           {
             "Id": {
               "Type": "Component",
-              "IdValue": "cbcfbf66-b13d-4c5b-aaf2-4824fa7f1e1c"
+              "IdValue": "15aa1526-f3d8-457b-8252-8d30d20d62f8"
             },
             "Parent": {
               "Type": "GameObject",
-              "IdValue": "d2e93ef7-91da-4689-8a7e-7ba2d5ad74e0"
+              "IdValue": "20ae318b-395f-4546-a175-c500dd10af6a"
             },
             "PreviousElement": null,
             "ContainerProperty": "Components",
             "IsContainerArray": true,
             "Data": {
               "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "cbcfbf66-b13d-4c5b-aaf2-4824fa7f1e1c",
+              "__guid": "15aa1526-f3d8-457b-8252-8d30d20d62f8",
               "__enabled": true,
               "Flags": 0,
               "AnimationGraph": null,
@@ -25592,7 +25392,7 @@
           {
             "Id": {
               "Type": "GameObject",
-              "IdValue": "534697b6-62a1-48ed-be05-214915c8b5f5"
+              "IdValue": "0f562e48-a7d9-48fe-bb04-72eaf6bdba21"
             },
             "Parent": {
               "Type": "GameObject",
@@ -25600,12 +25400,12 @@
             },
             "PreviousElement": {
               "Type": "GameObject",
-              "IdValue": "d2e93ef7-91da-4689-8a7e-7ba2d5ad74e0"
+              "IdValue": "20ae318b-395f-4546-a175-c500dd10af6a"
             },
             "ContainerProperty": "Children",
             "IsContainerArray": true,
             "Data": {
-              "__guid": "534697b6-62a1-48ed-be05-214915c8b5f5",
+              "__guid": "0f562e48-a7d9-48fe-bb04-72eaf6bdba21",
               "__version": 2,
               "Flags": 0,
               "Name": "Clothing - mutton_chops",
@@ -25626,18 +25426,18 @@
           {
             "Id": {
               "Type": "Component",
-              "IdValue": "3785b2cc-d3dd-46a3-86f1-3442e9fd4cc2"
+              "IdValue": "24560f7b-312e-4a4b-8fde-abbc101976f5"
             },
             "Parent": {
               "Type": "GameObject",
-              "IdValue": "534697b6-62a1-48ed-be05-214915c8b5f5"
+              "IdValue": "0f562e48-a7d9-48fe-bb04-72eaf6bdba21"
             },
             "PreviousElement": null,
             "ContainerProperty": "Components",
             "IsContainerArray": true,
             "Data": {
               "__type": "Sandbox.SkinnedModelRenderer",
-              "__guid": "3785b2cc-d3dd-46a3-86f1-3442e9fd4cc2",
+              "__guid": "24560f7b-312e-4a4b-8fde-abbc101976f5",
               "__enabled": true,
               "Flags": 0,
               "AnimationGraph": null,
@@ -26242,7 +26042,7 @@
               "OnComponentFixedUpdate": null,
               "OnComponentStart": null,
               "OnComponentUpdate": null,
-              "Url": "https://dxrp.net/embed/motd/00000000-0000-0000-0000-000000000000"
+              "Url": "https://staging.dxrp.net/embed/motd/00000000-0000-0000-0000-000000000000"
             }
           ],
           "Children": []
@@ -26821,11 +26621,19 @@
           },
           {
             "Target": {
-              "Type": "GameObject",
-              "IdValue": "43060705-bb27-4b8a-9732-df9707eab3f2"
+              "Type": "Component",
+              "IdValue": "0e751342-db1d-4841-a9ec-e72a61f2bbd9"
             },
-            "Property": "Tags",
-            "Value": "world"
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "b95c433a-2bca-4b4a-819c-0a2abae00f6b"
+              },
+              "Materials": [
+                "materials/metal/metal_01a.vmat",
+                "materials/dev/reflectivity_30.vmat"
+              ]
+            }
           }
         ],
         "MovedObjects": []
@@ -27006,11 +26814,19 @@
           },
           {
             "Target": {
-              "Type": "GameObject",
-              "IdValue": "43060705-bb27-4b8a-9732-df9707eab3f2"
+              "Type": "Component",
+              "IdValue": "0e751342-db1d-4841-a9ec-e72a61f2bbd9"
             },
-            "Property": "Tags",
-            "Value": "world"
+            "Property": "Mesh",
+            "Value": {
+              "Data": {
+                "$blob": "b0a4892d-2457-40de-9914-2abb93d7e088"
+              },
+              "Materials": [
+                "materials/metal/metal_01a.vmat",
+                "materials/dev/reflectivity_30.vmat"
+              ]
+            }
           }
         ],
         "MovedObjects": []
@@ -27919,6 +27735,35 @@
         }
       ],
       "Children": []
+    },
+    {
+      "__guid": "791bed9d-dfd0-4b44-9ee7-5dc01d69b3bc",
+      "__version": 2,
+      "__Prefab": "gameplay/entities/pallet/pallet.prefab",
+      "__PrefabInstancePatch": {
+        "AddedObjects": [],
+        "RemovedObjects": [],
+        "PropertyOverrides": [
+          {
+            "Target": {
+              "Type": "GameObject",
+              "IdValue": "061dee84-26ea-4964-85fe-1da46631bc39"
+            },
+            "Property": "Position",
+            "Value": "-742.042542,559.923157,-0.712640643"
+          }
+        ],
+        "MovedObjects": []
+      },
+      "__PrefabIdToInstanceId": {
+        "061dee84-26ea-4964-85fe-1da46631bc39": "791bed9d-dfd0-4b44-9ee7-5dc01d69b3bc",
+        "1ef96008-2499-41c1-8c7b-8a6cea2bd645": "77b9fa8f-05b1-4bd7-8236-d70738e0fa35",
+        "da3cad0c-824e-4749-a9d8-f0eabb813f2a": "ecdaf18a-8659-4a69-b244-fd9b06fd6e57",
+        "15f3f0ce-ab27-4a26-a3da-0c9d7e7c3799": "07bb82a3-78e5-4b09-ab8d-999c6fd042c3",
+        "8c591457-8164-4f34-9761-f75eb8ada629": "bda7e27e-ca8b-47c5-b4a7-e580f920d4c0",
+        "d3f6b7d2-9a3b-4e3a-8c0a-2f7a9b6e4d15": "7519061d-3fd8-438d-8b33-b51abdee4608",
+        "5e1a634e-59ad-482a-b75b-e98aac10c174": "753edae9-5e8b-4210-b744-306055323ace"
+      }
     }
   ],
   "SceneProperties": {
@@ -27944,7 +27789,8 @@
       "Dxura.RP.Game.Config": {
         "GameMode": {
           "Id": "00000000-0000-0000-0000-000000000000",
-          "Name": "Default",
+          "TenantId": "00000000-0000-0000-0000-000000000000",
+          "Name": "None",
           "Description": null,
           "Visibility": "Private",
           "DefaultJobId": "00000000-0000-0000-0000-000000000000",
@@ -27996,6 +27842,7 @@
     "facepunch.intruder_alarm_1#143584",
     "facepunch.intruder_alarm_3#143586",
     "facepunch.lit_bollard_base#29059",
+    "facepunch.metal_01a#9574",
     "facepunch.metal_door_01a#275632",
     "facepunch.metaldoor04a#275635",
     "facepunch.oildrumexplosive#279782",

@@ -104,7 +104,7 @@ public sealed partial class Chat
 		return true;
 	}
 
-	private bool CanAccessCommand( Player player, ICommand command )
+	public bool CanAccessCommand( Player player, ICommand command )
 	{
 		if ( player.IsDead && !command.IsUsableWhileDead )
 		{

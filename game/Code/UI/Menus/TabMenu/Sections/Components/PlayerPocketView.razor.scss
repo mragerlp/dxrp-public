@@ -1,0 +1,88 @@
+@import "../../../../styles.scss";
+
+PlayerPocketView {
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+
+  .profile-pocket {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    width: 100%;
+    margin-top: $space-3;
+  }
+
+  .pocket-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: $space-3;
+  }
+
+  .count {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    min-width: 72px;
+    padding: 2px 8px;
+    color: rgba(white, 0.72);
+    font-size: $text-xs;
+    font-weight: 600;
+  }
+
+  .pocket-body {
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    padding-top: $space-3;
+  }
+
+  .loading {
+    color: $color-gray-400;
+    font-size: $text-xs;
+    padding: 0 $space-4 $space-2;
+  }
+
+  .empty-state {
+    width: 100%;
+    padding: $space-2 $space-3;
+    border-radius: $space-2;
+    background-color: rgba($color-secondary, 0.95);
+    color: rgba(white, 0.58);
+    font-size: $text-xs;
+    text-align: left;
+  }
+
+  .pocket-list {
+    display: flex;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: $space-2;
+    width: 100%;
+    padding: 0 $space-4 $space-2 0;
+  }
+
+  .pocket-entry {
+    display: flex;
+    align-items: center;
+    gap: $space-2;
+    flex-shrink: 0;
+    padding: $space-1 $space-2;
+    border-radius: 0;
+    background-color: rgba($color-accent, 0.22);
+  }
+
+  .item-name {
+    color: white;
+    font-size: $text-xs;
+    font-weight: 600;
+  }
+
+  .item-count {
+    color: rgba(white, 0.72);
+    font-size: $text-xs;
+    font-weight: 700;
+  }
+}

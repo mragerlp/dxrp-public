@@ -68,7 +68,7 @@ public class PartyData
 /// it, and writes it back into <see cref="Parties"/> so the dictionary marks the key dirty and replicates
 /// (mirrors how <c>RankSystem</c> reassigns <c>Ranks[id] = def</c>).
 /// </summary>
-public sealed class PartySystem : SingletonComponent<PartySystem>, Component.INetworkListener
+public sealed class PartySystem : SingletonComponent<PartySystem>, IGameEvents
 {
 	/// <summary>
 	/// Runtime config. Populated with defaults today; portal "System" config-override plumbing
@@ -398,6 +398,7 @@ public sealed class PartySystem : SingletonComponent<PartySystem>, Component.INe
 
 		RemovePlayerInternal( target.SteamId );
 		target.Warn( Language.GetPhrase( "party.kicked" ) );
+		target.SendMessage( Language.GetPhrase( "party.kicked" ) );
 		NotifyParty( partyId.Value, string.Format( Language.GetPhrase( "party.member_kicked" ), target.DisplayName ) );
 	}
 
@@ -501,42 +502,6 @@ public sealed class PartySystem : SingletonComponent<PartySystem>, Component.INe
 		Parties[partyId.Value] = data;
 
 		NotifyParty( partyId.Value, Language.GetPhrase( "party.color_changed" ) );
-	}
-
-	/// <summary>
-	/// Leader sets the desired party size (inclusive of leader). Value is clamped to the current roster
-	/// count and the operator/hard caps.
-	/// </summary>
-	public void HostSetDesiredPartySize( Player caller, int desiredSize )
-	{
-		if ( !Networking.IsHost || caller is null )
-		{
-			return;
-		}
-
-		var partyId = GetPartyId( caller.SteamId );
-		if ( !partyId.HasValue )
-		{
-			caller.Error( Language.GetPhrase( "party.no_party" ) );
-			return;
-		}
-
-		if ( !IsLeader( caller.SteamId ) )
-		{
-			caller.Error( Language.GetPhrase( "party.not_leader" ) );
-			return;
-		}
-
-		var data = Clone( Parties[partyId.Value] );
-		var memberCount = data.Members?.Count ?? 1;
-		var clamped = ClampDesiredPartySize( desiredSize, memberCount );
-		if ( data.DesiredPartySize == clamped )
-		{
-			return;
-		}
-
-		data.DesiredPartySize = clamped;
-		Parties[partyId.Value] = data;
 	}
 
 	/// <summary>
@@ -730,6 +695,12 @@ public sealed class PartySystem : SingletonComponent<PartySystem>, Component.INe
 			return;
 		}
 
+		if ( !RankSystem.HasPermission( caller.SteamId, Permission.CommandParty ) )
+		{
+			caller.Error( "#generic.no_permission" );
+			return;
+		}
+
 		// ResolvePlayer already messages the caller on a miss/ambiguous name.
 		var target = CommandHelper.ResolvePlayer( caller, name );
 		if ( target.IsValid() )
@@ -745,16 +716,6 @@ public sealed class PartySystem : SingletonComponent<PartySystem>, Component.INe
 		if ( caller.IsValid() )
 		{
 			HostSetColor( caller, color );
-		}
-	}
-
-	[Rpc.Host]
-	public void RequestSetDesiredPartySize( int desiredSize )
-	{
-		var caller = GameUtils.GetPlayerByConnectionId( Rpc.CallerId );
-		if ( caller.IsValid() )
-		{
-			HostSetDesiredPartySize( caller, desiredSize );
 		}
 	}
 
@@ -801,13 +762,6 @@ public sealed class PartySystem : SingletonComponent<PartySystem>, Component.INe
 		}
 
 		return cleaned.Length > PartyNameMaxLength ? cleaned[..PartyNameMaxLength] : cleaned;
-	}
-
-	private int ClampDesiredPartySize( int desiredSize, int currentMemberCount )
-	{
-		var operatorCap = GetOperatorPartySizeCap();
-		var minAllowed = Math.Clamp( currentMemberCount, 1, operatorCap );
-		return Math.Clamp( desiredSize, minAllowed, operatorCap );
 	}
 
 	private Guid CreatePartyForLeader( Player leader )
@@ -1001,15 +955,18 @@ public sealed class PartySystem : SingletonComponent<PartySystem>, Component.INe
 		}
 	}
 
-	// ── INetworkListener: clean up parties when a player disconnects ──────────────────────────
-	public void OnDisconnected( Connection channel )
+	/// <summary>
+	/// Removes party membership once the player's grace-reconnect state is actually cleaned up.
+	/// This is also called immediately for explicit cleanup paths such as kicks and bans.
+	/// </summary>
+	public void OnPlayerDisconnectHost( long steamId )
 	{
-		if ( !Networking.IsHost || channel is null )
+		if ( !Networking.IsHost )
 		{
 			return;
 		}
 
-		RemovePlayerInternal( channel.SteamId );
-		ClearInvite( channel.SteamId );
+		RemovePlayerInternal( steamId );
+		ClearInvite( steamId );
 	}
 }

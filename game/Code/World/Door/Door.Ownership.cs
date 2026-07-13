@@ -23,6 +23,8 @@ public partial class Door : IOwned
 
 	public bool IsOwned => Owner != 0 || !string.IsNullOrWhiteSpace( OwnerGroupIdentifier ) || !string.IsNullOrWhiteSpace( OwnerJobIdentifier );
 
+	private bool _purchasePending;
+
 	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
 	private void BroadcastOwner( long owner )
 	{
@@ -80,7 +82,7 @@ public partial class Door : IOwned
 
 		var player = GameUtils.GetPlayerByConnectionId( callerId );
 
-		if ( IsOwned || !player.IsValid() )
+		if ( IsOwned || _purchasePending || !player.IsValid() )
 		{
 			return;
 		}
@@ -99,22 +101,29 @@ public partial class Door : IOwned
 			return;
 		}
 
+		// Flip synchronously so a spammed buy RPC can't charge the same player
+		// again while this purchase is still awaiting the charge.
+		_purchasePending = true;
+
 		_ = player.ChargeHost( Price, "Bought Door", true ).ContinueWith( async chargeResult =>
 		{
 			await GameTask.MainThread();
 
 			if ( !player.IsValid() || !GameObject.IsValid() )
 			{
+				_purchasePending = false;
 				return;
 			}
 
 			if ( !chargeResult.Result )
 			{
+				_purchasePending = false;
 				return;
 			}
 
 			BroadcastOwner( player.SteamId );
 			BuySound.Broadcast( WorldPosition );
+			_purchasePending = false;
 		} );
 	}
 }

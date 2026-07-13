@@ -170,9 +170,29 @@ public partial class MinigameSystem
 		return _players.Contains( player ) || _pendingPlayers.Contains( player ) || _spectators.Contains( player );
 	}
 
+	/// <summary>
+	/// Client-safe membership check backed by the host-synced <see cref="ParticipantSteamIds" />.
+	/// Use this from client-side code (outlines, HUD) where the raw participant lists are empty.
+	/// </summary>
+	public bool IsPlayerInMinigame( long steamId )
+	{
+		return ParticipantSteamIds.Contains( steamId );
+	}
+
 	private void UpdatePlayerCount()
 	{
 		TotalPlayerCount = _players.Count + _pendingPlayers.Count;
+		RebuildParticipantIds();
+	}
+
+	private void RebuildParticipantIds()
+	{
+		ParticipantSteamIds.Clear();
+		ParticipantSteamIds.AddRange( _players
+			.Concat( _pendingPlayers )
+			.Concat( _spectators )
+			.Where( p => p.IsValid() )
+			.Select( p => p.SteamId ) );
 	}
 
 	private void NotifyMinigameParticipants( string message )

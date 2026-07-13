@@ -172,7 +172,7 @@ public class PressurePlateWire() : BaseWireConstruct( ConstructType.PressurePlat
 			{
 				if ( counted.Contains( root )
 				     || !PassesFilter( root )
-				     || root.GetComponent<Player>().IsValid()
+				     || GetPlayer( root ).IsValid()
 				     || !IsStackedOn( counted, root ) )
 				{
 					continue;
@@ -205,15 +205,21 @@ public class PressurePlateWire() : BaseWireConstruct( ConstructType.PressurePlat
 
 			yield return root;
 		}
+
+		foreach ( var player in Scene.Components.GetAll<Player>( FindMode.EverythingInSelfAndDescendants ) )
+		{
+			var root = player.GameObject.Root;
+			if ( !root.IsValid() || root == GameObject.Root || !processed.Add( root ) )
+			{
+				continue;
+			}
+
+			yield return root;
+		}
 	}
 
 	private bool TouchesContactZone( GameObject root, float halfLength, float halfWidth, float plateTop )
 	{
-		if ( root.GetComponent<Player>().IsValid() )
-		{
-			return IsPointInContactZone( GetPlayerSamplePoint( root ), halfLength, halfWidth, plateTop );
-		}
-
 		var transform = GameObject.WorldTransform;
 		var minZ = plateTop - PressurePlateWireDefinition.SurfaceTolerance;
 		var maxZ = plateTop + PressurePlateWireDefinition.DetectionHeight;
@@ -232,6 +238,11 @@ public class PressurePlateWire() : BaseWireConstruct( ConstructType.PressurePlat
 			{
 				return true;
 			}
+		}
+
+		if ( GetPlayer( root ).IsValid() )
+		{
+			return IsPointInContactZone( GetPlayerSamplePoint( root ), halfLength, halfWidth, plateTop );
 		}
 
 		return !foundCollider && IsPointInContactZone( root.WorldPosition, halfLength, halfWidth, plateTop );
@@ -284,7 +295,7 @@ public class PressurePlateWire() : BaseWireConstruct( ConstructType.PressurePlat
 
 	private static Vector3 GetPlayerSamplePoint( GameObject root )
 	{
-		var player = root.GetComponent<Player>();
+		var player = GetPlayer( root );
 		if ( player.IsValid()
 		     && player.Controller.IsValid()
 		     && player.Controller.FeetCollider.IsValid() )
@@ -299,11 +310,16 @@ public class PressurePlateWire() : BaseWireConstruct( ConstructType.PressurePlat
 	{
 		return _data.FilterType switch
 		{
-			TriggerFilterType.PlayerOnly => root.Tags.Has( Constants.PlayerTag ),
+			TriggerFilterType.PlayerOnly => root.Tags.Has( Constants.PlayerTag ) || GetPlayer( root ).IsValid(),
 			TriggerFilterType.EntityOnly => root.Tags.Has( Constants.EntityTag ),
 			TriggerFilterType.ConstructOnly => root.Tags.Has( Constants.ConstructTag ),
 			_ => true
 		};
+	}
+
+	private static Player? GetPlayer( GameObject root )
+	{
+		return root.Components.Get<Player>( FindMode.EverythingInSelfAndDescendants );
 	}
 
 	private float GetPlateTopLocalZ()
@@ -537,7 +553,7 @@ public class PressurePlateWire() : BaseWireConstruct( ConstructType.PressurePlat
 
 	private static float GetObjectMass( GameObject obj )
 	{
-		var player = obj.GetComponent<Player>();
+		var player = GetPlayer( obj );
 		if ( player.IsValid() && player.Controller.IsValid() )
 		{
 			return player.Controller.BodyMass;

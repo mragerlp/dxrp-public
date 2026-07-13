@@ -385,6 +385,8 @@ public sealed class GameNetworkManager : SingletonComponent<GameNetworkManager>,
 		if ( initalizePlayerResponse != null )
 		{
 			player.InitalizeHost( initalizePlayerResponse.Balance, initalizePlayerResponse.Playtime, initalizePlayerResponse.Level, initalizePlayerResponse.RpName );
+			player.FactionId = initalizePlayerResponse.FactionId;
+			player.FactionRoleId = initalizePlayerResponse.FactionRoleId;
 
 			if ( !initalizePlayerResponse.PrivacyConsent )
 			{

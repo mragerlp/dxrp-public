@@ -3,7 +3,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using Dxura.RP.Shared;
 using Sandbox.Services;
+using System.Net;
 using System.Text;
+using System.Text.Json;
 
 namespace Dxura.RP.Game;
 
@@ -104,6 +106,51 @@ public static class PlayerApiClient
 				return true;
 			},
 			"Failed to inform server of consent" );
+	}
+
+	public static async Task<(FeedbackSubmitResult Result, string? IssueUrl)> SubmitFeedback( FeedbackType type, string title, string description, byte[]? screenshot = null )
+	{
+		if ( string.IsNullOrEmpty( ServerApiLink.Current?.TenantId ) )
+		{
+			return (FeedbackSubmitResult.Failed, null);
+		}
+
+		return await SafeApiCall( async headers =>
+			{
+				var payload = new CreateFeedbackDto
+				{
+					Type = type,
+					Title = title,
+					Description = description,
+					Screenshot = screenshot != null ? Convert.ToBase64String( screenshot ) : null,
+					Version = Application.Version
+				};
+
+				var json = JsonSerializer.Serialize( payload );
+				var content = new StringContent( json, Encoding.UTF8, "application/json" );
+
+				var response = await ApiClientBase.RequestAsync(
+					$"{Constants.ApiBaseUrl}/v1/player/feedback",
+					"POST",
+					content,
+					headers );
+
+				if ( response.StatusCode == HttpStatusCode.OK )
+				{
+					var body = await response.Content.ReadAsStringAsync();
+					var dto = JsonSerializer.Deserialize<FeedbackSubmitResponseDto>( body,
+						new JsonSerializerOptions { PropertyNameCaseInsensitive = true } );
+					return (FeedbackSubmitResult.Success, dto?.IssueUrl);
+				}
+
+				return response.StatusCode switch
+				{
+					(HttpStatusCode)429 => (FeedbackSubmitResult.Cooldown, null),
+					(HttpStatusCode)422 => (FeedbackSubmitResult.Flagged, null),
+					_ => (FeedbackSubmitResult.Failed, (string?)null)
+				};
+			},
+			"Failed to submit feedback" );
 	}
 
 	public static async Task<bool> Upgrade()

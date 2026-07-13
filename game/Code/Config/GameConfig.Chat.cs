@@ -47,6 +47,7 @@ public abstract partial class GameConfig
 		"#system.automessage.rules",
 		"#system.automessage.staff_hint",
 		"#system.automessage.rulebreakers",
+		"#system.automessage.feedback",
 	];
 }
 

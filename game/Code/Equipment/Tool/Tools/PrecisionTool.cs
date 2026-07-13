@@ -55,6 +55,7 @@ public class PrecisionTool : BaseTool
 	private Vector3 _grabOffset;
 	private float _holdDistance = 120f;
 	private List<(ModelRenderer renderer, Color originalTint)> _originalTints = new();
+	private HighlightOutline? _ghostOutline;
 	private Vector3 _originalPosition;
 	private Rotation _originalRotation;
 
@@ -301,29 +302,27 @@ public class PrecisionTool : BaseTool
 			}
 		}
 
-		var outline = _targetObject.AddComponent<HighlightOutline>();
-		outline.Width = 0.5f;
-		outline.Color = new Color( 0.043f, 0.682f, 0.859f );
+		_ghostOutline = _targetObject.AddComponent<HighlightOutline>();
+		_ghostOutline.Width = 0.5f;
+		_ghostOutline.Color = new Color( 0.043f, 0.682f, 0.859f );
 	}
 
 	private void RestoreAppearance()
 	{
-		if ( !_targetObject.IsValid() )
+		if ( _targetObject.IsValid() )
 		{
-			return;
-		}
-
-		foreach ( var (renderer, originalTint) in _originalTints )
-		{
-			if ( renderer.IsValid() )
+			foreach ( var (renderer, originalTint) in _originalTints )
 			{
-				renderer.Tint = originalTint;
+				if ( renderer.IsValid() )
+				{
+					renderer.Tint = originalTint;
+				}
 			}
 		}
 		_originalTints.Clear();
 
-		var outline = _targetObject.GetComponent<HighlightOutline>();
-		outline?.Destroy();
+		_ghostOutline?.Destroy();
+		_ghostOutline = null;
 	}
 
 	private void Nudge( bool push )

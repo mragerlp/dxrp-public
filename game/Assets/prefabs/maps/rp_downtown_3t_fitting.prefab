@@ -924,14 +924,6 @@
                       },
                       "Property": "Rotation",
                       "Value": "0,0,-0.999999881,1.94707198E-07"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -974,14 +966,6 @@
                       },
                       "Property": "Rotation",
                       "Value": "0,0,-0.70710659,0.707106829"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -1016,14 +1000,6 @@
                       },
                       "Property": "Position",
                       "Value": "-5009.07178,2543.146,56.1782303"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -1074,14 +1050,6 @@
                       },
                       "Property": "Rotation",
                       "Value": "0,0,1,1.94707198E-07"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -1132,14 +1100,6 @@
                       },
                       "Property": "Rotation",
                       "Value": "0,0,0.707106709,0.707106829"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -1182,14 +1142,6 @@
                       },
                       "Property": "Position",
                       "Value": "-1268,3088.84595,90"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -1240,14 +1192,6 @@
                       },
                       "Property": "Rotation",
                       "Value": "0,0,-0.999999881,1.94707198E-07"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -1298,14 +1242,6 @@
                       },
                       "Property": "Rotation",
                       "Value": "0,0,-0.707106888,-0.70710659"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -1348,14 +1284,6 @@
                       },
                       "Property": "Rotation",
                       "Value": "0,0,-0.707106709,0.707106829"
-                    },
-                    {
-                      "Target": {
-                        "Type": "GameObject",
-                        "IdValue": "43494b7c-7c8d-4b44-b0e9-e90b284509d4"
-                      },
-                      "Property": "Tags",
-                      "Value": "world"
                     }
                   ],
                   "MovedObjects": []
@@ -7117,14 +7045,6 @@
                   },
                   "Property": "Unit",
                   "Value": ""
-                },
-                {
-                  "Target": {
-                    "Type": "GameObject",
-                    "IdValue": "43060705-bb27-4b8a-9732-df9707eab3f2"
-                  },
-                  "Property": "Tags",
-                  "Value": "world"
                 }
               ],
               "MovedObjects": []
@@ -7170,14 +7090,6 @@
                   },
                   "Property": "Rotation",
                   "Value": "0,0,-0.707106829,0.707106829"
-                },
-                {
-                  "Target": {
-                    "Type": "GameObject",
-                    "IdValue": "43060705-bb27-4b8a-9732-df9707eab3f2"
-                  },
-                  "Property": "Tags",
-                  "Value": "world"
                 }
               ],
               "MovedObjects": []
@@ -7355,14 +7267,6 @@
                   },
                   "Property": "Unit",
                   "Value": "\uD83C\uDFC6"
-                },
-                {
-                  "Target": {
-                    "Type": "GameObject",
-                    "IdValue": "43060705-bb27-4b8a-9732-df9707eab3f2"
-                  },
-                  "Property": "Tags",
-                  "Value": "world"
                 }
               ],
               "MovedObjects": []
@@ -7432,14 +7336,6 @@
                   },
                   "Property": "Unit",
                   "Value": ""
-                },
-                {
-                  "Target": {
-                    "Type": "GameObject",
-                    "IdValue": "43060705-bb27-4b8a-9732-df9707eab3f2"
-                  },
-                  "Property": "Tags",
-                  "Value": "world"
                 }
               ],
               "MovedObjects": []

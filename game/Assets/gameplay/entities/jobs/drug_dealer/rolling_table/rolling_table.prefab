@@ -21,6 +21,8 @@
         "__enabled": true,
         "Flags": 0,
         "AutoProcessSound": "gameplay/entities/jobs/drug_dealer/rolling_table/sounds/autoprocess_done.sound",
+        "AutoProcessTime": null,
+        "EntityId": "00000000-0000-0000-0000-000000000000",
         "HealthComponent": {
           "_type": "component",
           "component_id": "6da39790-f5c7-4a57-9424-bba92dfe55d0",
@@ -37,18 +39,19 @@
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
         "OnComponentUpdate": null,
-        "Owner": "0",
-        "OwnerSteamId": 0,
+        "Owner": 0,
         "PackedGameObject": {
           "_type": "gameobject",
           "prefab": "gameplay/entities/jobs/drug_dealer/weed_brick/weed_brick.prefab"
         },
+        "ProcessedWeed": 0,
         "Rigidbody": {
           "_type": "component",
           "component_id": "41254079-5f03-4fc7-9ed0-c28ebb5cba4e",
           "go": "f04e956d-99e1-427c-954a-98282984837a",
           "component_type": "Rigidbody"
-        }
+        },
+        "UnprocessedWeed": 0
       },
       {
         "__type": "Sandbox.Rigidbody",
@@ -82,6 +85,7 @@
         "OnComponentUpdate": null,
         "OverrideMassCenter": false,
         "RigidbodyFlags": "DisableCollisionSounds",
+        "SleepThreshold": 2,
         "StartAsleep": false
       },
       {
@@ -104,7 +108,7 @@
         "__guid": "38bd9be3-6cf1-433a-b261-925c9b4652a5",
         "__enabled": true,
         "Flags": 0,
-        "Center": "11.9592,0,24.27647",
+        "Center": "11.9591999,0,24.2764702",
         "ColliderFlags": 0,
         "Elasticity": null,
         "Friction": null,
@@ -120,7 +124,7 @@
         "OnTriggerEnter": null,
         "OnTriggerExit": null,
         "RollingResistance": null,
-        "Scale": "57.97673,50,48.59412",
+        "Scale": "57.9767303,50,48.59412",
         "Static": false,
         "Surface": null,
         "SurfaceVelocity": "0,0,0"
@@ -220,8 +224,8 @@
         "__version": 2,
         "Flags": 0,
         "Name": "ui",
-        "Position": "1.781733,0,35.93774",
-        "Rotation": "0,-0.7071068,0,0.7071068",
+        "Position": "1.78173304,0,35.9377403",
+        "Rotation": "0,-0.707106829,0,0.707106829",
         "Scale": "1,1,1",
         "Tags": "",
         "Enabled": false,
@@ -245,7 +249,7 @@
             "OnComponentFixedUpdate": null,
             "OnComponentStart": null,
             "OnComponentUpdate": null,
-            "PanelSize": "595.5002,345.1",
+            "PanelSize": "595.500183,345.100006",
             "RenderOptions": {
               "GameLayer": true,
               "OverlayLayer": false,
@@ -286,31 +290,16 @@
         "Enabled": false,
         "IncludeStaticBodies": true,
         "IncludeKeyframedBodies": true,
-        "EditorAutoUpdate": true,
+        "EditorAutoUpdate": false,
         "AgentHeight": 64,
         "AgentRadius": 16,
         "AgentStepSize": 18,
         "AgentMaxSlope": 40,
         "ExcludedBodies": "",
-        "IncludedBodies": ""
-      },
-      "GameObjectSystems": [
-        {
-          "Prisoners": {},
-          "__type": "Governance",
-          "__guid": "c740bf1c-72ee-43d4-833f-1cdfb068ed2e"
-        },
-        {
-          "TenantId": "",
-          "__type": "ServerApiLink",
-          "__guid": "d9dbf37f-7092-447d-928f-99882686d3e8"
-        },
-        {
-          "Connections": [],
-          "__type": "Wire",
-          "__guid": "bd0ad9b2-819b-41ff-ad2f-b3367fc75bcd"
-        }
-      ]
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
     },
     "__variables": []
   },

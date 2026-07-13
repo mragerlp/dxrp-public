@@ -59,7 +59,7 @@ public class JobCommand : ICommand
 			return;
 		}
 
-		if ( caller.Job == job )
+		if ( caller.Job.IsSameJob( job ) )
 		{
 			return;
 		}
@@ -152,7 +152,7 @@ public class JobCommand : ICommand
 			return;
 		}
 
-		if ( targetPlayer.Job == job )
+		if ( targetPlayer.Job.IsSameJob( job ) )
 		{
 			caller.SendMessage( string.Format(
 				Language.GetPhrase( "command.job.already" ),

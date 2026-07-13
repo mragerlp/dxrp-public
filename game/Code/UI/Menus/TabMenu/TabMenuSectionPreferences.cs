@@ -31,6 +31,18 @@ public static class TabMenuSectionPreferences
 		Write( data );
 	}
 
+	public static bool LoadShowLockedJobs()
+	{
+		return Load().ShowLockedJobs;
+	}
+
+	public static void SaveShowLockedJobs( bool enabled )
+	{
+		var data = Load();
+		data.ShowLockedJobs = enabled;
+		Write( data );
+	}
+
 	public static void SaveCollapsedJobGroups( IEnumerable<Guid> collapsedGroupIds )
 	{
 		var data = Load();
@@ -92,5 +104,6 @@ public static class TabMenuSectionPreferences
 		public List<string> JobGroups { get; set; } = [];
 		public List<string> MarketCategories { get; set; } = [];
 		public bool MarketAdminMode { get; set; } = false;
+		public bool ShowLockedJobs { get; set; } = false;
 	}
 }

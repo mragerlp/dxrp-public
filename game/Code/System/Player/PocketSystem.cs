@@ -252,6 +252,115 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 		LocalPocketCount = count;
 	}
 
+	// Admin pocket view (client-side state)
+	private readonly List<string> _adminViewItems = [];
+
+	public IReadOnlyList<string> AdminViewItems => _adminViewItems;
+	public int AdminViewRevision { get; private set; }
+	public long? AdminViewPlayerId { get; private set; }
+	public Guid AdminViewRequestId { get; private set; }
+	public bool AdminViewIsLoading { get; private set; }
+
+	public void BeginPocketViewClient( long playerId, Guid requestId )
+	{
+		AdminViewPlayerId = playerId;
+		AdminViewRequestId = requestId;
+		AdminViewIsLoading = true;
+		_adminViewItems.Clear();
+		AdminViewRevision++;
+	}
+
+	public void ClearPocketViewClient()
+	{
+		if ( AdminViewPlayerId == null && AdminViewRequestId == Guid.Empty && !AdminViewIsLoading && _adminViewItems.Count == 0 )
+		{
+			return;
+		}
+
+		AdminViewPlayerId = null;
+		AdminViewRequestId = Guid.Empty;
+		AdminViewIsLoading = false;
+		_adminViewItems.Clear();
+		AdminViewRevision++;
+	}
+
+	private string[] ListPocketDisplayNames( long steamId )
+	{
+		if ( !Pockets.TryGetValue( steamId, out var items ) || items.Count == 0 )
+		{
+			return [];
+		}
+
+		return items
+			.Where( i => i.IsValid() )
+			.Select( GetItemDisplayName )
+			.ToArray();
+	}
+
+	private static string GetItemDisplayName( GameObject item )
+	{
+		var entity = item.GetComponent<BaseEntity>( true );
+		if ( entity.IsValid() && !string.IsNullOrWhiteSpace( entity.DisplayName ) )
+		{
+			return entity.DisplayName;
+		}
+
+		return item.Name;
+	}
+
+	[Rpc.Host]
+	public void RequestPocketContentsHost( long playerId, Guid requestId )
+	{
+		if ( !RankSystem.HasPermission( Rpc.Caller.SteamId, Permission.ViewPocket ) )
+		{
+			return;
+		}
+
+		var caller = GameUtils.GetPlayerByConnectionId( Rpc.CallerId );
+		if ( !caller.IsValid() || caller.Connection == null )
+		{
+			return;
+		}
+
+		var target = GameUtils.GetPlayerById( playerId );
+		if ( !target.IsValid() )
+		{
+			return;
+		}
+
+		var items = ListPocketDisplayNames( playerId );
+
+		_ = ServerApiClient.Audit( "PocketView",
+			$"{caller.SteamName} ({caller.SteamId}) viewed the pocket of {target.SteamName} ({playerId}) ({items.Length} items)",
+			caller.SteamId );
+
+		using ( Rpc.FilterInclude( c => c.Id == caller.ConnectionId ) )
+		{
+			BroadcastPocketContentsClient( playerId, requestId, items );
+		}
+	}
+
+	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
+	private void BroadcastPocketContentsClient( long playerId, Guid requestId, string[] items )
+	{
+		if ( !RankSystem.HasLocalPermission( Permission.ViewPocket ) )
+		{
+			ClearPocketViewClient();
+			return;
+		}
+
+		if ( requestId != AdminViewRequestId )
+		{
+			return;
+		}
+
+		AdminViewPlayerId = playerId;
+		AdminViewIsLoading = false;
+		_adminViewItems.Clear();
+		_adminViewItems.AddRange( items );
+		AdminViewRevision++;
+	}
+
 	private void ResetItemDecay( GameObject item )
 	{
 		var timedDestroy = item.GetComponent<TimedDestroyComponent>( true );

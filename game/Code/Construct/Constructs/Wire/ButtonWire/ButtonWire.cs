@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 namespace Dxura.RP.Game.Wire;
 
 [Title( "Button" )]
@@ -18,6 +18,8 @@ public class ButtonWire() : BaseWireConstruct( ConstructType.ButtonWire ), Compo
 	private float Out { get; set; }
 
 	public override string Name => "Button";
+
+	public override bool ShouldShow() => !string.IsNullOrWhiteSpace( DisplayText );
 
 	[Property]
 	private float PressDepth { get; set; } = 2.0f;

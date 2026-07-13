@@ -18,27 +18,10 @@ internal static class ApiClientBase
 	{
 		try
 		{
-			var result = await GameTask.RunInThreadAsync( async () =>
+			return await GameTask.RunInThreadAsync( async () =>
 			{
 				var headers = await getAuthHeaders( false );
 				return await apiAction( headers );
-			} );
-
-			if ( !retryUnauthorized || result is not HttpResponseMessage response )
-			{
-				return result;
-			}
-
-			if ( response.StatusCode != HttpStatusCode.Unauthorized )
-			{
-				return result;
-			}
-
-			Log.Info( "Auth token rejected (401 Unauthorized), refreshing and retrying..." );
-			return await GameTask.RunInThreadAsync( async () =>
-			{
-				var refreshedHeaders = await getAuthHeaders( true );
-				return await apiAction( refreshedHeaders );
 			} );
 		}
 		catch ( Exception ex )
@@ -47,7 +30,7 @@ internal static class ApiClientBase
 			{
 				try
 				{
-					Log.Info( "Auth token rejected, refreshing and retrying..." );
+					Log.Info( "Auth token rejected (401 Unauthorized), refreshing and retrying..." );
 					return await GameTask.RunInThreadAsync( async () =>
 					{
 						var headers = await getAuthHeaders( true );
@@ -124,13 +107,22 @@ internal static class ApiClientBase
 		}
 	}
 
-	public static Task<HttpResponseMessage> RequestAsync(
+	public static async Task<HttpResponseMessage> RequestAsync(
 		string requestUri,
 		string method = "GET",
 		HttpContent? content = null,
 		Dictionary<string, string>? headers = null )
 	{
-		return Http.RequestAsync( requestUri, method, content, headers );
+		var response = await Http.RequestAsync( requestUri, method, content, headers );
+
+		// Force a throw on 401 so SafeApiCall's auth-retry path (matched via IsAuthError) always
+		// sees it, even for callers that inspect StatusCode themselves rather than throwing.
+		if ( response.StatusCode == HttpStatusCode.Unauthorized )
+		{
+			response.EnsureSuccessStatusCode();
+		}
+
+		return response;
 	}
 
 	public static Task<T> RequestJsonAsync<T>(

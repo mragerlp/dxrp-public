@@ -24,7 +24,6 @@ public abstract partial class GameConfig
 	public virtual int MaxPocketItems { get; set; } = 6;
 
 	// Faction System
-	public virtual bool FactionsEnabled { get; set; } = false;
 	public virtual uint FactionCreateCost { get; set; } = 500_000;
 
 	// Drop System

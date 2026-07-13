@@ -14,5 +14,7 @@ public class InitalizePlayerResponseDto
 	public int Level { get; set; }
 	public uint Streak { get; set; }
 	public string? RpName { get; set; }
+	public Guid? FactionId { get; set; }
+	public Guid? FactionRoleId { get; set; }
 	public List<SanctionActionDto> ActiveSanctions { get; set; } = [];
 }

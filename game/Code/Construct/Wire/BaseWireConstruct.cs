@@ -13,11 +13,11 @@ public abstract class BaseWireConstruct( ConstructType type ) : BaseConstruct( t
 
 	protected string? WireLabel => Data is IWireLabelData labelData ? labelData.Label : null;
 
-	public string? DisplayText => string.IsNullOrWhiteSpace( WireLabel ) ? null : WireLabel!.Trim();
+	public virtual string? DisplayText => string.IsNullOrWhiteSpace( WireLabel ) ? null : WireLabel!.Trim();
 	public Vector3 ContextPosition => WorldPosition + Vector3.Up * 6f;
 	public bool LookOpacity => false;
 	public float ContextMaxDistance => 100f;
-	public bool ShouldShow() => (WireTool.IsDeployed || WireLabelerTool.IsDeployed) && DisplayText != null;
+	public virtual bool ShouldShow() => (WireTool.IsDeployed || WireLabelerTool.IsDeployed) && !string.IsNullOrWhiteSpace( DisplayText );
 
 	protected override void OnStart()
 	{

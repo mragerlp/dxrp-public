@@ -24,6 +24,14 @@ public partial class MinigameSystem
 	[Sync( SyncFlags.FromHost )]
 	public int TotalPlayerCount { get; private set; } = 0;
 
+	/// <summary>
+	/// SteamIds of everyone currently tied to the active minigame (players, pending and spectators).
+	/// The participant lists themselves are host-only, so this synced set lets clients (e.g. outline
+	/// rendering) tell whether a given player is inside the minigame.
+	/// </summary>
+	[Sync( SyncFlags.FromHost )]
+	public NetList<long> ParticipantSteamIds { get; private set; } = new();
+
 	private TimeSince _timeSinceStateChange = 0;
 
 	private List<Transform> _minigameSpawnPoints = new();
@@ -172,6 +180,7 @@ public partial class MinigameSystem
 		_spectators = [];
 		_pendingPlayers = [];
 		TotalPlayerCount = 0;
+		ParticipantSteamIds.Clear();
 		_desiredMinigameSecondaryHint = null;
 		_selectedSecondaryPrefab = null;
 	}

@@ -328,6 +328,7 @@ BuildMenu {
             font-family: Poppins;
             background-color: $color-tertiary;
             cursor: pointer;
+            flex-shrink: 0;
 
             &.odd {
               background-color: white;

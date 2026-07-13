@@ -18,6 +18,10 @@
 					<i class="material-icons leader-star" style="color: @AccentHex">star</i>
 				}
 				<label class="player-name">@Player.DisplayName.Truncate( 16 )</label>
+				@if ( !Player.IsConnected )
+				{
+					<i class="material-icons disconnected-icon" tooltip="#tabmenu.players.status.disconnected">signal_wifi_off</i>
+				}
 			</div>
 			@if ( Config.Current.Game.MoneyEnabled )
 			{
@@ -83,7 +87,7 @@
 	private float ArmorPercent => Math.Clamp( Armor, 0f, 100f );
 
 	private string AccentHex => AccentColor.Hex();
-	private string RootClass => IsAlive ? "party-member" : "party-member dead";
+	private string RootClass => $"party-member{(IsAlive ? string.Empty : " dead")}{(Player.IsConnected ? string.Empty : " disconnected")}";
 
 	private string HealthColorHex => UiUtils.HealthColorHex( HealthPercent );
 
@@ -97,6 +101,7 @@
 		var hash = new HashCode();
 		hash.Add( Player.SteamId );
 		hash.Add( Player.DisplayName );
+		hash.Add( Player.IsConnected );
 		hash.Add( IsLeader );
 		hash.Add( AccentColor );
 		hash.Add( Health );

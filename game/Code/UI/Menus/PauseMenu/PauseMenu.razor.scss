@@ -15,4 +15,8 @@ PauseMenu {
   &.active {
     pointer-events: all;
   }
+
+  .corner-actions {
+    z-index: 10;
+  }
 }

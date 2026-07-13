@@ -1,0 +1,127 @@
+@namespace Dxura.RP.Game.UI
+@using Dxura.RP.Shared
+@inherits Panel
+
+@attribute [StyleSheet]
+
+@if ( !CanViewPocket || Player == null || !Player.IsValid() || !HasRequestedCurrentPlayer )
+{
+	return;
+}
+
+<root class="profile-pocket section-group">
+	<div class="section-group-title pocket-header">
+		<span>#tabmenu.players.pocket</span>
+		@if ( HasLoadedCurrentPlayer )
+		{
+			<span class="count">@string.Format( Language.GetPhrase( "tabmenu.players.pocket.count" ), System!.AdminViewItems.Count )</span>
+		}
+	</div>
+
+	<div class="pocket-body">
+		@if ( IsLoadingCurrentPlayer )
+		{
+			<div class="loading">#tabmenu.players.pocket.loading</div>
+		}
+		else if ( System!.AdminViewItems.Count == 0 )
+		{
+			<div class="empty-state">#tabmenu.players.pocket.empty</div>
+		}
+		else
+		{
+			<div class="pocket-list">
+				@foreach ( var group in GroupedItems )
+				{
+					<div class="pocket-entry">
+						<span class="item-name">@group.Name</span>
+						@if ( group.Count > 1 )
+						{
+							<span class="item-count">x@( group.Count )</span>
+						}
+					</div>
+				}
+			</div>
+		}
+	</div>
+</root>
+
+@code
+{
+	public Player? Player { get; set; }
+
+	private long? _requestedPlayerId;
+
+	private static PocketSystem? System => PocketSystem.Instance;
+
+	private bool CanViewPocket => System.IsValid() && Player != null &&
+	                              RankSystem.HasLocalPermission( Permission.ViewPocket );
+
+	private bool HasRequestedCurrentPlayer => _requestedPlayerId != null && _requestedPlayerId == Player?.SteamId &&
+	                                          System?.AdminViewPlayerId == Player?.SteamId;
+	private bool IsLoadingCurrentPlayer => HasRequestedCurrentPlayer && System?.AdminViewIsLoading == true;
+	private bool HasLoadedCurrentPlayer => HasRequestedCurrentPlayer && System?.AdminViewIsLoading == false;
+
+	private IEnumerable<(string Name, int Count)> GroupedItems
+	{
+		get
+		{
+			if ( System == null )
+			{
+				return [];
+			}
+
+			return System.AdminViewItems
+				.Select( name => name.StartsWith( '#' ) ? Language.GetPhrase( name[1..] ) : name )
+				.GroupBy( name => name )
+				.Select( group => (group.Key, group.Count()) );
+		}
+	}
+
+	public override void Tick()
+	{
+		if ( !CanViewPocket || Player == null || !Player.IsValid() )
+		{
+			_requestedPlayerId = null;
+			System?.ClearPocketViewClient();
+			return;
+		}
+
+		if ( _requestedPlayerId != null && _requestedPlayerId != Player.SteamId )
+		{
+			_requestedPlayerId = null;
+			System?.ClearPocketViewClient();
+		}
+	}
+
+	public void RequestPocketContents()
+	{
+		if ( System == null || Player == null || !Player.IsValid() )
+		{
+			return;
+		}
+
+		if ( Cooldown.Current.CheckAndStartCooldown( "pocket:view", Config.Current.Game.ActionCooldown ) )
+		{
+			Notify.Cooldown( "pocket:view" );
+			return;
+		}
+
+		_requestedPlayerId = Player.SteamId;
+
+		var requestId = Guid.NewGuid();
+		System.BeginPocketViewClient( Player.SteamId, requestId );
+		System.RequestPocketContentsHost( Player.SteamId, requestId );
+	}
+
+	protected override int BuildHash()
+	{
+		return HashCode.Combine(
+			CanViewPocket,
+			Player?.SteamId ?? 0,
+			_requestedPlayerId ?? 0,
+			System?.AdminViewRevision ?? 0,
+			System?.AdminViewPlayerId ?? 0,
+			System?.AdminViewIsLoading ?? false
+		);
+	}
+}

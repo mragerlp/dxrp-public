@@ -68,6 +68,9 @@ public enum Permission
 	[PermissionMeta( "portal.addon.edit", "Edit Addons", "Manage addons and revisions", "Portal" )]
 	EditAddon,
 
+	[PermissionMeta( "portal.addon.entitlements.manage", "Manage Addon Owners", "Grant addon access entitlements to other networks", "Portal" )]
+	ManageAddonEntitlements,
+
 	[PermissionMeta( "portal.gamemode.view", "View Game Modes", "View game mode list and details", "Portal" )]
 	ViewGameMode,
 
@@ -104,6 +107,12 @@ public enum Permission
 	[PermissionMeta( "portal.apikeys.manage", "Manage API Keys", "Create, list, and revoke API keys", "Portal" )]
 	ManageApiKeys,
 
+	[PermissionMeta( "portal.billing.manage", "Manage Billing", "Manage payment onboarding and view billing status", "Portal" )]
+	ManageBilling,
+
+	[PermissionMeta( "portal.addon.purchase", "Purchase Addons", "Purchase marketplace addons on behalf of this network", "Portal" )]
+	PurchaseAddon,
+
 	// Moderation
 	[PermissionMeta( "player.kick", "Kick Player", "Kick players from the server", "Moderation" )]
 	PlayerKick,
@@ -134,6 +143,9 @@ public enum Permission
 
 	[PermissionMeta( "player.spectate", "Spectate", "Spectate another player's perspective", "Moderation" )]
 	PlayerSpectate,
+
+	[PermissionMeta( "player.pocket.view", "View Pocket", "View the contents of a player's pocket", "Moderation" )]
+	ViewPocket,
 
 	[PermissionMeta( "player.tickets.handle", "Handle Tickets", "Able to claim/resolve in-game tickets (with given permissions)", "Moderation" )]
 	HandleTickets,
@@ -222,8 +234,8 @@ public enum Permission
 	CommandDropItem,
 
 	[PermissionMeta( "command.spawnitem", "Spawn Inventory Item", "Spawn inventory items into the world via command", "Commands" )]
-	CommandSpawnItem,	
-	
+	CommandSpawnItem,
+
 	[PermissionMeta( "command.spawnentity", "Spawn Entity ", "Spawn entity into the world via command", "Commands" )]
 	CommandSpawnEntity,
 
@@ -295,7 +307,16 @@ public enum Permission
 	ManageInventory,
 
 	[PermissionMeta( "inventory.manage.bulk", "Manage Inventory Bulk", "Run bulk inventory operations across multiple players", "Server Management" )]
-	ManageInventoryBulk
+	ManageInventoryBulk,
+
+	[PermissionMeta( "portal.monetization.products.manage", "Manage Products", "Create, edit, and delete monetization products", "Portal" )]
+	ManageProducts,
+
+	[PermissionMeta( "portal.monetization.coupons.manage", "Manage Coupons", "Create, edit, and delete discount coupons", "Portal" )]
+	ManageCoupons,
+
+	[PermissionMeta( "portal.monetization.view", "View Monetization", "View the monetization breakdown and sales history", "Portal" )]
+	ViewMonetization
 
 }
 

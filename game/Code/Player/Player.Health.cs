@@ -1,3 +1,4 @@
+using Dxura.RP.Game.Minigame;
 using Dxura.RP.Game.UI;
 
 namespace Dxura.RP.Game;
@@ -85,6 +86,14 @@ public partial class Player
 		}
 
 		if ( !party.AreInSameParty( attacker.SteamId, SteamId ) )
+		{
+			return false;
+		}
+
+		// Party protection is suspended for minigame participants so party members can PVP
+		// normally inside a minigame and gain no unfair friendly-fire immunity (#117).
+		var minigame = MinigameSystem.Instance;
+		if ( minigame.IsValid() && ( minigame.IsPlayerInMinigame( this ) || minigame.IsPlayerInMinigame( attacker ) ) )
 		{
 			return false;
 		}

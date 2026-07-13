@@ -36,134 +36,34 @@
 			</div>
 			
 			<div class="navigation pb-4 flex flex-col gap-1 flex-grow overflow-y-auto">
-				@if ( Config.Current.Game.ShowDashboardMenu )
+				@foreach ( var section in MainSections )
 				{
 					<button
-						class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Dashboard ? "active-btn" : "" )"
-						@onclick="@(() => SetSelectedSection( MenuSection.Dashboard ))">
-						<i class="material-icons mr-3">dashboard</i> <span>#tabmenu.dashboard</span>
+						class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( IsActiveEntry( section ) ? "active-btn" : "" )"
+						@onclick="@(() => HandleMenuEntry( section.Id ))">
+						<i class="material-icons mr-3">@section.Icon</i> <span>@GetEntryLabel( section )</span>
 					</button>
 				}
-				
-				@if ( Config.Current.Game.RulesEnabled )
-				{
-					<button
-						class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Rules ? "active-btn" : "" )"
-						@onclick="@(() => SetSelectedSection( MenuSection.Rules ))">
-						<i class="material-icons mr-3">rule</i> <span>#tabmenu.rules</span>
-					</button>
-				}
-				
-				<button
-					class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Players ? "active-btn" : "" )"
-					@onclick="@(() => SetSelectedSection( MenuSection.Players ))">
-					<i class="material-icons mr-3">group</i> <span>#tabmenu.players</span>
-				</button>
-
-				@if ( IsSectionAvailableInCurrentState( MenuSection.Jobs ) && Config.Current.Game.ShowJobsMenu )
-				{
-					<button
-						class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Jobs ? "active-btn" : "" )"
-						@onclick="@(() => SetSelectedSection( MenuSection.Jobs ))">
-						<i class="material-icons mr-3">work</i> <span>#tabmenu.jobs</span>
-					</button>
-				}
-
-				@if ( IsSectionAvailableInCurrentState( MenuSection.Market ) && Config.Current.Game.ShowMarketMenu )
-				{
-					<button
-						class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Market ? "active-btn" : "" )"
-						@onclick="@(() => SetSelectedSection( MenuSection.Market ))">
-						<i class="material-icons mr-3">store</i> <span>#tabmenu.market</span>
-					</button>
-				}
-
-				@if ( IsSectionAvailableInCurrentState( MenuSection.Governance ) && Player.Local?.Job.IsGovernmentRole() == true )
-				{
-					<button
-						class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Governance ? "active-btn" : "" )"
-						@onclick="@(() => SetSelectedSection( MenuSection.Governance ))">
-						<i class="material-icons mr-3">gavel</i> <span>#tabmenu.governance</span>
-					</button>
-				}
-				
-				@if ( IsSectionAvailableInCurrentState( MenuSection.Faction ) && Config.Current.Game.FactionsEnabled )
-				{
-					<button
-						class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Faction ? "active-btn" : "" )"
-						@onclick="@(() => SetSelectedSection( MenuSection.Faction ))">
-						<i class="material-icons mr-3">account_tree</i> <span>#tabmenu.faction</span>
-					</button>
-				}
-
 			</div>
 
 			<div class="p-4 flex flex-col gap-1">
-				<button class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary"
-				        @onclick="@(() =>
-				                  {
-					                  _ = new WebPanel { Parent = Panel, Surface = { Url = Config.Current.Game.DiscordUrl } };
-					                  Clipboard.SetText( Config.Current.Game.DiscordUrl );
-					                  _discordText = "#generic.copied";
-				                  })">
-					<i class="material-icons mr-3">discord</i> @_discordText
-				</button>
-				
-				<button class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary"
-				        @onclick="@(() =>
-				                  {
-					                  Clipboard.SetText( "https://opencollective.com/dxrp" );
-					                  _supportText = "#generic.copied";
-				                  })">
-					<i class="material-icons mr-3">handshake</i> @_supportText
-				</button>
-				
-				<button
-					class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Credits ? "active" : "" )"
-					@onclick="@(() => SetSelectedSection( MenuSection.Credits ))">
-					<i class="material-icons mr-3">copyright</i> <span>#tabmenu.credits</span>
-				</button>
-
-				@* <button *@
-				@* 	class="menuButton flex items-center text-lg rounded-lg p-3 cursor-pointer text-tertiary @( SelectedSection == MenuSection.Admin ? "active" : "" )" *@
-				@* 	@onclick="@(() => SetSelectedSection( MenuSection.Admin ))"> *@
-				@* 	<i class="material-icons mr-3">admin_panel_settings</i> <span>#tabmenu.admin</span> *@
-				@* </button> *@
+				@foreach ( var section in FooterSections )
+				{
+					<button
+						class="menuButton flex items-center text-lg p-3 cursor-pointer text-tertiary @( IsActiveEntry( section ) ? "active-btn" : "" )"
+						@onclick="@(() => HandleMenuEntry( section.Id ))">
+						<i class="material-icons mr-3">@section.Icon</i> <span>@GetEntryLabel( section )</span>
+					</button>
+				}
 			</div>
 		</div>
 
 		<div class="content-panel flex flex-col min-h-0">
 			<div class="section-body flex-grow min-h-0 overflow-y-auto">
 				<div class="section-content">
-					@switch ( SelectedSection )
+					@if ( SelectedSection != null )
 					{
-						case MenuSection.Dashboard:
-							<DashboardTabMenuSection/>
-							break;
-						case MenuSection.Rules:
-							<RulesTabMenuSection/>
-							break;
-						case MenuSection.Players:
-							<PlayersTabMenuSection @key="_playersSectionRevision" />
-							break;
-						case MenuSection.Jobs:
-							<JobTabMenuSection/>
-							break;
-						case MenuSection.Market:
-							<MarketTabMenuSection/>
-							break;
-						case MenuSection.Governance:
-							<GovernanceTabMenuSection/>
-							break;
-						case MenuSection.Faction:
-							<FactionTabMenuSection/>
-							break;
-						case MenuSection.Credits:
-							<CreditsTabMenuSection/>
-							break;
-						case MenuSection.Admin:
-							<AdminTabMenuSection/>
-							break;
+						<TabMenuSectionHost @key="SelectedSectionHostKey" Section="@SelectedSection" Revision="@_selectedSectionRevision" />
 					}
 				</div>
 			</div>
@@ -175,32 +75,24 @@
 @code
 {
 	public static bool IsOpen { get; private set; }
-	
-	enum MenuSection
-	{
-		Dashboard,
-		Rules,
-		Players,
-		Jobs,
-		Market,
-		Governance,
-		Faction,
-		Credits,
-		Admin
-	}
 
-	// Sections that should be hidden/blocked when player is dead
-	private readonly MenuSection[] _restrictedWhenDeadSections = { MenuSection.Jobs, MenuSection.Market, MenuSection.Governance };
-	private readonly MenuSection[] _restrictedWhenRestrictedSections = { MenuSection.Jobs, MenuSection.Market, MenuSection.Governance };
-
-	private MenuSection SelectedSection { get; set; } = MenuSection.Dashboard;
+	private string SelectedSectionId { get; set; } = "dashboard";
 	private bool IsActive { get; set; }
 
-	private string _discordText = "#tabmenu.discord";
-	private string _supportText = "#generic.support.project";
-	private int _playersSectionRevision;
+	private readonly Dictionary<string, string> _entryLabelOverrides = new( StringComparer.OrdinalIgnoreCase );
+	private IReadOnlyList<TabMenuSectionDefinition> _availableSections = [];
+	private int _selectedSectionRevision;
 	
 	private static TabMenu? _instance;
+
+	private IEnumerable<TabMenuSectionDefinition> MainSections => _availableSections.Where( section => !section.Footer );
+	private IEnumerable<TabMenuSectionDefinition> FooterSections => _availableSections.Where( section => section.Footer );
+
+	private TabMenuSectionDefinition? SelectedSection =>
+		_availableSections.FirstOrDefault( section => section.IsTab && section.Id == SelectedSectionId )
+		?? GetDefaultSection();
+
+	private string SelectedSectionHostKey => $"{SelectedSection?.Id}:{_selectedSectionRevision}";
 
 	private bool IsPlayerDead()
 	{
@@ -212,35 +104,31 @@
 		return Player.Local.IsValid() && Player.Local.Restricted;
 	}
 
-	private bool IsSectionAvailableInCurrentState( MenuSection section )
+	private TabMenuSectionDefinition? GetDefaultSection()
 	{
-		if ( IsPlayerDead() && _restrictedWhenDeadSections.Contains( section ) )
-			return false;
-
-		if ( IsPlayerRestricted() && _restrictedWhenRestrictedSections.Contains( section ) )
-			return false;
-
-		return true;
+		return _availableSections.FirstOrDefault( section => section.Id == "dashboard" )
+		       ?? _availableSections.FirstOrDefault( section => section.Id == "players" )
+		       ?? _availableSections.FirstOrDefault( section => section.IsTab );
 	}
 
 	protected override void OnStart()
 	{
 		_instance = this;
 		IsOpen = false;
+		TabMenuSectionRegistry.Reload();
+		PlayerActionRegistry.Reload();
+		RefreshAvailableSections();
 		
-		if ( !Config.Current.Game.ShowDashboardMenu )
-		{
-			SelectedSection = MenuSection.Players;
-		}
-		
-		if( !IsSectionAvailableInCurrentState( SelectedSection ) )
-		{
-			SelectedSection = MenuSection.Players;
-		}
+		EnsureSelectedSectionAvailable();
 	}
 
 	protected override void OnUpdate()
 	{
+		if ( IsActive )
+		{
+			RefreshAvailableSections();
+		}
+
 		if ( Input.Pressed( "TabMenu" ) || (IsActive && PauseMenu.IsOpen) )
 		{
 			if ( IsActive )
@@ -251,34 +139,95 @@
 			{
 				IsActive = true;
 				IsOpen = true;
-				_discordText = "#tabmenu.discord";
-				_supportText = "#generic.support.project";
+				_entryLabelOverrides.Clear();
+				TabMenuSectionRegistry.Reload();
+				PlayerActionRegistry.Reload();
+				RefreshAvailableSections();
+				EnsureSelectedSectionAvailable();
 				StateHasChanged();
 			}
 		}
 
-		if ( IsActive && IsPlayerDead() && !IsSectionAvailableInCurrentState( SelectedSection ) )
+		if ( IsActive && SelectedSection?.Id != SelectedSectionId )
 		{
-			SelectedSection = Config.Current.Game.ShowDashboardMenu ? MenuSection.Dashboard : MenuSection.Players;
+			EnsureSelectedSectionAvailable();
 			StateHasChanged();
 		}
 	}
 
-	private void SetSelectedSection( MenuSection section )
+	private void RefreshAvailableSections()
 	{
-		if ( IsPlayerDead() && !IsSectionAvailableInCurrentState( section ) )
+		var isPlayerDead = IsPlayerDead();
+		var isPlayerRestricted = IsPlayerRestricted();
+
+		_availableSections = TabMenuSectionRegistry.Sections
+			.Where( section => section.IsAvailable( isPlayerDead, isPlayerRestricted ) )
+			.ToArray();
+	}
+
+	private void EnsureSelectedSectionAvailable()
+	{
+		if ( _availableSections.Any( section => section.IsTab && section.Id == SelectedSectionId ) )
+		{
+			return;
+		}
+
+		SelectedSectionId = GetDefaultSection()?.Id ?? "players";
+		_selectedSectionRevision++;
+	}
+
+	private bool IsActiveEntry( TabMenuSectionDefinition section )
+	{
+		return section.IsTab && SelectedSectionId == section.Id;
+	}
+
+	private string GetEntryLabel( TabMenuSectionDefinition section )
+	{
+		return _entryLabelOverrides.TryGetValue( section.Id, out var label ) ? label : section.Label;
+	}
+
+	private void HandleMenuEntry( string sectionId )
+	{
+		var section = _availableSections.FirstOrDefault( section => section.Id == sectionId );
+		if ( section == null )
 		{
 			return;
 		}
 
 		BlurFocusedTextEntries();
 		Sound.Play( "pop" );
-		if ( section == MenuSection.Players )
+
+		if ( section.IsTab )
 		{
-			_playersSectionRevision++;
+			if ( SelectedSectionId == sectionId || sectionId == "players" )
+			{
+				_selectedSectionRevision++;
+			}
+
+			SelectedSectionId = sectionId;
+			StateHasChanged();
+			return;
 		}
 
-		SelectedSection = section;
+		try
+		{
+			if ( section.CopyText != null )
+			{
+				Clipboard.SetText( section.CopyText() );
+				_entryLabelOverrides[section.Id] = section.CopiedLabel;
+			}
+
+			section.OnClick?.Invoke( new TabMenuButtonContext
+			{
+				Panel = Panel,
+				CloseMenu = CloseMenu
+			} );
+		}
+		catch ( Exception ex )
+		{
+			Log.Warning( $"Failed to run tab menu entry '{section.Id}': {ex.Message}" );
+		}
+
 		StateHasChanged();
 	}
 	
@@ -290,7 +239,8 @@
 		}
 
 		PlayersTabMenuSection.PendingFocusSteamId = steamId;
-		_instance.SelectedSection = MenuSection.Players;
+		_instance.SelectedSectionId = "players";
+		_instance._selectedSectionRevision++;
 		_instance.IsActive = true;
 		IsOpen = true;
 		_instance.StateHasChanged();
@@ -328,6 +278,8 @@
 
 	protected override int BuildHash()
 	{
-		return HashCode.Combine( SelectedSection, GameManager.Instance.SalaryMultiplier );
+		var visibleSectionIds = string.Join( '|', _availableSections.Select( section => section.Id ) );
+		var entryLabels = string.Join( '|', _entryLabelOverrides.Select( entry => $"{entry.Key}:{entry.Value}" ) );
+		return HashCode.Combine( SelectedSectionId, _selectedSectionRevision, visibleSectionIds, entryLabels, GameManager.Instance.SalaryMultiplier );
 	}
 }

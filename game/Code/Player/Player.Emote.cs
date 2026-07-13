@@ -22,6 +22,12 @@ public partial class Player
 			return;
 		}
 
+		if ( Sitting )
+		{
+			this.Error( Language.GetPhrase( "command.emote.sitting" ) );
+			return;
+		}
+
 		// Cancel any existing emote first
 		if ( CurrentEmote.IsValid() )
 		{

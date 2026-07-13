@@ -8,6 +8,12 @@ public partial class Player
 	[Sync( SyncFlags.FromHost )] [Property] [Group( "Faction" )]
 	public Guid? FactionRoleId { get; set; }
 
+	[Sync( SyncFlags.FromHost )] [Property] [Group( "Faction" )]
+	public Guid? PendingFactionInviteId { get; set; }
+
+	[Sync( SyncFlags.FromHost )] [Property] [Group( "Faction" )]
+	public long PendingFactionInviterId { get; set; }
+
 	public bool IsInFaction => FactionId.HasValue;
 
 	public FactionInfo? GetFaction()
@@ -27,6 +33,11 @@ public partial class Player
 			return null;
 		}
 
-		return FactionSystem.Instance.FactionRoles.TryGetValue( FactionRoleId.Value, out var role ) ? role : null;
+		if ( !FactionSystem.Instance.FactionRoles.TryGetValue( FactionRoleId.Value, out var role ) )
+		{
+			return null;
+		}
+
+		return role.FactionId == FactionId ? role : null;
 	}
 }

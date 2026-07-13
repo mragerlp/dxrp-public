@@ -9,6 +9,11 @@ public static class GameModeMarketItems
 
 	public static IReadOnlyList<GameModeMarketItemDto> All => Config.Current.GameMode.MarketItems;
 
+	public static IOrderedEnumerable<GameModeMarketItemDto> OrderForDisplay( IEnumerable<GameModeMarketItemDto> items )
+	{
+		return items.OrderBy( item => item.SortOrder ).ThenBy( DisplayName );
+	}
+
 	public static GameModeMarketItemDto? FindById( Guid? id )
 	{
 		if ( !id.HasValue || id.Value == Guid.Empty )
@@ -118,9 +123,8 @@ public static class GameModeMarketItems
 	{
 		var seenEquipment = new HashSet<Guid>();
 
-		foreach ( var marketItem in All
-			         .Where( item => item.Type == GameModeMarketItemType.Equipment && IsSpawnable( item ) )
-			         .OrderBy( DisplayName ) )
+		foreach ( var marketItem in OrderForDisplay( All
+			         .Where( item => item.Type == GameModeMarketItemType.Equipment && IsSpawnable( item ) ) ) )
 		{
 			var equipment = ResolveEquipment( marketItem );
 			if ( equipment != null && seenEquipment.Add( equipment.Id ) )

@@ -41,6 +41,22 @@ CommandWheel {
     transform: translate(-50%, -50%);
   }
 
+  .edit-hint {
+    position: absolute;
+    left: 50%;
+    top: calc(50% + 278px);
+    transform: translateX(-50%);
+    align-items: center;
+    padding: 4px 8px;
+    border-radius: 4px;
+    background-color: rgba(black, 0.2);
+    color: rgba($color-white, 0.48);
+
+    label {
+      font-size: 10px;
+    }
+  }
+
   .center {
     position: absolute;
     left: 50%;

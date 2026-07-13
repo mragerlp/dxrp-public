@@ -7,7 +7,7 @@ public static partial class ServerApiClient
 {
 	public static async Task<FactionDto?> CreateFaction( CreateFactionDto dto )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
 			return null;
 		}
@@ -25,7 +25,7 @@ public static partial class ServerApiClient
 
 	public static async Task<List<FactionDto>?> GetAllFactions()
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
 			return null;
 		}
@@ -43,7 +43,7 @@ public static partial class ServerApiClient
 
 	public static async Task<FactionDto?> GetFaction( Guid id )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
 			return null;
 		}
@@ -61,7 +61,7 @@ public static partial class ServerApiClient
 
 	public static async Task<FactionDto?> UpdateFaction( Guid id, UpdateFactionDto dto )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
 			return null;
 		}
@@ -77,54 +77,57 @@ public static partial class ServerApiClient
 			$"Failed to update faction ({id})" );
 	}
 
-	public static async Task DeleteFaction( Guid id )
+	public static async Task<bool> DeleteFaction( Guid id )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
-			return;
+			return false;
 		}
 
-		await SafeApiCall( async headers =>
+		return await SafeApiCall( async headers =>
 			{
-				await ApiClientBase.RequestAsync(
+				var response = await ApiClientBase.RequestAsync(
 					$"{Constants.ApiBaseUrl}/v1/server/faction/{id}",
 					"DELETE", headers: headers );
+				response.EnsureSuccessStatusCode();
 
 				return true;
 			},
 			$"Failed to delete faction ({id})" );
 	}
 
-	public static async Task RemoveFactionMember( Guid factionId, long playerId )
+	public static async Task<bool> RemoveFactionMember( Guid factionId, long playerId )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
-			return;
+			return false;
 		}
 
-		await SafeApiCall( async headers =>
+		return await SafeApiCall( async headers =>
 			{
-				await ApiClientBase.RequestAsync(
+				var response = await ApiClientBase.RequestAsync(
 					$"{Constants.ApiBaseUrl}/v1/server/faction/{factionId}/members/{playerId}",
 					"DELETE", headers: headers );
+				response.EnsureSuccessStatusCode();
 
 				return true;
 			},
 			$"Failed to remove member ({playerId}) from faction ({factionId})" );
 	}
 
-	public static async Task AddFactionMember( Guid factionId, AddFactionMemberDto dto )
+	public static async Task<bool> AddFactionMember( Guid factionId, AddFactionMemberDto dto )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
-			return;
+			return false;
 		}
 
-		await SafeApiCall( async headers =>
+		return await SafeApiCall( async headers =>
 			{
-				await ApiClientBase.RequestAsync(
+				var response = await ApiClientBase.RequestAsync(
 					$"{Constants.ApiBaseUrl}/v1/server/faction/{factionId}/members",
 					"POST", Http.CreateJsonContent( dto ), headers );
+				response.EnsureSuccessStatusCode();
 
 				return true;
 			},
@@ -133,7 +136,7 @@ public static partial class ServerApiClient
 
 	public static async Task<FactionRoleDto?> CreateFactionRole( Guid factionId, CreateFactionRoleDto dto )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
 			return null;
 		}
@@ -151,7 +154,7 @@ public static partial class ServerApiClient
 
 	public static async Task<FactionRoleDto?> UpdateFactionRole( Guid factionId, Guid roleId, UpdateFactionRoleDto dto )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
 			return null;
 		}
@@ -167,18 +170,19 @@ public static partial class ServerApiClient
 			$"Failed to update faction role (Faction: {factionId}, Role: {roleId})" );
 	}
 
-	public static async Task DeleteFactionRole( Guid factionId, Guid roleId )
+	public static async Task<bool> DeleteFactionRole( Guid factionId, Guid roleId )
 	{
-		if ( !ServerApiLink.HasAuthorizationKey || !Config.Current.Game.FactionsEnabled )
+		if ( !ServerApiLink.HasAuthorizationKey )
 		{
-			return;
+			return false;
 		}
 
-		await SafeApiCall( async headers =>
+		return await SafeApiCall( async headers =>
 			{
-				await ApiClientBase.RequestAsync(
+				var response = await ApiClientBase.RequestAsync(
 					$"{Constants.ApiBaseUrl}/v1/server/faction/{factionId}/roles/{roleId}",
 					"DELETE", headers: headers );
+				response.EnsureSuccessStatusCode();
 
 				return true;
 			},

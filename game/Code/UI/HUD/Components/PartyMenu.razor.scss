@@ -152,6 +152,15 @@ PartyMenu {
       font-size: 11px;
       text-align: center;
     }
+
+    .size-count {
+      font-size: $text-xl;
+      font-weight: 700;
+      color: $color-white;
+      text-align: center;
+      letter-spacing: 1px;
+      margin: 4px 0;
+    }
   }
 
   .pane-note {
@@ -213,14 +222,35 @@ PartyMenu {
     margin-bottom: 6px;
   }
 
+  .browse-party-block {
+    gap: 0;
+  }
+
   .browse-row {
     background-color: rgba(white, 0.05);
     border-radius: $rounding;
     padding: 6px 10px;
+    pointer-events: all;
+  }
 
-    &.self {
-      background-color: rgba($color-accent, 0.08);
-    }
+  .browse-expand {
+    gap: 4px;
+    margin: 0 4px 4px 4px;
+    padding: 6px 8px 8px 8px;
+    border-radius: $rounding;
+    background-color: rgba(black, 0.22);
+  }
+
+  .browse-member-row {
+    padding: 4px 6px;
+    border-radius: $rounding;
+    background-color: rgba(white, 0.04);
+  }
+
+  .browse-chevron {
+    font-size: 18px;
+    color: $color-gray-400;
+    pointer-events: none;
   }
 
   .party-color-dot {
@@ -254,13 +284,6 @@ PartyMenu {
     font-size: 12px;
     font-weight: 600;
     color: $color-tertiary;
-  }
-
-  .browse-tag {
-    font-size: 11px;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.3px;
   }
 
   // ── Buttons ──────────────────────────────────────────────────────────────────────────────────
@@ -382,21 +405,6 @@ PartyMenu {
     }
   }
 
-  .size-control-block {
-    flex-grow: 1;
-    min-width: 0;
-    margin-top: 4px;
-    margin-bottom: 8px;
-    padding: 8px 10px;
-    border-radius: $rounding;
-    background-color: rgba(black, 0.2);
-    pointer-events: all;
-
-    &:hover {
-      background-color: rgba(black, 0.28);
-    }
-  }
-
   .color-preview {
     width: 28px;
     height: 28px;
@@ -468,18 +476,6 @@ PartyMenu {
 
       &:hover {
         background-color: rgba($color-bad, 0.18);
-      }
-    }
-
-    &.size-step {
-      background-color: rgba($color-accent, 0.14);
-
-      i {
-        color: $color-accent;
-      }
-
-      &:hover {
-        background-color: rgba($color-accent, 0.24);
       }
     }
   }

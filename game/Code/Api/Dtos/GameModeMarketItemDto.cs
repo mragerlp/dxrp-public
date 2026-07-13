@@ -6,6 +6,7 @@ public class GameModeMarketItemDto
 	public GameModeMarketItemType Type { get; init; }
 	public Guid? ReferenceId { get; init; }
 	public string? Grouping { get; init; }
+	public int SortOrder { get; init; }
 	public int Cost { get; init; }
 	public int Color { get; init; }
 	public int Quantity { get; init; } = 1;
@@ -21,6 +22,7 @@ public class GameModeMarketItemDto
 		Type = entity.Type,
 		ReferenceId = entity.ReferenceId,
 		Grouping = entity.Grouping,
+		SortOrder = entity.SortOrder,
 		Cost = entity.Cost,
 		Color = entity.Color,
 		Quantity = entity.Quantity,
@@ -38,6 +40,7 @@ public class GameModeMarketItemDto
 		Type = Type,
 		ReferenceId = ReferenceId,
 		Grouping = GameModeDtoHelpers.Trim( Grouping ),
+		SortOrder = SortOrder,
 		Cost = Cost,
 		Color = Color,
 		Quantity = Quantity,

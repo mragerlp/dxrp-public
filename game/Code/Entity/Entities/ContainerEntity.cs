@@ -54,6 +54,11 @@ public sealed class ContainerEntity : BaseEntity
 
 	public bool IsEmpty => Quantity <= 0;
 
+	public override string? DisplayName => string.Format( Language.GetPhrase( "entity.container.quantity" ),
+		GameModeEntity.DisplayName(),
+		Quantity,
+		LabelResolver.ResolveText( _config.Unit ) );
+
 	protected override void OnStart()
 	{
 		base.OnStart();

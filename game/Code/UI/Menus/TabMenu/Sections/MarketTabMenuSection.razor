@@ -1,26 +1,38 @@
 @namespace Dxura.RP.Game.UI
 @using Sandbox.Services
+@using Sandbox.UI
 @inherits Panel
 
 <root>
 	<div class="market">
 		<div class="section-header market-toolbar">
-			<h1>@Language.GetPhrase( "tabmenu.market" )</h1>
-			<div class="market-toolbar-actions">
-				@if ( CanUseAdminMode )
+			<div class="tabmenu-search-bar">
+				<i class="material-icons text-gray-400 text-sm">search</i>
+				<TabMenuTextEntry
+					@ref="_searchTextEntry"
+					class="tabmenu-search-input"
+					placeholder="#tabmenu.market.search_placeholder"
+					Value:bind="@_searchQuery"/>
+				@if ( !string.IsNullOrEmpty( _searchQuery ) )
 				{
-					<button class="lock-toggle @( _adminMode ? "active admin-active" : "" )"
-					        onclick="@ToggleAdminMode">
-						<i class="material-icons">admin_panel_settings</i>
-						<span>@Language.GetPhrase( _adminMode ? "tabmenu.market.admin_mode.on" : "tabmenu.market.admin_mode.off" )</span>
-					</button>
+					<div class="tabmenu-search-clear cursor-pointer" onclick="@( () => ClearSearch() )">
+						<i class="material-icons text-gray-400 text-sm">close</i>
+					</div>
 				}
-				<button class="lock-toggle @( _showLocked ? "active" : "" )"
-				        onclick="@( () => { _showLocked = !_showLocked; Sound.Play( "pop" ); } )">
-					<i class="material-icons">@( _showLocked ? "visibility" : "visibility_off" )</i>
-					<span>@Language.GetPhrase( _showLocked ? "tabmenu.market.hide_locked" : "tabmenu.market.show_locked" )</span>
-				</button>
 			</div>
+			@if ( CanUseAdminMode )
+			{
+				<button class="lock-toggle @( _adminMode ? "active admin-active" : "" )"
+				        onclick="@ToggleAdminMode">
+					<i class="material-icons">admin_panel_settings</i>
+					<span>@Language.GetPhrase( _adminMode ? "tabmenu.market.admin_mode.on" : "tabmenu.market.admin_mode.off" )</span>
+				</button>
+			}
+			<button class="lock-toggle @( _showLocked ? "active" : "" )"
+			        onclick="@( () => { _showLocked = !_showLocked; Sound.Play( "pop" ); } )">
+				<i class="material-icons">@( _showLocked ? "visibility" : "visibility_off" )</i>
+				<span>@Language.GetPhrase( _showLocked ? "tabmenu.market.hide_locked" : "tabmenu.market.show_locked" )</span>
+			</button>
 		</div>
 
 		<div class="market-scroll">
@@ -35,13 +47,14 @@
 						return (Item: item, Permitted: isPermitted, StaffPurchase: isStaffPurchase);
 					} )
 					.Where( x => _showLocked || x.Permitted )
+					.Where( x => string.IsNullOrEmpty( _searchQuery ) || GameModeMarketItems.DisplayName( x.Item ).Contains( _searchQuery, StringComparison.OrdinalIgnoreCase ) )
 					.GroupBy( x => { var g = GameModeMarketItems.Grouping( x.Item ); return string.IsNullOrEmpty( g ) ? "other" : g; } )
 					.OrderBy( g => g.Key );
 			}
 
 			@foreach ( var group in allItems )
 			{
-				var isCollapsed = _collapsedCategories.Contains( group.Key );
+				var isCollapsed = string.IsNullOrEmpty( _searchQuery ) && _collapsedCategories.Contains( group.Key );
 
 				<div class="category @( isCollapsed ? "collapsed" : "" )">
 					<div class="category-bar" onclick="@( () => ToggleCategory( group.Key ) )">
@@ -53,7 +66,9 @@
 					@if ( !isCollapsed )
 					{
 						<div class="card-rail">
-							@foreach ( var (item, isPermitted, isStaffPurchase) in group )
+							@foreach ( var (item, isPermitted, isStaffPurchase) in group
+							           .OrderBy( x => x.Item.SortOrder )
+							           .ThenBy( x => GameModeMarketItems.DisplayName( x.Item ) ) )
 							{
 								<div class="entity-card @( !isPermitted ? "is-locked" : "" )"
 								     @onclick=@( () => HandleClick( item, isPermitted, isStaffPurchase ) )
@@ -106,6 +121,9 @@
 	HashSet<string> _collapsedCategories = TabMenuSectionPreferences.LoadCollapsedMarketCategories();
 	private bool _adminMode = TabMenuSectionPreferences.LoadMarketAdminMode() && CanUseAdminMode;
 
+	TextEntry? _searchTextEntry;
+	private string _searchQuery = string.Empty;
+
 	private static bool CanUseAdminMode => RankSystem.HasLocalPermission( Permission.CommandSpawnEntity );
 
 	protected override int BuildHash()
@@ -124,7 +142,14 @@
 			collapsedHash = HashCode.Combine( collapsedHash, category.GetHashCode() );
 		}
 
-		return HashCode.Combine( Player.Local.Job, _showLocked, _adminMode, ownedWorldCount, ownedEquipmentCount, collapsedHash );
+		return HashCode.Combine( Player.Local.Job, _showLocked, _adminMode, ownedWorldCount, ownedEquipmentCount, collapsedHash, _searchQuery );
+	}
+
+	private void ClearSearch()
+	{
+		_searchQuery = string.Empty;
+		if ( _searchTextEntry != null )
+			_searchTextEntry.Text = string.Empty;
 	}
 
 	private void ToggleCategory( string categoryKey )

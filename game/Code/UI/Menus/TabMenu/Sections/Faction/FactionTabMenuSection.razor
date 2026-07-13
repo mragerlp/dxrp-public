@@ -1,46 +1,106 @@
 @namespace Dxura.RP.Game.UI
-@using Dxura.RP.Shared
 @inherits Sandbox.UI.Navigation.NavigationHost
 @attribute [StyleSheet]
 
 <root>
-<div class="flex-grow w-full flex flex-col h-full gap-3 overflow-y-scroll overflow-x-hidden">
 	@{
-		var inFaction = Player.Local.IsInFaction;
+		var system = FactionSystem.Instance;
+		var inFaction = Player.Local.IsValid() && Player.Local.IsInFaction;
 		var faction = inFaction ? Player.Local.GetFaction() : null;
 	}
 
-	<div class="section-header p-2 px-4 rounded">
-		<h1 class="text-2xl">
-			@if ( inFaction && faction != null )
-			{
-				@faction?.Name <span class="text-gray-400">[@faction?.Tag]</span> <span class="text-sm text-gray-400 ml-4">@string.Format( Language.GetPhrase( "faction.tab.level" ), faction?.Level )</span>
-			}
-			else
-			{
-				<span>#faction.tab.title</span>
-			}
-		</h1>
-	</div>
+	<div class="faction-shell">
+		<header class="faction-header">
+			<div class="faction-mark">
+				<i class="material-icons">account_tree</i>
+			</div>
 
-	<div class="flex gap-2 px-2">
-		@if ( inFaction )
-		{
-			<button class="btn btn-primary text-bold" href="/tabmenu/faction/overview">#faction.tab.overview</button>
-			<button class="btn btn-primary text-bold" href="/tabmenu/faction/members">#faction.tab.members</button>
-			<button class="btn btn-primary text-bold" href="/tabmenu/faction/settings">#generic.settings</button>
-			<button class="btn btn-primary text-bold" href="/tabmenu/faction/browse">#faction.tab.all</button>
-		}
-		else
-		{
-			<button class="btn btn-primary text-bold" href="/tabmenu/faction/browse">#faction.tab.browse</button>
-		}
-	</div>
+			<div class="faction-identity">
+				<div class="faction-eyebrow">#faction.header.network</div>
+				<div class="faction-title-row">
+					<h1>@( faction?.Name ?? Language.GetPhrase( "faction.title" ) )</h1>
+					@if ( faction != null )
+					{
+						<span class="faction-tag">@faction.Value.Tag</span>
+						<span class="faction-level">@string.Format( Language.GetPhrase( "faction.tab.level" ), faction.Value.Level )</span>
+					}
+				</div>
+				<div class="faction-subtitle">
+					@if ( faction != null )
+					{
+						<span>@( string.IsNullOrWhiteSpace( faction.Value.Description ) ? Language.GetPhrase( "faction.no_description" ) : faction.Value.Description )</span>
+					}
+					else
+					{
+						<span>@string.Format( Language.GetPhrase( "faction.header.summary" ), system.IsValid() ? system.Factions.Count : 0 )</span>
+					}
+				</div>
+			</div>
 
-	<div class="navigator-body">
-		<div class="grow navigator-canvas" slot="navigator-canvas" style="width: 100%; height: 100%;"></div>
+			@if ( faction != null )
+			{
+				<div class="faction-header-stats">
+					<div class="header-stat">
+						<i class="material-icons">groups</i>
+						<div>
+							<span class="header-stat-label">#faction.overview.members</span>
+							<span class="header-stat-value">@faction.Value.MemberCount / @faction.Value.MaxMembers</span>
+						</div>
+					</div>
+					<div class="header-stat">
+						<i class="material-icons cash-icon">account_balance</i>
+						<div>
+							<span class="header-stat-label">#faction.overview.balance</span>
+							<span class="header-stat-value cash-value">$@faction.Value.Balance.ToString( "N0" )</span>
+						</div>
+					</div>
+				</div>
+			}
+		</header>
+
+		<nav class="faction-tabs">
+			@if ( inFaction )
+			{
+				<button class="faction-tab" href="/tabmenu/faction/overview" onclick="@PlayTabSound">
+					<i class="material-icons">dashboard</i><span>#faction.tab.overview</span>
+				</button>
+				<button class="faction-tab" href="/tabmenu/faction/members" onclick="@PlayTabSound">
+					<i class="material-icons">group</i><span>#faction.tab.members</span>
+				</button>
+				<button class="faction-tab" href="/tabmenu/faction/settings" onclick="@PlayTabSound">
+					<i class="material-icons">tune</i><span>#generic.settings</span>
+				</button>
+			}
+
+			<button class="faction-tab" href="/tabmenu/faction/browse" onclick="@PlayTabSound">
+				<i class="material-icons">public</i><span>@( inFaction ? Language.GetPhrase( "faction.tab.all" ) : Language.GetPhrase( "faction.tab.browse" ) )</span>
+			</button>
+
+			<button class="faction-icon-button refresh-button" onclick="@RefreshFactions" tooltip="#faction.refresh">
+				<i class="material-icons">refresh</i>
+			</button>
+		</nav>
+
+		<div class="navigator-body">
+			<div class="navigator-canvas" slot="navigator-canvas"></div>
+
+			@if ( !system.IsValid() || !system.IsLoaded )
+			{
+				<div class="faction-state-view faction-state-overlay">
+					<div class="state-icon @( system.IsValid() && system.LoadFailed ? "error" : "" )">
+						<i class="material-icons">@( system.IsValid() && system.LoadFailed ? "cloud_off" : "sync" )</i>
+					</div>
+					<h2>@( system.IsValid() && system.LoadFailed ? Language.GetPhrase( "faction.load_failed" ) : Language.GetPhrase( "faction.loading" ) )</h2>
+					@if ( system.IsValid() && system.LoadFailed )
+					{
+						<button class="faction-action primary" onclick="@RefreshFactions">
+							<i class="material-icons">refresh</i><span>#faction.retry</span>
+						</button>
+					}
+				</div>
+			}
+		</div>
 	</div>
-</div>
 </root>
 
 @code {
@@ -49,15 +109,33 @@
 		DefaultUrl = "/tabmenu/faction/browse";
 	}
 
+	private void PlayTabSound()
+	{
+		Sound.Play( "pop" );
+	}
+
+	private void RefreshFactions()
+	{
+		if ( !FactionSystem.Instance.IsValid() ||
+		     Cooldown.Current.CheckAndStartCooldown( "faction:refresh", Config.Current.Game.ActionLongCooldown, true ) )
+		{
+			return;
+		}
+
+		FactionSystem.Instance.RefreshFactionsHost();
+	}
+
 	protected override int BuildHash()
 	{
-		if ( !FactionSystem.Instance.IsValid() ) return 0;
+		var system = FactionSystem.Instance;
+		if ( !system.IsValid() ) return HashCode.Combine( false );
 
 		return HashCode.Combine(
 			Player.Local?.FactionId,
 			Player.Local?.FactionRoleId,
-			FactionSystem.Instance.Factions.Count,
-			FactionSystem.Instance.FactionRoles.Count
+			system.IsLoaded,
+			system.LoadFailed,
+			system.Revision
 		);
 	}
 }

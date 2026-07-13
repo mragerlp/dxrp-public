@@ -15,8 +15,13 @@
 	var currentPlayTime = (int)(Player.Local.PlayTime / 60f);
 	var needsMorePlayTime = requiredPlayTime > currentPlayTime && !IgnoreJobRequirements;
 	var remainingPlayTime = requiredPlayTime - currentPlayTime;
-	var isCurrentJob = Player.Local.Job == Job;
-	var canChange = !isCurrentJob && Job.Selectable && !needsMorePlayTime && !isFull;
+	var isCurrentJob = Player.Local.Job.IsSameJob( Job );
+	var prerequisiteJobs = GameModeJobs.GetPrerequisiteJobs( Job );
+	var missingPrerequisite = !IgnoreJobRequirements
+	                          && prerequisiteJobs.Length > 0
+	                          && !prerequisiteJobs.Any( p => p.Id == Player.Local.Job?.Id )
+	                          && !isCurrentJob;
+	var canChange = !isCurrentJob && Job.Selectable && !needsMorePlayTime && !missingPrerequisite && !isFull;
 	var loadout = GetDisplayLoadout( Job ).ToList();
 	var visibleLoadout = loadout.Take( MaxVisibleLoadoutIcons ).ToList();
 	var hiddenLoadoutCount = loadout.Count - visibleLoadout.Count;
@@ -63,7 +68,7 @@
 				@if ( needsMorePlayTime )
 				{
 					<div class="unlock-notice">
-						<span>#generic.unlocks</span> @TimeSpan.FromMinutes( remainingPlayTime ).Humanize( 1 )
+						@( $"{Language.GetPhrase( "generic.unlocks" )} {TimeSpan.FromMinutes( remainingPlayTime ).Humanize( 1 )}" )
 					</div>
 				}
 
@@ -124,6 +129,10 @@
 					else if ( isFull )
 					{
 						<button class="btn btn-disabled action-btn" disabled>#tabmenu.jobs.full</button>
+					}
+					else if ( missingPrerequisite )
+					{
+						<button class="btn btn-bad action-btn" disabled>#tabmenu.jobs.locked</button>
 					}
 					else
 					{

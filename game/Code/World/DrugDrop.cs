@@ -44,6 +44,16 @@ public class DrugDrop : Component, Component.ITriggerListener, IContextualObject
 				continue;
 			}
 
+			var pallet = gameObject.GetComponent<Entities.PalletEntity>();
+			if ( pallet.IsValid() )
+			{
+				QueuePalletPayout( pallet );
+				GameManager.Instance.PurchaseSound.BroadcastHost( gameObject.WorldPosition );
+
+				objectsToRemove.Add( gameObject );
+				continue;
+			}
+
 			var dropPlayer = GameUtils.GetPlayerByConnectionId( gameObject.Network.OwnerId );
 			if ( dropPlayer.IsValid() )
 			{
@@ -97,7 +107,20 @@ public class DrugDrop : Component, Component.ITriggerListener, IContextualObject
 			return;
 		}
 
-		if ( !other.Tags.Contains( "weed_brick" ) )
+		var pallet = other.GetComponent<Entities.PalletEntity>();
+		if ( pallet.IsValid() )
+		{
+			// Start tracking the pallet itself - its cargo gets sold in bulk, not the pallet
+			if ( !_objectsInTrigger.ContainsKey( other ) )
+			{
+				_objectsInTrigger[other] = Config.Current.Game.DrugDropSellTime;
+			}
+
+			BroadcastToggleCountdownContext( other, false );
+			return;
+		}
+
+		if ( !other.GetComponent<Entities.ResourceComponent>().IsValid() )
 		{
 			return;
 		}
@@ -139,6 +162,31 @@ public class DrugDrop : Component, Component.ITriggerListener, IContextualObject
 
 		_pendingPayoutTotal += PaymentPerDrop;
 		_pendingSoldCounts[player] = _pendingSoldCounts.GetValueOrDefault( player ) + 1;
+	}
+
+	private void QueuePalletPayout( Entities.PalletEntity pallet )
+	{
+		var cargoCount = pallet.SellCargoHost();
+
+		pallet.GameObject.Destroy();
+
+		if ( cargoCount == 0 )
+		{
+			return;
+		}
+
+		// The pallet itself sells alongside its cargo, and gets consumed with it.
+		// Payout always happens even if the pallet has no resolvable owner (e.g. map-placed
+		// or admin-spawned pallets) - only stat tracking depends on finding a player.
+		var soldCount = cargoCount + 1;
+		var owner = GameUtils.GetPlayerById( pallet.Owner );
+
+		_pendingPayoutTotal += PaymentPerDrop * (uint)soldCount;
+
+		if ( owner.IsValid() )
+		{
+			_pendingSoldCounts[owner] = _pendingSoldCounts.GetValueOrDefault( owner ) + soldCount;
+		}
 	}
 
 

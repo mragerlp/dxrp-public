@@ -30,7 +30,7 @@ else if ( Job.IsValid() )
 	public GameModeJobDto? Job { get; set; }
 	public int Size { get; set; } = 56;
 
-	private bool IsCurrentJob => Job.IsValid() && Player.Local.IsValid() && Player.Local.Job == Job;
+	private bool IsCurrentJob => Job.IsValid() && Player.Local.IsValid() && Player.Local.Job.IsSameJob( Job );
 	private Color BorderColor => Job.ColorValue();
 
 	protected override int BuildHash()
@@ -69,7 +69,13 @@ else if ( Job.IsValid() )
 			return Texture.Transparent;
 
 		return ThumbnailCache.GetCharacterPortrait( key, Job,
-			r => Job.BuildClothing().Apply( r ) );
+			r =>
+			{
+				if ( Job.SupportsCitizenClothing() )
+				{
+					Job.BuildClothing().Apply( r );
+				}
+			} );
 	}
 
 	private string BuildSignature()

@@ -1,0 +1,103 @@
+@namespace Dxura.RP.Game.UI
+@using Dxura.RP.Shared
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root>
+	<div class="feedback-container">
+		<div class="feedback-header flex items-center justify-between">
+			<div class="flex items-center gap-3">
+				<i class="material-icons text-2xl text-accent">feedback</i>
+				<span class="feedback-title">#feedback.title</span>
+			</div>
+			<i class="material-icons feedback-close" @onclick="@Cancel">close</i>
+		</div>
+
+		<div class="feedback-body flex flex-col gap-4">
+			@if ( _status == SubmitStatus.Success )
+			{
+				<div class="feedback-status flex items-center gap-2 @( GetStatusClass() )">
+					<i class="material-icons">@( GetStatusIcon() )</i>
+					<span>@( GetStatusMessage() )</span>
+				</div>
+
+				@if ( !string.IsNullOrEmpty( _issueUrl ) )
+				{
+					<div class="feedback-issue-link flex items-center gap-2">
+						<i class="material-icons">link</i>
+						<span class="flex-grow truncate">@_issueUrl</span>
+						<i class="material-icons feedback-copy" @onclick="@CopyIssueUrl">content_copy</i>
+					</div>
+				}
+			}
+			else
+			{
+				<div class="flex flex-col gap-2">
+					<span class="text-sm text-gray-400 uppercase">#feedback.type</span>
+					<div class="flex gap-2">
+						<div class="feedback-type-pill @( _type == FeedbackType.Bug ? "active" : "" )" @onclick="@( () => SelectType( FeedbackType.Bug ) )">
+							<i class="material-icons">bug_report</i>
+							<span>#feedback.type.bug</span>
+						</div>
+						<div class="feedback-type-pill @( _type == FeedbackType.Feature ? "active" : "" )" @onclick="@( () => SelectType( FeedbackType.Feature ) )">
+							<i class="material-icons">lightbulb</i>
+							<span>#feedback.type.feature</span>
+						</div>
+						<div class="feedback-type-pill @( _type == FeedbackType.Other ? "active" : "" )" @onclick="@( () => SelectType( FeedbackType.Other ) )">
+							<i class="material-icons">chat</i>
+							<span>#feedback.type.other</span>
+						</div>
+					</div>
+				</div>
+
+				<div class="flex flex-col gap-2">
+					<span class="text-sm text-gray-400 uppercase">#feedback.title_label</span>
+					<TextEntry class="feedback-input" Value=@_title OnTextEdited=@OnTitleChanged MaxLength=@(TitleMaxLength) Placeholder="#feedback.title_placeholder"/>
+				</div>
+
+				<div class="flex flex-col gap-2">
+					<span class="text-sm text-gray-400 uppercase">#feedback.description_label</span>
+					<TextEntry class="feedback-input feedback-description" Multiline=@(true) Value=@_description OnTextEdited=@OnDescriptionChanged MaxLength=@(DescriptionMaxLength) Placeholder="#feedback.description_placeholder"/>
+				</div>
+
+				<div class="feedback-disclosure flex items-center gap-2">
+					<i class="material-icons">public</i>
+					<span>#feedback.disclosure</span>
+				</div>
+
+				<div class="feedback-checkbox flex items-center gap-2" @onclick="@ToggleIncludeScreenshot">
+					<i class="material-icons">@( _includeScreenshot ? "check_box" : "check_box_outline_blank" )</i>
+					<span>#feedback.include_screenshot</span>
+				</div>
+
+				@if ( _status != SubmitStatus.None )
+				{
+					<div class="feedback-status flex items-center gap-2 @( GetStatusClass() )">
+						<i class="material-icons">@( GetStatusIcon() )</i>
+						<span>@( GetStatusMessage() )</span>
+					</div>
+				}
+			}
+		</div>
+
+		<div class="feedback-footer flex justify-end gap-3">
+			@if ( _status == SubmitStatus.Success )
+			{
+				<button class="btn btn-good text-bold" onclick="@Cancel">
+					<span>#generic.close</span>
+				</button>
+			}
+			else
+			{
+				<button class="btn btn-bad text-bold" onclick="@Cancel">
+					<span>#generic.cancel</span>
+				</button>
+				<button class="btn @( CanSubmit ? "btn-good" : "btn-disabled" ) text-bold" disabled="@( !CanSubmit )" onclick="@Submit">
+					<span>@( _isSubmitting ? Language.GetPhrase( "feedback.submitting" ) : Language.GetPhrase( "feedback.submit" ) )</span>
+				</button>
+			}
+		</div>
+	</div>
+</root>

@@ -59,6 +59,7 @@ public static class Constants
 
 	public const string EntityTag = "entity";
 	public const string RestrictedEntity = "restricted_entity"; // Modifier tag for entities which allow permitted (and can be destroyed)
+	public const string ClaimableEntityTag = "claimable_entity"; // Modifier tag for admin-spawned entities awaiting their first owner
 
 	public const string HandsInteractTag = "hands_interact";
 	public const string BuildInteractTag = "build_interact";

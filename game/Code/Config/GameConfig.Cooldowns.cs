@@ -34,6 +34,10 @@ public abstract partial class GameConfig
 	public virtual float ToolEffectsCooldown { get; set; } = 1;
 	public virtual float StackerCooldown { get; set; } = 3;
 	public virtual float DupeCooldown { get; set; } = 30;
+	public virtual int DupeSpawnMinDelayMs { get; set; } = 50;
+	public virtual int DupeSpawnMaxDelayMs { get; set; } = 500;
+	public virtual int DupeSpawnBypassMaxDelayMs { get; set; } = 200;
+	public virtual int DupeSpawnLoadMaxPlayers { get; set; } = 24;
 	public virtual int PlayerSitCooldown { get; set; } = 1;
 	public virtual float FadingDoorCooldown { get; set; } = 1.5f;
 	public virtual float ScaleCooldown { get; set; } = 1f;

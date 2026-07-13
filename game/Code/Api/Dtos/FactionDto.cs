@@ -12,6 +12,7 @@ public class FactionDto
 	public uint MaxMembers { get; set; }
 	public int MemberCount { get; set; }
 	public List<FactionRoleDto> Roles { get; set; } = [];
+	public List<FactionMemberDto> Members { get; set; } = [];
 
 #if ASPNETCORE
 	public static FactionDto FromEntity( Domain.Entities.Faction entity ) => new()
@@ -25,7 +26,8 @@ public class FactionDto
 		Experience = entity.Experience,
 		MaxMembers = entity.MaxMembers,
 		MemberCount = entity.TenantPlayers.Count,
-		Roles = entity.Roles.Select( FactionRoleDto.FromEntity ).ToList()
+		Roles = entity.Roles.Select( FactionRoleDto.FromEntity ).ToList(),
+		Members = entity.TenantPlayers.Select( FactionMemberDto.FromEntity ).ToList()
 	};
 #endif
 }

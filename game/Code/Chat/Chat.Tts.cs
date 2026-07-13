@@ -5,7 +5,7 @@ namespace Dxura.RP.Game;
 
 public sealed partial class Chat
 {
-	private const int TtsMaxLength = 300;
+	internal const int TtsMaxLength = 300;
 
 	[ConVar( "dx_chat_tts", ConVarFlags.Saved )]
 	private static bool IsTtsEnabled { get; set; } = true;

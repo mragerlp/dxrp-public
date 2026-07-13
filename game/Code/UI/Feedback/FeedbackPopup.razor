@@ -1,0 +1,8 @@
+@namespace Dxura.RP.Game.UI
+@inherits PanelComponent
+
+@attribute [StyleSheet]
+
+<root class="flex items-center justify-center @( _capturing ? "capturing" : "" )">
+	<FeedbackForm OnCancel="@Close" CaptureScreenshot="@CaptureScreenshot"/>
+</root>

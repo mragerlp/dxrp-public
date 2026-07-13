@@ -3,6 +3,7 @@ namespace Dxura.RP.Shared;
 public class GameModeDto
 {
 	public Guid Id { get; init; }
+	public Guid TenantId { get; init; }
 	public required string Name { get; init; }
 	public string? Description { get; init; }
 	public Visibility Visibility { get; init; }
@@ -27,6 +28,7 @@ public class GameModeDto
 	public static GameModeDto FromEntity( Domain.Entities.Content.GameMode entity ) => new()
 	{
 		Id = entity.Id,
+		TenantId = entity.TenantId,
 		Name = entity.Name,
 		Description = entity.Description,
 		Visibility = entity.Visibility,

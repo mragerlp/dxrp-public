@@ -1,0 +1,54 @@
+@import "../styles.scss";
+
+ChangelogPopup {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  background-color: rgba(black, 0.7);
+  z-index: 999999;
+  pointer-events: all;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .changelog-panel {
+    width: 1100px;
+    max-width: 90%;
+    height: 80%;
+    background-color: #111115;
+    border-radius: 8px;
+    overflow: hidden;
+    display: flex;
+    flex-direction: column;
+    box-shadow: 0 20px 60px rgba(black, 0.5);
+  }
+
+  .changelog-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    background-color: #1a1a20;
+  }
+
+  .changelog-title {
+    font-weight: 700;
+    color: white;
+  }
+
+  .close-button {
+    cursor: pointer;
+    color: rgba(white, 0.6);
+
+    &:hover {
+      color: white;
+    }
+  }
+
+  .web-panel {
+    flex: 1;
+    width: 100%;
+  }
+}

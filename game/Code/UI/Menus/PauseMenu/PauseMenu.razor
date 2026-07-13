@@ -88,7 +88,7 @@
 				        <span>#pausemenu.settings</span>
 			        </span>
 		        </div>
-		        
+
 		        <div style="height: 25vh"></div>
 	        
 		        <div class="flex flex items-center gap-4 p-3 pl-6 bg-secondary shadow-lg cursor-pointer hover-scale absolute bottom-0 mb-4"
@@ -116,10 +116,25 @@
 
         </div>
 
-        @* <!-- Footer --> *@
-        @* <div class="bg-secondary px-4 py-2 text-center flex items-center justify-center w-full shadow-lg"> *@
-	       @*  <span class="text-gray-400 text-sm">Proudly crafted by <span class="text-accent text-bold ml-1">Dxura</span></span> *@
-        @* </div> *@
+        <div class="corner-actions flex items-center gap-3 absolute bottom-0 right-0 mb-4 mr-4">
+	        <div class="flex flex items-center gap-2 px-3 py-2 bg-secondary shadow-lg cursor-pointer hover-scale" @onclick="@OpenChangelog">
+		        <i class="material-icons text-2xl text-accent">campaign</i>
+		        <span class="text-white text-sm text-bold">
+			        <span>#pausemenu.changelog</span>
+		        </span>
+	        </div>
+	        <div class="flex flex items-center gap-2 px-3 py-2 bg-secondary shadow-lg cursor-pointer hover-scale" @onclick="@OpenFeedback">
+		        <i class="material-icons text-2xl text-accent">feedback</i>
+		        <span class="text-white text-sm text-bold">
+			        <span>#pausemenu.feedback</span>
+		        </span>
+	        </div>
+	        <div class="flex flex items-center gap-2 px-3 py-2 bg-secondary shadow-lg cursor-pointer hover-scale" @onclick="@OpenDiscord">
+		        <i class="material-icons text-2xl text-accent">discord</i>
+		        <span class="text-white text-sm text-bold">#tabmenu.discord</span>
+	        </div>
+        </div>
+
     </div>
 </root>
 
@@ -183,6 +198,28 @@
     {
 	    Sound.Play( "pop" );
 	    _settingsOpen = !_settingsOpen;
+    }
+
+    private void OpenFeedback()
+    {
+	    Sound.Play( "pop" );
+	    FeedbackPopup.Open();
+    }
+
+    private void OpenChangelog()
+    {
+	    Sound.Play( "pop" );
+	    ChangelogPopup.Open();
+	    _isOpen = false;
+	    IsOpen = false;
+	    StateHasChanged();
+    }
+
+    private const string DiscordUrl = "https://discord.dxrp.net";
+
+    private void OpenDiscord()
+    {
+	    DiscordWebPanel.Open( Panel, DiscordUrl );
     }
 
     private void ExitToMenu()

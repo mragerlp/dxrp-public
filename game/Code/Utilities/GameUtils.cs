@@ -18,7 +18,7 @@ public static class GameUtils
 	/// </summary>
 	public static IEnumerable<Player> GetPlayersByJob( GameModeJobDto job )
 	{
-		return Players.Where( x => x.Job == job );
+		return Players.Where( x => x.Job.IsSameJob( job ) );
 	}
 
 	public static IEnumerable<Player> GetPlayersByJobTag( JobTag tag )
@@ -152,8 +152,9 @@ public static class GameUtils
 			return false;
 		}
 
-		// Public entities (garbage, money, etc.) - always accessible
-		if ( gameObject.Tags.Has( Constants.EntityTag ) && !gameObject.Tags.Has( Constants.RestrictedEntity ) )
+		// Public entities (garbage, money, etc.) and claimable admin spawns are always accessible
+		if ( gameObject.Tags.Has( Constants.EntityTag ) &&
+		     (gameObject.Tags.Has( Constants.ClaimableEntityTag ) || !gameObject.Tags.Has( Constants.RestrictedEntity )) )
 		{
 			return true;
 		}
@@ -196,6 +197,8 @@ public static class GameUtils
 			entity.Owner = player.SteamId;
 		}
 
+		gameObject.Tags.Remove( Constants.ClaimableEntityTag );
+
 		if ( gameObject.NetworkMode == NetworkMode.Object )
 		{
 			gameObject.Network.AssignOwnership( player.Connection );
@@ -213,6 +216,8 @@ public static class GameUtils
 		{
 			entity.Owner = 0;
 		}
+
+		gameObject.Tags.Add( Constants.ClaimableEntityTag );
 	}
 
 	private static bool HasOwnershipPermission( long steamId, GameObject gameObject )

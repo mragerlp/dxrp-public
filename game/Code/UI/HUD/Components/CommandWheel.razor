@@ -39,6 +39,13 @@
 
 	</div>
 
+	@if ( !_editing )
+	{
+		<div class="edit-hint">
+			<label>@string.Format( Language.GetPhrase( "commandwheel.hint.edit" ), Input.GetButtonOrigin( "CommandWheel" ) )</label>
+		</div>
+	}
+
 	@if ( _editing && _selectedIndex >= 0 )
 	{
 		<div class="editor-panel">

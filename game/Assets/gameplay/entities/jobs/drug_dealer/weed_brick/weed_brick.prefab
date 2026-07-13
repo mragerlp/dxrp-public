@@ -3,7 +3,7 @@
     "__guid": "653c1a12-7357-436c-a2b7-8b36e4c6d5f2",
     "__version": 2,
     "Flags": 0,
-    "Name": "weed_brick",
+    "Name": "Weed Brick",
     "Position": "0,0,0",
     "Rotation": "0,0,0,1",
     "Scale": "1,1,1",
@@ -43,10 +43,25 @@
         "Tint": "1,1,1,1"
       },
       {
+        "__type": "Dxura.RP.Game.Entities.ResourceComponent",
+        "__guid": "f2a2e6b1-0e6f-4b8f-9e2b-6a6f2b6f5c9a",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "PalletStackable": true,
+        "ResourceId": "weed_brick"
+      },
+      {
         "__type": "Dxura.RP.Game.BaseEntity",
         "__guid": "501862d2-144d-40b2-b7b8-e055f5d61626",
         "__enabled": true,
         "Flags": 0,
+        "EntityId": "00000000-0000-0000-0000-000000000000",
         "HealthComponent": {
           "_type": "component",
           "component_id": "b538cdf2-f45d-4b18-9ca1-84cbfc21b647",
@@ -59,8 +74,7 @@
         "OnComponentFixedUpdate": null,
         "OnComponentStart": null,
         "OnComponentUpdate": null,
-        "Owner": "0",
-        "OwnerSteamId": 0,
+        "Owner": 0,
         "Rigidbody": {
           "_type": "component",
           "component_id": "801ec88d-ec7f-4a24-9d71-24240fb22817",
@@ -125,6 +139,7 @@
         "OnComponentUpdate": null,
         "OverrideMassCenter": false,
         "RigidbodyFlags": "DisableCollisionSounds",
+        "SleepThreshold": 2,
         "StartAsleep": false
       },
       {
@@ -153,31 +168,16 @@
         "Enabled": false,
         "IncludeStaticBodies": true,
         "IncludeKeyframedBodies": true,
-        "EditorAutoUpdate": true,
+        "EditorAutoUpdate": false,
         "AgentHeight": 64,
         "AgentRadius": 16,
         "AgentStepSize": 18,
         "AgentMaxSlope": 40,
         "ExcludedBodies": "",
-        "IncludedBodies": ""
-      },
-      "GameObjectSystems": [
-        {
-          "Prisoners": {},
-          "__type": "Governance",
-          "__guid": "1cb87dd9-e2e6-4bd9-90d2-0517961be8ed"
-        },
-        {
-          "TenantId": "",
-          "__type": "ServerApiLink",
-          "__guid": "0dc78360-c08d-4351-b751-aa4334b2151a"
-        },
-        {
-          "Connections": [],
-          "__type": "Wire",
-          "__guid": "436561f5-fe56-48e1-95d6-71510c9cc6ee"
-        }
-      ]
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
     },
     "__variables": []
   },

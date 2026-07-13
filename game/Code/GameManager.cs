@@ -349,6 +349,19 @@ public class GameManager : SingletonComponent<GameManager>, IGameEvents, IConfig
 			return;
 		}
 
+		await player.PurchaseLock.WaitAsync();
+		try
+		{
+			await PurchaseMarketItemLocked( player, marketItem );
+		}
+		finally
+		{
+			player.PurchaseLock.Release();
+		}
+	}
+
+	private async Task PurchaseMarketItemLocked( Player player, GameModeMarketItemDto marketItem )
+	{
 		if ( !GameModeMarketItems.CanPurchase( player, marketItem ) )
 		{
 			player.Error( "#generic.forbidden" );

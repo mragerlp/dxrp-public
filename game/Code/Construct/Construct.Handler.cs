@@ -519,6 +519,26 @@ public partial class Construct
 	}
 
 
+	/// <summary>
+	/// Scales the per-item dupe spawn delay between the configured min and the given max based on
+	/// how many players are currently connected, so a quiet server pastes faster and a full one throttles harder.
+	/// </summary>
+	private int GetDupeSpawnDelay( int maxDelay )
+	{
+		var config = Config.Current.Game;
+		var minDelay = Math.Min( config.DupeSpawnMinDelayMs, maxDelay );
+
+		var playerLoad = config.DupeSpawnLoadMaxPlayers > 0
+			? (float)Connection.All.Count / config.DupeSpawnLoadMaxPlayers
+			: 0f;
+
+		// Cubic curve: stays close to the floor for most of the range, only ramping up
+		// steeply as the player count nears the cap, so low-population servers benefit the most.
+		var load = MathF.Pow( Math.Clamp( playerLoad, 0f, 1f ), 3 );
+
+		return minDelay + (int)MathF.Round( (maxDelay - minDelay) * load );
+	}
+
 	public async Task SpawnDupe( Player player, ConstructDupe constructDupe, CancellationTokenSource? cancellationTokenSource, Vector3? position, float rotationOffset = 0, float xOffset = 0f, float yOffset = 0f, float zOffset = 0f )
 	{
 		Assert.True( Networking.IsHost );
@@ -554,9 +574,12 @@ public partial class Construct
 
 			Log.Info( $"Player {player.SteamId} spawned a dupe with {dupeItemCount} items (Rotation: {rotationOffset}°, Offsets: X={xOffset}, Y={yOffset}, Z={zOffset})" );
 
-			// Delay spawning
-			var delayBetweenItems =
-				!RankSystem.HasPermission( player.SteamId, Permission.DuplicateBypass ) ? 500 : 200;
+			// Delay spawning, scaled by current server load so a quiet server pastes faster
+			var maxDelay = !RankSystem.HasPermission( player.SteamId, Permission.DuplicateBypass )
+				? Config.Current.Game.DupeSpawnMaxDelayMs
+				: Config.Current.Game.DupeSpawnBypassMaxDelayMs;
+
+			var delayBetweenItems = GetDupeSpawnDelay( maxDelay );
 
 			// No delay for host
 			if ( player.Connection?.IsHost ?? false )
