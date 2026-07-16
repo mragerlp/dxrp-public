@@ -21,6 +21,12 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 
 	private Snapshot? _pendingSnapshot;
 
+	// Idempotency guard: a full world restore may run at most once per session. Without it, a second
+	// LoadSnapshot call re-applies the whole restore — re-spawning every networked GameObject (money
+	// entities included), which duplicates world value. Restore is a one-time crash-recovery, so a
+	// once-per-session guard is strictly safe: it can only prevent a duplicate restore, never mint.
+	private bool _hasRestored;
+
 	public SnapshotSystem( Scene scene ) : base( scene )
 	{
 		Log.Info( $"{LogPrefix} Initialized" );
@@ -277,6 +283,14 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 	/// </summary>
 	private void LoadSnapshot( Snapshot file )
 	{
+		if ( _hasRestored )
+		{
+			Log.Warning( $"{LogPrefix} Snapshot restore already applied this session — skipping duplicate restore (idempotency guard; a second full restore would double-spawn networked objects, money entities included)." );
+			return;
+		}
+
+		_hasRestored = true;
+
 		// Load game objects
 		Log.Info( $"{LogPrefix} Restoring GameObjects..." );
 

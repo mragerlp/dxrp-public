@@ -32,9 +32,9 @@ public class SpawnItemCommand : ICommand
 			itemArgs = args[..^1];
 		}
 
-		if ( quantity <= 0 )
+		if ( quantity <= 0 || quantity > SpawnEntityCommand.MaxQuantity )
 		{
-			caller.SendMessage( Help );
+			caller.Error( string.Format( Language.GetPhrase( "command.spawnentity.quantity_invalid" ), SpawnEntityCommand.MaxQuantity ) );
 			return true;
 		}
 
