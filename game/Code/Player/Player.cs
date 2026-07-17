@@ -107,11 +107,13 @@ public sealed partial class Player : Component, IEquipmentEvents, IDamageEvents,
 
 	SnapshotData ISnapshot.Save()
 	{
+		// MONEY-INVARIANT: DEBIT-FIRST; ADDITIVE-RESTORE; NEVER-NEGATIVE.
+		// Wallet is authoritative-live and is intentionally omitted from the snapshot so a
+		// restore cannot replay a stale balance. The DTO field is retained for old-JSON compat.
 		var data = new PlayerSnapshotData
 		{
 			SteamId = SteamId,
 			Position = WorldPosition,
-			WalletBalance = WalletBalance,
 			JobPath = Job?.Id.ToString(),
 			Health = HealthComponent.Health
 		};
@@ -153,7 +155,9 @@ public sealed partial class Player : Component, IEquipmentEvents, IDamageEvents,
 			}
 		}
 
-		WalletBalance = playerData.WalletBalance;
+		// MONEY-INVARIANT: DEBIT-FIRST; ADDITIVE-RESTORE; NEVER-NEGATIVE.
+		// Wallet is intentionally NOT restored from the snapshot (see Save): the live host
+		// wallet is the sole source of truth; replaying playerData.WalletBalance double-credits.
 
 		if ( playerData.Health > 0 )
 		{

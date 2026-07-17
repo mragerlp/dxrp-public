@@ -30,6 +30,13 @@ public class VoteBetSystem : SingletonComponent<VoteBetSystem>
 	public const int MaxDescriptionLength = 200;
 	public const int MaxOutcomeLength = 100;
 
+	// MONEY-INVARIANT: DEBIT-FIRST; ADDITIVE-RESTORE; NEVER-NEGATIVE.
+	// Vote-bet money paths stay hard-disabled until durable escrow and an authoritative
+	// result source exist. Until then every mutator fails closed, so no stake is charged
+	// and no payout can be minted (including on restart). Flipping this flag is a separate,
+	// design-gated slice, not a config toggle.
+	public static bool MoneyRepairReady => false;
+
 	[Sync( SyncFlags.FromHost )] public NetDictionary<Guid, VoteBetInfo> ActiveVoteBets { get; set; } = new();
 	[Sync( SyncFlags.FromHost )] private NetDictionary<string, VoteBetPlayerBet> PlayerBets { get; set; } = new();
 
@@ -42,10 +49,38 @@ public class VoteBetSystem : SingletonComponent<VoteBetSystem>
 			Destroy();
 			return;
 		}
+
+		// MONEY-INVARIANT: DEBIT-FIRST; ADDITIVE-RESTORE; NEVER-NEGATIVE.
+		// Fail closed while the money paths are disabled: remove the system entirely so no
+		// stake, payout, or restart-replay path can run.
+		if ( !MoneyRepairReady )
+		{
+			Destroy();
+			return;
+		}
+	}
+
+	// MONEY-INVARIANT: DEBIT-FIRST; ADDITIVE-RESTORE; NEVER-NEGATIVE.
+	// Gate every money-touching vote-bet action. Returns false (and notifies the caller)
+	// whenever the money paths are disabled, before any lock, debit, or winner use.
+	public static bool RequireMoneyRepairReady( Player caller )
+	{
+		if ( MoneyRepairReady )
+		{
+			return true;
+		}
+
+		caller?.SendMessage( "Vote betting is temporarily disabled." );
+		return false;
 	}
 
 	public async void StartVoteBet( Player caller, string description, List<string> outcomes )
 	{
+		if ( !RequireMoneyRepairReady( caller ) )
+		{
+			return;
+		}
+
 		if ( string.IsNullOrWhiteSpace( description ) )
 		{
 			caller.SendMessage( Language.GetPhrase( "system.votebet.description_empty" ) );
@@ -115,6 +150,11 @@ public class VoteBetSystem : SingletonComponent<VoteBetSystem>
 
 	public async void JoinVoteBet( Player caller, Guid voteBetId, int outcomeIndex, uint betAmount )
 	{
+		if ( !RequireMoneyRepairReady( caller ) )
+		{
+			return;
+		}
+
 		if ( betAmount == 0 )
 		{
 			caller.SendMessage( Language.GetPhrase( "command.votebet.bet_zero" ) );
@@ -189,6 +229,11 @@ public class VoteBetSystem : SingletonComponent<VoteBetSystem>
 
 	public async void EndVoteBet( Player caller, Guid voteBetId, int winningOutcomeIndex )
 	{
+		if ( !RequireMoneyRepairReady( caller ) )
+		{
+			return;
+		}
+
 		await _betLock.WaitAsync();
 		try
 		{
@@ -281,6 +326,11 @@ public class VoteBetSystem : SingletonComponent<VoteBetSystem>
 
 	public async void LockVoteBet( Player caller, Guid voteBetId )
 	{
+		if ( !RequireMoneyRepairReady( caller ) )
+		{
+			return;
+		}
+
 		await _betLock.WaitAsync();
 		try
 		{
