@@ -1,5 +1,6 @@
 ﻿using System.Text.Json.Nodes;
 using System.Threading.Tasks;
+using Dxura.RP.Game.Entities;
 using Dxura.RP.Game.Tools;
 using Dxura.RP.Shared;
 
@@ -108,6 +109,7 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 		var savedGameObjects = 0;
 		var savedPlayers = 0;
 		var errors = 0;
+		var moneyExcludedFromSave = 0;
 
 		await GameTask.MainThread();
 		
@@ -115,6 +117,15 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 		{
 			if ( !recoverable.GameObject.IsValid() || recoverable.GameObject.Tags.Has( Constants.MapTag ) )
 			{
+				continue;
+			}
+
+			// MONEY-INVARIANT: DEBIT-FIRST; ADDITIVE-RESTORE; NEVER-NEGATIVE.
+			// Money entities are authoritative-live only and are never written to a snapshot,
+			// so a later restore cannot re-mint currency that already exists in the world.
+			if ( recoverable is MoneyEntity )
+			{
+				moneyExcludedFromSave++;
 				continue;
 			}
 
@@ -198,7 +209,7 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 
 			if ( success )
 			{
-				Log.Info( $"{LogPrefix} Saved snapshot (gameObjects={savedGameObjects}, constructs={savedConstructs}, players={savedPlayers}, errors={errors})" );
+				Log.Info( $"{LogPrefix} Saved snapshot (gameObjects={savedGameObjects}, constructs={savedConstructs}, players={savedPlayers}, moneyExcluded={moneyExcludedFromSave}, errors={errors})" );
 			}
 			else
 			{
@@ -298,6 +309,7 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 		var gameObjectsRestored = 0;
 		var gameObjectsInvalid = 0;
 		var gameObjectsErrors = 0;
+		var gameObjectsMoneyRejected = 0;
 
 		foreach ( var json in file.GameObjects )
 		{
@@ -315,6 +327,16 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 				{
 					gameObjectsInvalid++;
 					Log.Warning( $"{LogPrefix} Failed to restore GameObject, deserialization resulted in invalid object" );
+					continue;
+				}
+
+				// MONEY-INVARIANT: DEBIT-FIRST; ADDITIVE-RESTORE; NEVER-NEGATIVE.
+				// Reject any legacy snapshot that still carries a money entity: destroy the
+				// deserialized object before NetworkSpawn so restored bytes can never mint currency.
+				if ( go.GetComponent<MoneyEntity>().IsValid() )
+				{
+					gameObjectsMoneyRejected++;
+					go.Destroy();
 					continue;
 				}
 
@@ -339,7 +361,7 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 			}
 		}
 
-		Log.Info( $"{LogPrefix} GameObject restore complete (attempted={gameObjectsAttempted}, restored={gameObjectsRestored}, invalid={gameObjectsInvalid}, errors={gameObjectsErrors})" );
+		Log.Info( $"{LogPrefix} GameObject restore complete (attempted={gameObjectsAttempted}, restored={gameObjectsRestored}, invalid={gameObjectsInvalid}, moneyRejected={gameObjectsMoneyRejected}, errors={gameObjectsErrors})" );
 
 		// Load constructs + wire connections from dupe
 		if ( file.WorldDupe != null )

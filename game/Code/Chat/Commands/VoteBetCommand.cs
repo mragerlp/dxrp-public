@@ -19,6 +19,13 @@ public class VoteBetCommand : ICommand
 			return false;
 		}
 
+		// MONEY-INVARIANT: DEBIT-FIRST; ADDITIVE-RESTORE; NEVER-NEGATIVE.
+		// Fail closed at the command surface while vote-bet money paths are disabled.
+		if ( !VoteBetSystem.RequireMoneyRepairReady( caller ) )
+		{
+			return true;
+		}
+
 		if ( !Config.Current.Game.MoneyEnabled )
 		{
 			caller.SendMessage( Language.GetPhrase( "command.votebet.disabled" ) );
