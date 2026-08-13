@@ -1,0 +1,1762 @@
+@* ─────────────────────────────────────────────────────────────────────────────
+   PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+
+   "lifepunchulx" (s&box ident: lifepunch.ulx · addon ident: lifepunchulx) is the sole-owned
+   intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+   sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+   LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+   Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+   Presence in this repository or on the DXRP portal grants no rights to anyone else.
+   ───────────────────────────────────────────────────────────────────────────── *@
+@namespace LifePunch.DXRP.Addons.StaffMenu
+@inherits PanelComponent
+@attribute [StyleSheet]
+
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+
+<root class="@GetRootClass()">
+	<div class="window">
+		<div class="header">
+			<div class="title">
+				<div class="title-stack">
+					<span class="title-primary brand-wordmark"><span class="wordmark-life">lifepunch</span><span class="ulx">.ulx</span></span>
+					<span class="title-sub">ULX CONSOLE</span>
+				</div>
+			</div>
+			<div class="header-actions">
+				<button class="header-chip @( StaffMenuHost.HasWebsite ? "header-chip-link" : "" ) @( _websiteCopied ? "header-chip-copied" : "" )"
+				        tooltip="@( StaffMenuHost.HasWebsite ? $"Copy link: {StaffMenuHost.WebsiteUrl}" : "Network identifier" )"
+				        onclick="@CopyWebsite">
+					<i class="material-icons">language</i>
+					<span>@(_websiteCopied ? "Link copied!" : StaffMenuHost.NetworkIdentifier)</span>
+				</button>
+				<button class="lp-ui-chrome-btn cog @( _activeTab == TabSettings ? "chrome-active" : "" )" tooltip="Settings" onclick="@OpenSettings">
+					<i class="material-icons">settings</i>
+				</button>
+				<button class="lp-ui-chrome-btn close" tooltip="Close Menu" onclick="@CloseMenu">
+					<i class="material-icons">close</i>
+				</button>
+			</div>
+		</div>
+
+		<div class="tabs">
+			@foreach ( var category in StaffMenuActions.Categories )
+			{
+				<button class="@TabClass( category )"
+				        onclick="@(() => SelectTab( category ))">
+					<span>@category</span>
+				</button>
+			}
+			@if ( StaffMenuHost.CanUseWaypoints() )
+			{
+				<button class="@TabClass( TabWaypoints )"
+				        onclick="@(() => SelectTab( TabWaypoints ))">
+					<span>Waypoints</span>
+				</button>
+			}
+			@if ( StaffMenuHost.CanViewAudit() )
+			{
+				<button class="@TabClass( TabAudit )"
+				        onclick="@(() => SelectTab( TabAudit ))">
+					<span>Audit</span>
+				</button>
+			}
+		</div>
+
+		<div class="ulx-workspace">
+		@if ( _activeTab == TabAudit )
+		{
+			<div class="audit">
+				<div class="audit-head">
+					<i class="material-icons">history</i>
+					<span>Audit Log</span>
+				</div>
+
+				<div class="audit-filters">
+					<div class="audit-filter">
+						<i class="material-icons">person_search</i>
+						<TextEntry class="audit-input" Placeholder="Player ID or name" Value:bind="@_auditPlayerId"/>
+						@if ( !string.IsNullOrEmpty( _auditPlayerId ) )
+						{
+							<button class="icon-btn" tooltip="Clear" onclick="@ClearAuditPlayer"><i class="material-icons">close</i></button>
+						}
+					</div>
+					<div class="audit-filter">
+						<i class="material-icons">category</i>
+						<TextEntry class="audit-input" Placeholder="Entity ID" Value:bind="@_auditEntity"/>
+						@if ( !string.IsNullOrEmpty( _auditEntity ) )
+						{
+							<button class="icon-btn" tooltip="Clear" onclick="@ClearAuditEntity"><i class="material-icons">close</i></button>
+						}
+					</div>
+				</div>
+
+				@{
+					var entries = StaffMenuHost.GetAuditEntries( _auditPlayerId, _auditEntity );
+				}
+
+				<div class="audit-table">
+					<div class="audit-row audit-row-head">
+						<span class="c-when">When</span>
+						<span class="c-action">Action</span>
+						<span class="c-player">Player</span>
+						<span class="c-entity">Entity</span>
+						<span class="c-desc">Description</span>
+					</div>
+
+					<div class="lp-ui-scroll-region audit-scroll">
+						@foreach ( var entry in entries )
+						{
+							<div class="audit-row">
+								<span class="c-when">@entry.When</span>
+								<span class="c-action"><span class="action-pill">@entry.Action</span></span>
+								<span class="c-player @( entry.PlayerSteamId == 0 ? "audit-player-system" : "" )">@entry.Player</span>
+								<span class="c-entity">@entry.Entity</span>
+								<span class="c-desc">@entry.Description</span>
+							</div>
+						}
+
+						@if ( entries.Count == 0 )
+						{
+							<div class="audit-empty">No audit entries match these filters.</div>
+						}
+					</div>
+				</div>
+			</div>
+		}
+		else if ( _activeTab == TabWaypoints )
+		{
+			<div class="waypoints">
+				<div class="wp-main">
+				<div class="wp-head">
+					<i class="material-icons">place</i>
+					<span>Waypoints</span>
+				</div>
+
+				<div class="wp-bar">
+					<i class="material-icons">place</i>
+					<TextEntry class="wp-input" Placeholder="Waypoint name" Value:bind="@_waypointName"/>
+					<button class="wp-btn wp-btn-quiet @( string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
+					        tooltip="Teleport to this waypoint"
+					        onclick="@GoToTypedWaypoint">
+						<i class="material-icons">my_location</i> Go
+					</button>
+					@if ( StaffMenuHost.CanEditWaypoints() )
+					{
+						<button class="wp-btn wp-btn-primary @( string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
+						        tooltip="Save a waypoint at your current position + view angle"
+						        onclick="@SetWaypointFromInput">
+							<i class="material-icons">push_pin</i> Set here
+						</button>
+					}
+				</div>
+
+				@{
+					var waypoints = StaffMenuHost.GetWaypoints();
+					var filteredWaypoints = FilteredWaypoints( waypoints );
+				}
+
+				<div class="lp-ui-scroll-region wp-list">
+					<div class="wp-list-tail"></div>
+					@foreach ( var name in filteredWaypoints )
+					{
+						<div class="wp-row">
+							<i class="material-icons">place</i>
+							<span class="wp-name">@name</span>
+							<button class="wp-go-row" tooltip="Teleport here" onclick="@(() => GoToWaypoint( name ))">
+								<i class="material-icons">my_location</i> Go
+							</button>
+							@if ( StaffMenuHost.CanEditWaypoints() )
+							{
+								@if ( _wpPendingDelete == name )
+								{
+									<button class="wp-confirm-yes" tooltip="@( $"Delete \"{name}\" permanently" )" onclick="@(() => ConfirmClearWaypoint( name ))">
+										<i class="material-icons">check</i>
+									</button>
+									<button class="wp-confirm-no" tooltip="Keep waypoint" onclick="@CancelClearWaypoint">
+										<i class="material-icons">close</i>
+									</button>
+								}
+								else
+								{
+									<button class="wp-clear" tooltip="Delete waypoint" onclick="@(() => AskClearWaypoint( name ))">
+										<i class="material-icons">delete</i>
+									</button>
+								}
+							}
+						</div>
+					}
+
+					@if ( waypoints.Count == 0 )
+					{
+						<div class="wp-empty">
+							No saved waypoints yet — type a name above to Go or Set.
+						</div>
+					}
+					else if ( filteredWaypoints.Count == 0 )
+					{
+						<div class="wp-empty">
+							No waypoint matches @(_waypointName?.Trim()).
+							<div class="wp-list-tail"></div>
+				</div>
+					}
+					<div class="wp-list-tail"></div>
+				</div>
+
+				</div>
+
+				@if ( StaffMenuHost.CanView( "ability.teleport" ) )
+				{
+					<div class="wp-return-section">
+						<div class="wp-head">
+							<i class="material-icons">undo</i>
+							<span>Return a player</span>
+						</div>
+
+						<div class="wp-sit-hint">
+							Return a player back to where they were brought from.
+						</div>
+
+						<div class="wp-bar wp-return-bar">
+							<i class="material-icons">person</i>
+							<TextEntry class="wp-input" Placeholder="SteamID64" Value:bind="@_returnSteamId"/>
+							<button class="wp-btn go @( string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled" : "" )"
+							        tooltip="Return this player to their previous position"
+							        onclick="@ReturnTypedPlayer">
+								<i class="material-icons">undo</i> Return
+							</button>
+						</div>
+					</div>
+				}
+			</div>
+		}
+		else if ( _activeTab == TabSettings )
+		{
+			<div class="settings">
+				<div class="settings-head">
+					<i class="material-icons">settings</i>
+					<span>Settings</span>
+				</div>
+
+				<div class="settings-group">
+					<div class="settings-label">UI Scale</div>
+					<div class="settings-hint">Resize the staff console window.</div>
+					<div class="panel-size-row">
+						@foreach ( var size in _uiScaleOptions )
+						{
+							<button class="panel-size-opt @( _uiScale == size ? "panel-size-opt-active" : "" )"
+							        onclick="@(() => SetUiScale( size ))">
+								@LifePunchUiScale.ShortLabel( size )
+							</button>
+						}
+					</div>
+				</div>
+
+				<div class="settings-group">
+					<div class="settings-label">Network Management</div>
+					<div class="settings-hint">
+						@($"Linked from the “{StaffMenuHost.NetworkIdentifier}” tag in the tab bar — staff click it to copy your link.")
+					</div>
+
+					@if ( StaffMenuHost.CanEditSettings() )
+					{
+						<div class="settings-bar">
+							<i class="material-icons">link</i>
+							<TextEntry class="settings-input" Placeholder="https://your-network.com" Value:bind="@_websiteDraft"/>
+							<button class="settings-btn save @( _websiteSaved ? "settings-btn-saved" : "" )"
+							        tooltip="Save the network website link"
+							        onclick="@SaveWebsiteFromInput">
+								<i class="material-icons">@( _websiteSaved ? "check" : "save" )</i> @( _websiteSaved ? "Saved!" : "Save" )
+							</button>
+						</div>
+
+						<div class="settings-current">
+							@if ( StaffMenuHost.HasWebsite )
+							{
+								<span class="settings-current-text">@( $"Current: {StaffMenuHost.WebsiteUrl}" )</span>
+								<button class="copy-btn"
+								        tooltip="@( _currentCopied ? "Copied!" : "Copy link" )"
+								        onclick="@CopyCurrentWebsite">
+									<i class="material-icons">@( _currentCopied ? "check" : "content_copy" )</i>
+								</button>
+							}
+							else
+							{
+								<span class="settings-current-text">No website set yet — leave the field empty and Save to clear it.</span>
+							}
+						</div>
+					}
+					else
+					{
+						<div class="settings-readonly">
+							@( StaffMenuHost.HasWebsite ? StaffMenuHost.WebsiteUrl : "No website set." )
+						</div>
+					}
+				</div>
+			</div>
+		}
+		else if ( _activeTab == TabPlayerMgmt )
+		{
+			<div class="settings">
+				<div class="settings-head">
+					<i class="material-icons">groups</i>
+					<span>Player &amp; Staff Management</span>
+				</div>
+
+				<div class="coming-soon">
+					<i class="material-icons">construction</i>
+					<span class="coming-soon-title">Coming Soon</span>
+					<span class="coming-soon-hint">Tools for managing players and staff will live here.</span>
+				</div>
+			</div>
+		}
+		else
+		{
+		<div class="body">
+			<div class="players @( _playersCollapsed ? "players-collapsed" : "" )">
+				@if ( _playersCollapsed )
+				{
+					<div class="players-rail">
+						<button class="expand-btn" tooltip="Open sidebar — players & settings" onclick="@TogglePlayers">
+							<i class="material-icons">chevron_right</i>
+						</button>
+						<div class="rail-stat">
+							<i class="material-icons">group</i>
+							<span class="count">@_players.Count</span>
+						</div>
+						<div class="rail-stat">
+							<i class="material-icons">shield</i>
+							<span class="count">@( StaffTierGroups().Sum( g => g.Players.Count ) )</span>
+						</div>
+					</div>
+				}
+
+				@if ( !_playersCollapsed )
+				{
+					var staffGroups = StaffTierGroups();
+					var staffCount = staffGroups.Sum( g => g.Players.Count );
+					// "Players" lists ONLY non-staff. Staff already appear in the tiered Staff section above,
+					// so re-listing them here produced a duplicate row that highlighted in both places on
+					// select. The full live head-count (everyone) still shows in the "Online Players (N)"
+					// header and the collapsed rail's group count, so nothing is lost.
+					var nonStaff = FilteredPlayers()
+						.Where( p => p.GroupName == StaffMenuHost.NonStaffGroup )
+						.OrderBy( p => p.Name )
+						.ToList();
+					var rosterSearchEmpty = !string.IsNullOrWhiteSpace( _searchText )
+						&& staffCount == 0
+						&& nonStaff.Count == 0;
+
+					<div class="pane-label">
+						<span class="pane-title">Players</span>
+						<span class="online-count"><span class="player-online"></span>@( $"{_players.Count} online" )</span>
+						<button class="collapse-btn" tooltip="Hide sidebar" onclick="@TogglePlayers">
+							<i class="material-icons">chevron_left</i>
+						</button>
+					</div>
+
+					<div class="search-row">
+						<i class="material-icons">search</i>
+						<TextEntry class="search-input" Placeholder="Search players or SteamID" Value:bind="@_searchText"/>
+						@if ( !string.IsNullOrEmpty( _searchText ) )
+						{
+							<button class="icon-btn" onclick="@ClearSearch"><i class="material-icons">close</i></button>
+						}
+					</div>
+
+					@if ( IsSteamId( _searchText ) )
+					{
+						<button class="steamid-pick" onclick="@SelectTypedSteamId">
+							<i class="material-icons">person_search</i>
+							<span>Select SteamID @_searchText.Trim()</span>
+						</button>
+					}
+
+					<div class="lp-ui-scroll-region player-scroll">
+						@if ( rosterSearchEmpty )
+						{
+							<div class="roster-empty">No online players match this search.</div>
+						}
+						<div class="roster-section @(_staffSectionCollapsed ? "roster-section-collapsed" : "")">
+							<button class="parent-label @(_staffSectionCollapsed ? "" : "parent-label-open")" onclick="@ToggleStaffSection">
+								<span class="parent-label-text">Staff (@staffCount)</span>
+								<i class="material-icons parent-label-chevron">@(_staffSectionCollapsed ? "chevron_right" : "expand_more")</i>
+							</button>
+							@if ( !_staffSectionCollapsed )
+							{
+								@foreach ( var group in staffGroups )
+								{
+									<div class="roster-tier">
+										<div class="group-label">@group.Name (@group.Players.Count)</div>
+										@foreach ( var player in group.Players )
+										{
+											<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "player-row-selected" : "" )"
+											        tooltip="View player profile"
+											        onclick="@(() => Select( player.SteamId ))">
+												<i class="material-icons avatar">person</i>
+												<span class="player-online"></span>
+												<span class="player-copy">
+													<span class="name">@player.Name</span>
+													<span class="role">@player.Role</span>
+												</span>
+												@if ( !player.CanTarget )
+												{
+													<i class="material-icons lock" tooltip="Equal or higher rank — cannot target">lock</i>
+												}
+											</button>
+										}
+									</div>
+								}
+							}
+						</div>
+
+						<div class="roster-section @(_playersSectionCollapsed ? "roster-section-collapsed" : "")">
+							<button class="parent-label @(_playersSectionCollapsed ? "" : "parent-label-open")" onclick="@TogglePlayersSection">
+								<span class="parent-label-text">Players (@nonStaff.Count)</span>
+								<i class="material-icons parent-label-chevron">@(_playersSectionCollapsed ? "chevron_right" : "expand_more")</i>
+							</button>
+							@if ( !_playersSectionCollapsed )
+							{
+								<div class="roster-tier roster-tier-players">
+									@foreach ( var player in nonStaff )
+									{
+										<button class="player-row @( ( _showProfile ? _profileSteamId : _selectedSteamId ) == player.SteamId ? "player-row-selected" : "" )"
+										        tooltip="View player profile"
+										        onclick="@(() => Select( player.SteamId ))">
+											<i class="material-icons avatar">person</i>
+											<span class="player-online"></span>
+											<span class="player-copy">
+												<span class="name">@player.Name</span>
+												<span class="role">@player.Role</span>
+											</span>
+											@if ( !player.CanTarget )
+											{
+												<i class="material-icons lock" tooltip="Equal or higher rank — cannot target">lock</i>
+											}
+										</button>
+									}
+								</div>
+							}
+						</div>
+						<div class="player-scroll-tail"></div>
+					</div>
+				}
+
+				<div class="players-footer">
+					<button class="settings-entry @( _activeTab == TabPlayerMgmt ? "settings-entry-on" : "" )"
+					        tooltip="@( _playersCollapsed ? "Player & Staff Management" : "" )"
+					        onclick="@OpenPlayerMgmt">
+						<i class="material-icons">settings</i>
+						@if ( !_playersCollapsed )
+						{
+							<span class="settings-entry-label">@("Player & Staff Management")</span>
+						}
+					</button>
+				</div>
+			</div>
+
+			<div class="main">
+			<div class="lp-ui-scroll-region actions @( _showProfile ? "actions-profile" : "" )">
+				@{
+					var selected = _players.FirstOrDefault( p => p.SteamId == _selectedSteamId );
+					var hasTarget = selected.SteamId != 0;
+					// The profile pane previews whoever was clicked (_profileSteamId); it does NOT
+					// imply selection — only "Actions for this player" commits a command target.
+					var profileSteamId = _profileSteamId ?? _selectedSteamId ?? 0;
+				}
+
+				@if ( _showProfile && profileSteamId != 0 )
+				{
+					var detail = StaffMenuHost.GetPlayerDetail( profileSteamId );
+					<div class="profile">
+						<div class="profile-head">
+							<button class="icon-btn" onclick="@CloseProfile"><i class="material-icons">arrow_back</i></button>
+							<span>Player Profile</span>
+						</div>
+
+						<div class="profile-card">
+							@if ( StaffMenuHost.CanView( "ability.teleport" ) )
+							{
+								var tpTarget = _players.FirstOrDefault( p => p.SteamId == profileSteamId );
+								var canTp = tpTarget.SteamId != 0 && tpTarget.CanTarget && profileSteamId != StaffMenuHost.LocalSteamId;
+								// A disabled control that says nothing reads as broken. Name the reason.
+								var tpReason = profileSteamId == StaffMenuHost.LocalSteamId
+									? "Cannot target yourself"
+									: ( tpTarget.SteamId == 0 ? "Player is not on the roster" : "Target is protected" );
+								<div class="profile-tp">
+									<button class="tp-btn tp-go @( canTp ? "" : "control-disabled" )"
+									        tooltip="@( canTp ? "Go to Player" : tpReason )"
+									        onclick="@(() => QuickTeleport( "goto", tpTarget ))">
+										<i class="material-icons">my_location</i>
+									</button>
+									<button class="tp-btn tp-bring @( canTp ? "" : "control-disabled" )"
+									        tooltip="@( canTp ? "Bring Player" : tpReason )"
+									        onclick="@(() => QuickTeleport( "bring", tpTarget ))">
+										<i class="material-icons">pan_tool</i>
+									</button>
+									<button class="tp-btn tp-return @( canTp ? "" : "control-disabled" )"
+									        tooltip="@( canTp ? "Return Player" : tpReason )"
+									        onclick="@(() => QuickTeleport( "return", tpTarget ))">
+										<i class="material-icons">undo</i>
+									</button>
+								</div>
+							}
+
+							<div class="profile-identity">
+								<img class="profile-avatar" src="avatar:@profileSteamId"/>
+								<div class="profile-identity-copy">
+									<div class="profile-name">@( detail.Found ? detail.Name : "Off-roster target" )</div>
+								</div>
+							</div>
+
+							@* ONE scroll region for the whole card body -- stats, Recent Actions and Sanctions
+							   scroll together rather than as three nested boxes fighting for height. *@
+							<div class="lp-ui-scroll-region profile-body">
+								@* 16a -- the three sanctions staff reach for constantly, at the top of the card
+								   instead of buried behind "Actions for this player". Same card grammar as the
+								   Moderation grid, destructive treatment on all three. *@
+								@if ( detail.Found )
+								{
+									<div class="quick-sanctions">
+										@foreach ( var key in QuickSanctionKeys )
+										{
+											var qs = StaffMenuActions.All.FirstOrDefault( x => x.Key == key );
+											var qsTarget = _players.FirstOrDefault( p => p.SteamId == profileSteamId );
+											var qsOk = qs is not null && StaffMenuHost.CanView( qs.PermissionId )
+											           && qsTarget.SteamId != 0 && qsTarget.CanTarget;
+											@if ( qs is not null )
+											{
+												<button class="quick-sanction @( qsOk ? "" : "control-disabled" )"
+												        tooltip="@( qsOk ? qs.Tooltip : "Not permitted on this player" )"
+												        onclick="@(() => OnActionClick( qs, qsTarget, qsOk ))">
+													<i class="material-icons">@qs.Icon</i>
+													<span class="quick-sanction-label">@qs.Label</span>
+												</button>
+											}
+										}
+									</div>
+								}
+
+								@* 16b -- IDENTITY *@
+								@* The three info sections sit SIDE BY SIDE. Stacking them left a third of the card's
+								   width empty and pushed Status down until the buttons clipped it. Pairs group
+								   tightly inside each column; the distribution happens across the width. *@
+								<div class="profile-columns">
+									<div class="profile-col">
+										<div class="profile-section-head">Identity</div>
+										<div class="profile-section">
+											<div class="field">
+												<span class="k">Steam ID</span>
+												<span class="v v-copy">
+													<span class="@( _steamIdCopied ? "copied-text" : "" )">@( _steamIdCopied ? "Copied!" : profileSteamId.ToString() )</span>
+													<button class="copy-btn"
+													        tooltip="@( _steamIdCopied ? "Copied!" : "Copy Steam ID" )"
+													        onclick="@(() => CopySteamId( profileSteamId ))">
+														<i class="material-icons">@( _steamIdCopied ? "check" : "content_copy" )</i>
+													</button>
+												</span>
+											</div>
+											<div class="field">
+												<span class="k">Role</span>
+												<span class="v v-role">@detail.Role</span>
+											</div>
+											<div class="field">
+												<span class="k">Time played</span>
+												<span class="v">@( detail.Found ? $"{detail.PlayTimeMinutes / 60}h" : "—" )</span>
+											</div>
+										</div>
+									</div>
+
+									@if ( detail.Found )
+									{
+										<div class="profile-col">
+											<div class="profile-section-head">Econ</div>
+											<div class="profile-section">
+												<div class="field">
+													<span class="k">Job</span>
+													<span class="v v-job" style="@( string.IsNullOrEmpty( detail.JobColorHex ) ? "" : $"color: {detail.JobColorHex}" )">@detail.Job</span>
+												</div>
+												@{
+													var jobCategory = StaffMenuHost.GetJobCategory( profileSteamId );
+												}
+												@if ( !string.IsNullOrEmpty( jobCategory ) )
+												{
+													<div class="field">
+														<span class="k">Category</span>
+														<span class="v">@jobCategory</span>
+													</div>
+												}
+												<div class="field">
+													<span class="k">Cash</span>
+													<span class="v @( detail.Wallet > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+												</div>
+												<div class="field">
+													<span class="k">Bank</span>
+													<span class="v @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )">$@( detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</span>
+												</div>
+											</div>
+										</div>
+
+										<div class="profile-col">
+											<div class="profile-section-head">Status</div>
+											<div class="profile-section">
+												<div class="field">
+													<span class="k">Health</span>
+													<span class="v" style="@( $"color: {StaffMenuHost.HealthColorHex( detail.Health, detail.MaxHealth )}" )">@detail.Health / @detail.MaxHealth</span>
+												</div>
+												<div class="field">
+													<span class="k">Armor</span>
+													<span class="v @( detail.Armor > 0 ? "v-armor" : "v-tone-zero" )">@detail.Armor</span>
+												</div>
+												<div class="field">
+													<span class="k">Kills / Deaths</span>
+													<span class="v">@detail.Kills / @detail.Deaths</span>
+												</div>
+												@{
+													var stateFlags = StaffMenuHost.GetStateFlags( profileSteamId );
+												}
+												<div class="field flags-field">
+													<span class="k">Flags</span>
+													<span class="flags-list">
+														@if ( stateFlags.Count == 0 )
+														{
+															<span class="v v-tone-zero">None</span>
+														}
+														else
+														{
+															@foreach ( var flag in stateFlags )
+															{
+																<span class="flag-chip @( flag.Illegitimate ? "flag-illegit" : "" )"
+																      tooltip="@( flag.Illegitimate ? "Active WITHOUT the permission that grants it" : "Permitted for this player" )">@flag.Label</span>
+															}
+														}
+													</span>
+												</div>
+											</div>
+										</div>
+									}
+								</div>
+
+
+								<div class="profile-section-head">Recent actions</div>
+								<div class="profile-section">
+									@{
+										var recent = StaffMenuHost.GetAuditEntries( profileSteamId.ToString(), "" );
+									}
+									@if ( recent.Count == 0 )
+									{
+										<div class="section-empty">No recorded activity for this player.</div>
+									}
+									else
+									{
+										@foreach ( var entry in recent.Take( 8 ) )
+										{
+											<div class="event-row">
+												<span class="event-when">@entry.When</span>
+												<span class="event-act">@entry.Action</span>
+									<span class="event-what">@entry.Description</span>
+											</div>
+										}
+									}
+								</div>
+
+								@* SANCTIONS. Real DXRP source (PlayerSanctionHistorySystem) -- the same system the
+								   native TabMenu reads. An in-force sanction is the loudest thing on this card. *@
+								<div class="profile-section-head">Sanctions</div>
+								<div class="profile-section">
+									@{
+										StaffMenuHost.RequestSanctions( profileSteamId );
+										var sanctions = StaffMenuHost.GetSanctions( profileSteamId );
+									}
+									@if ( !StaffMenuHost.CanViewSanctions() )
+									{
+										<div class="section-empty">You do not have permission to view sanctions.</div>
+									}
+									else if ( StaffMenuHost.SanctionsLoading( profileSteamId ) )
+									{
+										<div class="section-empty">Loading sanction history…</div>
+									}
+									else if ( sanctions.Count == 0 )
+									{
+										<div class="section-empty">No sanctions on record.</div>
+									}
+									else
+									{
+										@foreach ( var sanction in sanctions )
+										{
+											<div class="sanction-row @( sanction.IsActive ? "sanction-active" : "" )">
+												<span class="sanction-type sanction-@sanction.TypeClass">@sanction.Type</span>
+												<span class="sanction-reason">@sanction.Reason</span>
+												<span class="sanction-meta">@( $"{sanction.Duration} · {sanction.Created}" )</span>
+											</div>
+										}
+									}
+								</div>
+
+								<div class="profile-fields-tail"></div>
+							</div>
+
+							<button class="confirm-btn" onclick="@(() => ConfirmTarget( profileSteamId ))">
+								<i class="material-icons">bolt</i> Actions for this player
+							</button>
+
+							@if ( StaffMenuHost.CanViewAudit() )
+							{
+								<button class="confirm-btn confirm-btn-secondary btn-observe" onclick="@(() => OpenAuditForPlayer( profileSteamId ))">
+									<i class="material-icons">history</i> View audit log
+								</button>
+							}
+						</div>
+					</div>
+				}
+				else
+				{
+				<div class="target-identity @( _selectedSteamId != null ? "target-identity-active" : "" )">
+					@if ( _selectedSteamId != null )
+					{
+						<div class="target-identity-main">
+							<i class="material-icons">person</i>
+							<div class="target-identity-copy">
+								<span class="target-name">@( hasTarget ? selected.Name : $"SteamID {_selectedSteamId}" )</span>
+								@if ( hasTarget && !string.IsNullOrWhiteSpace( selected.Role ) )
+								{
+									<span class="target-role">@selected.Role</span>
+								}
+								<span class="target-steamid">SteamID @_selectedSteamId</span>
+							</div>
+						</div>
+						<div class="target-identity-state">
+							@if ( hasTarget )
+							{
+								<span class="target-online">Online roster player</span>
+									<span class="targetability @( selected.CanTarget ? "targetability-targetable" : "targetability-protected" )">@( selected.CanTarget ? "Targetable" : "Protected or unavailable" )</span>
+							}
+							else
+							{
+								<span class="target-off-roster">Off-roster target — availability unknown</span>
+								<span class="targetability targetability-protected">Unavailable for player actions</span>
+							}
+						</div>
+						<div class="target-identity-actions">
+							@if ( hasTarget )
+							{
+								<button class="profile-preview-btn btn-observe" onclick="@(() => Select( profileSteamId ))">
+									<i class="material-icons">visibility</i> View profile
+								</button>
+							}
+							<button class="icon-btn clear-target" tooltip="Deselect player" onclick="@Deselect">
+								<i class="material-icons">close</i>
+							</button>
+						</div>
+					}
+					else
+					{
+						<i class="material-icons">public</i>
+						<div class="target-identity-copy">
+							<span class="target-name">No target selected</span>
+							<span class="target-identity-hint">Self and server actions remain available.</span>
+						</div>
+					}
+				</div>
+
+				@if ( _pendingAction is { } pending )
+				{
+					var requiredArgsComplete = pending.Args
+						.Where( arg => arg.Required )
+						.All( arg => !string.IsNullOrWhiteSpace( ValueFor( arg.Name ) ) );
+					var targetContext = pending.TargetMode == StaffActionTarget.OtherPlayer
+						? ( hasTarget ? selected.Name : "No target selected" )
+						: ( pending.TargetMode == StaffActionTarget.SelfOnly ? "Self" : "Server" );
+					<div class="arg-form">
+						<div class="arg-form-head">
+							<div class="arg-context">
+								<span class="arg-action">@pending.Label</span>
+								<span class="arg-target">Target: @targetContext</span>
+							</div>
+							<button class="icon-btn" onclick="@CancelArgs"><i class="material-icons">close</i></button>
+						</div>
+
+						@foreach ( var arg in pending.Args )
+						{
+							<div class="arg-row">
+								<label>@arg.Label <span class="arg-required">@( arg.Required ? "Required" : "Optional" )</span></label>
+
+								@if ( arg.Kind == StaffArgKind.Duration )
+								{
+									<div class="chips">
+										@foreach ( var preset in StaffMenuConfig.BanDurations )
+										{
+											var allowed = pending.Key != "ban"
+												|| StaffMenuConfig.IsBanDurationAllowed( StaffMenuHost.LocalRankOrder, preset.Hours );
+											<button class="chip @( _duration == preset.Token ? "chip-active" : "" ) @( allowed ? "" : "control-disabled" )"
+											        onclick="@(() => SetDuration( preset.Token, allowed ))">
+												@preset.Label
+											</button>
+										}
+									</div>
+									<TextEntry class="arg-input" Placeholder="@arg.Placeholder" Value:bind="@_duration"/>
+								}
+								else if ( arg.Kind == StaffArgKind.Destination )
+								{
+									<div class="chips">
+										<button class="chip @( _destination == "cash" ? "chip-active" : "" )"
+										        onclick="@(() => SetDestination( "cash" ))">Cash</button>
+										<button class="chip @( _destination == "bank" ? "chip-active" : "" )"
+										        onclick="@(() => SetDestination( "bank" ))">Bank</button>
+									</div>
+								}
+								else if ( arg.Kind == StaffArgKind.Number )
+								{
+									<TextEntry class="arg-input" Numeric="@true" Placeholder="@arg.Placeholder" Value:bind="@_amount"/>
+								}
+								else if ( arg.Kind == StaffArgKind.Job )
+								{
+									<div class="job-dropdown">
+										<button type="button" class="job-dropdown-header" onclick="@ToggleJobDropdown">
+											@if ( !string.IsNullOrEmpty( _job ) )
+											{
+												var sel = StaffMenuHost.AssignableJobs().FirstOrDefault( j => j.Token == _job );
+												<span class="job-swatch" style="background-color: @( sel.ColorHex ?? "#888" )"></span>
+												<span>@( sel.Label ?? _job )</span>
+											}
+											else
+											{
+												<span class="job-placeholder">Select a job…</span>
+											}
+											<i class="material-icons job-chevron">@(_jobDropdownOpen ? "expand_less" : "expand_more")</i>
+										</button>
+										@if ( _jobDropdownOpen )
+										{
+											<div class="lp-ui-scroll-region job-dropdown-list">
+												<TextEntry class="arg-input job-filter" Placeholder="Filter jobs" Value:bind="@_jobFilter"/>
+												@foreach ( var job in FilteredJobOptions() )
+												{
+													<button type="button" class="job-option @( _job == job.Token ? "job-option-active" : "" )"
+													        onclick="@(() => SetJob( job.Token ))">
+														<span class="job-swatch" style="background-color: @job.ColorHex"></span>
+														<span>@job.Label</span>
+													</button>
+												}
+												@* Scroll slack so the last job row clears the list's bottom border (same
+												   tail pattern as .player-scroll-tail). Only when the list is long enough
+												   to overflow — on short filtered lists it reads as trailing dead space. *@
+												@if ( FilteredJobOptions().Count() >= 8 )
+												{
+													<div class="job-list-tail"></div>
+												}
+											</div>
+										}
+									</div>
+								}
+								else if ( arg.Name == "name" )
+								{
+									<TextEntry class="arg-input" Placeholder="@arg.Placeholder" Value:bind="@_name"/>
+								}
+								else
+								{
+									<TextEntry class="arg-input" Placeholder="@arg.Placeholder" Value:bind="@_reason"/>
+								}
+							</div>
+						}
+
+						@if ( !requiredArgsComplete )
+						{
+							<div class="arg-required-hint">Complete the required fields before confirming.</div>
+						}
+
+						@if ( pending.Dispatch == StaffDispatchKind.GiveMoney && _grantConfirm && requiredArgsComplete )
+						{
+							<div class="grant-confirm">
+								<span class="grant-confirm-line">Give <span class="grant-amount">$@_amount</span> to <span class="grant-target">@targetContext</span>, into their <span class="grant-amount">@_destination</span>?</span>
+								<span class="grant-confirm-sub">This is audited and cannot be reversed from this console.</span>
+							</div>
+						}
+
+							<button class="confirm-btn @( requiredArgsComplete ? "" : "control-disabled" ) @( _grantConfirm ? "confirm-btn-danger" : "" )" onclick="@(() => ConfirmArgs( selected ))">
+							<i class="material-icons">@( _grantConfirm ? "warning" : "check" )</i> @( _grantConfirm ? "Yes, give the money" : $"Confirm {pending.Label}" )
+						</button>
+					</div>
+				}
+
+				@* While an arg-form (Set Job, Ban…) is open it owns the pane — the grid would overflow the
+				   window frame below it (s&box can't scroll the wrapped grid), so hide it until the form
+				   closes (Confirm or X) instead of letting buttons spill past the border. *@
+				@if ( _pendingAction is null )
+				{
+				<div class="action-grid">
+					@foreach ( var action in GetVisibleTabActions() )
+					{
+						var enabled = IsEnabled( action, selected, hasTarget );
+						var description = string.IsNullOrWhiteSpace( action.Tooltip ) ? action.Label : action.Tooltip;
+							<button class="action-btn @( ActionStateClasses( action, enabled ) )"
+						        tooltip="@( string.IsNullOrEmpty( action.Tooltip ) ? action.Label : action.Tooltip )"
+						        onclick="@(() => OnActionClick( action, selected, enabled ))">
+							<i class="material-icons">@action.Icon</i>
+							<span class="action-label">@action.Label</span>
+							@* One sub-line only. Showing description AND reason made card heights
+							   differ between rows, which a scrolling grid makes obvious. *@
+							@if ( !enabled && action.TargetMode == StaffActionTarget.OtherPlayer )
+							{
+								<span class="action-disabled-reason">@( _selectedSteamId is null ? "Select a target" : "Target protected" )</span>
+							}
+							else
+							{
+								<span class="action-description">@description</span>
+							}
+						</button>
+					}
+
+					@* Invisible spacers complete the final three-card row so real cards retain their
+					   uniform flex width instead of growing into unused space. *@
+					@for ( var i = 0; i < (4 - GetVisibleTabActions().Count % 4) % 4; i++ )
+					{
+						<div class="action-spacer"></div>
+					}
+				</div>
+
+				<div class="action-scroll-tail"></div>
+
+				@if ( GetVisibleTabActions().Count == 0 )
+				{
+					<div class="empty">No @_activeTab.ToLower() actions available to your rank.</div>
+				}
+				}
+				}
+			</div>
+
+			</div>
+		</div>
+		}
+
+		</div>
+
+		<div class="lp-window-watermark lp-window-watermark--rounded">
+			<LifePunchUiFooter Product="ULX Console" />
+		</div>
+	</div>
+</root>
+
+@code {
+	private IReadOnlyList<StaffMenuPlayer> _players = Array.Empty<StaffMenuPlayer>();
+	private long? _selectedSteamId;
+	// A Steam ID typed into the search box (may not be on the roster); kept selected so commands can
+	// still target it, and exempt from the roster-presence auto-clear in RefreshRoster.
+	private long? _manualSteamId;
+	// The player whose profile is currently being PREVIEWED (clicking a roster row / typed id). This
+	// is independent of _selectedSteamId — previewing never targets; only "Actions for this player"
+	// commits a target via ConfirmTarget.
+	private long? _profileSteamId;
+	private bool _showProfile;
+	private string _searchText = "";
+
+	// Collapsed = the Online Players sidebar shrinks to a slim rail, handing its width to the action
+	// area. Pure view state (no backend), folded into BuildHash so the toggle re-renders.
+	private bool _playersCollapsed;
+	private bool _staffSectionCollapsed;
+	private bool _playersSectionCollapsed;
+
+	// Rebuild throttle. The menu used to re-sample the roster AND fold live player stats into
+	// BuildHash every single frame, so any volatile value (e.g. the periodic salary bumping Bank)
+	// rebuilt the WHOLE menu — including the sidebar/cog — which replayed their hover state and read
+	// as a flicker. We now refresh on a fixed cadence and cache the volatile stat hash, so the menu
+	// only rebuilds when something actually changed at most a few times a second.
+	private RealTimeSince _sinceRefresh;
+	private int _detailHash;
+	private const float RefreshInterval = 0.2f;
+
+	// Non-category tab ids. The tab strip is Moderation / Commands / Ability (action catalog
+	// categories) plus these two full-window views, all driven by a single _activeTab.
+	private const string TabWaypoints = "Waypoints";
+	private const string TabAudit = "Audit";
+	// Opened by the header cog: panel size + owner-configurable network website.
+	private const string TabSettings = "Settings";
+	private const string TabPlayerMgmt = "PlayerMgmt";
+
+	// The selected top-level tab: a StaffMenuActions category, TabWaypoints, or TabAudit.
+	private string _activeTab = StaffMenuActions.CategoryModeration;
+
+	// Active-tab highlight uses a STANDALONE class (`tab-sel`), styled in the SCSS. Why not the
+	// obvious approaches:
+	//  - `.tab.active` (compound class+class) — s&box's CSS subset doesn't match it, so it never applied.
+	//  - inline style — s&box doesn't clear an inline `style` on re-render (every clicked tab stayed
+	//    lit) and inline outranks `.tab:hover`, which killed hover feedback.
+	// A method (not an inline `@( ... ? "x" : "" )` with nested quotes) keeps the class binding clean,
+	// and toggling a class reliably applies AND clears while `.tab:hover` keeps working on the rest.
+	private string TabClass( string tab ) => _activeTab == tab ? "tab tab-sel" : "tab";
+
+	/// <summary>Material icon per tab strip entry (visual flavor only).</summary>
+	private static string TabIcon( string tab ) => tab switch
+	{
+		StaffMenuActions.CategoryModeration => "gavel",
+		StaffMenuActions.CategoryCommands => "terminal",
+		StaffMenuActions.CategoryAbility => "bolt",
+		TabWaypoints => "place",
+		TabAudit => "history",
+		_ => "folder"
+	};
+
+	// Audit viewer state: a full-window tab mirroring the portal Audit page — its two live filters
+	// (player id/name, entity id) are applied host-side.
+	private string _auditPlayerId = "";
+	private string _auditEntity = "";
+
+	// Waypoints tab state: a full-window view over DXRP's /waypoint command. The list is live in the
+	// editor stub; on the server it's name-driven until a client-readable list lands.
+	private string _waypointName = "";
+
+	// Waypoints-tab "Return a player": a SteamID64 typed straight in — no roster carry-over — so staff
+	// can return anyone they just brought (the id is the ultimate player handle, one-click copyable).
+	private string _returnSteamId = "";
+
+	// Settings tab (opened by the header cog): UI scale + owner-configurable network website.
+	private string _websiteDraft = "";
+	private bool _websiteCopied;
+	private LifePunchUiScaleSize _uiScale;
+	private static readonly LifePunchUiScaleSize[] _uiScaleOptions =
+	{
+		LifePunchUiScaleSize.Small,
+		LifePunchUiScaleSize.Medium,
+		LifePunchUiScaleSize.Large,
+		LifePunchUiScaleSize.ExtraLarge
+	};
+	private bool _websiteSaved;
+	private bool _steamIdCopied;
+	private bool _currentCopied;
+
+	private StaffAction? _pendingAction;
+
+	// Currency-grant form state. _destination defaults to cash because that is the common refund
+	// case; _grantConfirm makes the grant a deliberate two-step (17f) -- a mistyped zero on a
+	// grant is not recoverable by the recipient's goodwill.
+	private string _destination = "cash";
+	private bool _grantConfirm;
+
+	private void SetDestination( string destination )
+	{
+		_destination = destination;
+		_grantConfirm = false;   // changing the target of the money re-arms the confirm
+		StateHasChanged();
+	}
+	private string _reason = "";
+	private string _duration = "";
+	private string _amount = "";
+	private string _name = "";
+	private string _job = "";
+	private string _jobFilter = "";
+	private bool _jobDropdownOpen;
+
+	protected override void OnStart()
+	{
+		_uiScale = StaffMenuHost.SavedUiScale;
+		RefreshRoster();
+		LifePunchUiScrollPolicy.Apply( Panel );
+
+		// Fetch owner settings on open so the network tag is click-to-copy immediately (not only after
+		// the Settings view is visited).
+		StaffMenuHost.RefreshSettings();
+
+		if ( StaffMenuHost.CanUseWaypoints() )
+		{
+			StaffMenuHost.RefreshWaypoints();
+		}
+	}
+
+	protected override void OnUpdate()
+	{
+		// Wheel-only scroll: disable drag-scroll and clamp offsets every frame (sidebar roster, audit, etc.).
+		// NOTE: do NOT call LifePunchScrollRegionBootstrap.UpgradeScrollRegionsFromHost here — StaffMenu's
+		// scroll regions hold razor-managed lists, and the upgrade reparents them out from under razor's
+		// render tree (continuous "Fixing parent" + BuildRenderTree asserts = visible flicker).
+		LifePunchUiScrollPolicy.Apply( Panel );
+
+		// Throttle: re-sampling every frame churned BuildHash and rebuilt the whole menu (sidebar/cog
+		// hover would flicker). A few refreshes a second is plenty for a staff roster + live stats.
+		if ( _sinceRefresh < RefreshInterval )
+		{
+			return;
+		}
+
+		_sinceRefresh = 0;
+		RefreshRoster();
+		RecomputeDetailHash();
+	}
+
+	private void RefreshRoster()
+	{
+		_players = StaffMenuHost.OnlinePlayers();
+
+		// Drop a selection whose player left — unless it was a manually typed Steam ID (off-roster target).
+		if ( _selectedSteamId.HasValue
+		     && _selectedSteamId != _manualSteamId
+		     && _players.All( p => p.SteamId != _selectedSteamId.Value ) )
+		{
+			_selectedSteamId = null;
+			_showProfile = false;
+		}
+	}
+
+	// Snapshot the open profile's volatile stats into a single hash on the refresh cadence (not every
+	// frame), so BuildHash only flips the menu when a value really changed — keeping the surrounding
+	// chrome (sidebar, cog) stable between updates.
+	private void RecomputeDetailHash()
+	{
+		if ( _showProfile && _profileSteamId is { } sid && sid != 0 )
+		{
+			var d = StaffMenuHost.GetPlayerDetail( sid );
+			_detailHash = HashCode.Combine( d.Health, d.Armor, d.Wallet, d.Bank, d.Kills, d.Deaths, d.Job );
+		}
+		else
+		{
+			_detailHash = 0;
+		}
+
+		// Toggle state is live DXRP state, so it is sampled on the same throttled cadence as the
+		// other volatile values -- sampling it in BuildHash would re-read it every frame.
+		_detailHash = HashCode.Combine( _detailHash, SelfToggleHash() );
+	}
+
+	// Catalog actions grouped by the ROLE their colour communicates. Keys match StaffMenuActions.
+	// Destructive actions harm or remove; observe actions only look; self-toggles carry live state.
+	// 16a -- the sanctions surfaced as cards on the profile itself. Order is escalation order.
+	private static readonly string[] QuickSanctionKeys = { "jail", "kick", "ban" };
+
+	private static readonly string[] DestructiveActionKeys =
+	{
+		"kick", "ban", "jail", "arrest", "forceselldoor"
+	};
+
+	private static readonly string[] ObserveActionKeys =
+	{
+		"spectate"
+	};
+
+	private static readonly string[] SelfToggleActionKeys =
+	{
+		"god", "cloak", "incognito", "noclip"
+	};
+
+	/// <summary>
+	/// Role and live-state classes for one action card, returned as ONE string: the transpiler
+	/// cannot take two adjacent @() expressions in a single attribute.
+	/// </summary>
+	private string ActionStateClasses( StaffAction action, bool enabled )
+	{
+		var classes = enabled ? "" : "control-disabled";
+
+		if ( DestructiveActionKeys.Contains( action.Key ) )
+		{
+			classes += " action-destructive";
+		}
+		else if ( ObserveActionKeys.Contains( action.Key ) )
+		{
+			classes += " action-observe";
+		}
+
+		// Read from the host, never from a local click flag -- a click echo would desync from the
+		// HUD the moment anything else changed the state (death, respawn, another admin, reconnect).
+		if ( SelfToggleActionKeys.Contains( action.Key ) && StaffMenuHost.IsSelfToggleOn( action.Key ) )
+		{
+			classes += " action-toggle-on";
+		}
+
+		return classes.Trim();
+	}
+
+	// Deleting a waypoint is permanent and its control sits one pixel from Go in a repeated
+	// column -- a misclick loses data with no undo. The row confirms in place instead.
+	private string? _wpPendingDelete;
+
+	private void AskClearWaypoint( string name )
+	{
+		_wpPendingDelete = name;
+		StateHasChanged();
+	}
+
+	private void CancelClearWaypoint()
+	{
+		_wpPendingDelete = null;
+		StateHasChanged();
+	}
+
+	private void ConfirmClearWaypoint( string name )
+	{
+		_wpPendingDelete = null;
+		ClearWaypoint( name );
+	}
+
+	/// <summary>Live self-toggle state, folded into the throttled detail hash so cards re-render.</summary>
+	private int SelfToggleHash()
+	{
+		var bits = 0;
+		for ( var i = 0; i < SelfToggleActionKeys.Length; i++ )
+		{
+			if ( StaffMenuHost.IsSelfToggleOn( SelfToggleActionKeys[i] ) )
+			{
+				bits |= 1 << i;
+			}
+		}
+
+		return bits;
+	}
+
+	/// <summary>The roster filtered by the search box (by name); unfiltered when empty or a Steam ID.</summary>
+	private IEnumerable<StaffMenuPlayer> FilteredPlayers()
+	{
+		var query = _searchText?.Trim() ?? "";
+		if ( query.Length == 0 || IsSteamId( query ) )
+		{
+			return _players;
+		}
+
+		return _players.Where( p => p.Name.Contains( query, StringComparison.OrdinalIgnoreCase ) );
+	}
+
+	/// <summary>A typed value looks like a SteamID64 (17 digits; accept 16–20 to be lenient).</summary>
+	private static bool IsSteamId( string? text )
+	{
+		text = text?.Trim() ?? "";
+		return text.Length is >= 16 and <= 20 && text.All( char.IsDigit );
+	}
+
+	/// <summary>
+	/// Staff sub-groups under the "Staff" parent — one row per portal rank name that has someone online
+	/// with staff-menu permissions, highest portal rank order first. Optional
+	/// <see cref="StaffMenuConfig.ReferenceTiers"/> may add empty "(0)" placeholder tiers when populated.
+	/// </summary>
+	private List<(string Name, List<StaffMenuPlayer> Players)> StaffTierGroups()
+	{
+		var staff = FilteredPlayers().Where( p => p.GroupName != StaffMenuHost.NonStaffGroup ).ToList();
+		var groups = new List<(string Name, List<StaffMenuPlayer> Players)>();
+
+		foreach ( var tier in StaffMenuConfig.ReferenceTiers )
+		{
+			groups.Add( ( tier.Name, staff
+				.Where( p => string.Equals( p.GroupName.Trim(), tier.Name.Trim(), StringComparison.OrdinalIgnoreCase ) )
+				.OrderBy( p => p.Name )
+				.ToList() ) );
+		}
+
+		foreach ( var online in staff
+			.Where( p => !StaffMenuConfig.ReferenceTiers.Any( t => string.Equals( t.Name.Trim(), p.GroupName.Trim(), StringComparison.OrdinalIgnoreCase ) ) )
+			.GroupBy( p => p.GroupName )
+			.OrderByDescending( g => g.Max( p => p.GroupOrder ) )
+			.ThenBy( g => g.Key ) )
+		{
+			groups.Add( ( online.Key, online.OrderBy( p => p.Name ).ToList() ) );
+		}
+
+		return groups;
+	}
+
+	/// <summary>
+	/// Clicking a roster row PREVIEWS that player's profile — it does not target them. Re-clicking the
+	/// open preview closes it. Targeting only happens via <see cref="ConfirmTarget"/> ("Actions for
+	/// this player"), so a click never silently arms a command.
+	/// </summary>
+	private void Select( long steamId )
+	{
+		// Re-clicking the player whose profile is already open closes the preview.
+		if ( _showProfile && _profileSteamId == steamId )
+		{
+			_profileSteamId = null;
+			_showProfile = false;
+			CancelArgs();
+			return;
+		}
+
+		_profileSteamId = steamId;
+		_showProfile = true;
+		CancelArgs();
+	}
+
+	/// <summary>Preview the profile for a Steam ID typed into the search box (off-roster allowed).</summary>
+	private void SelectTypedSteamId()
+	{
+		var text = _searchText?.Trim() ?? "";
+		if ( !IsSteamId( text ) || !long.TryParse( text, out var steamId ) )
+		{
+			return;
+		}
+
+		_profileSteamId = steamId;
+		_showProfile = true;
+		CancelArgs();
+	}
+
+	/// <summary>
+	/// Commit the previewed player as the active command target ("Actions for this player"), close the
+	/// profile, and land on the action grid. Off-roster (typed) ids are flagged manual so the
+	/// roster-presence auto-clear leaves them alone.
+	/// </summary>
+	private void ConfirmTarget( long steamId )
+	{
+		if ( steamId == 0 )
+		{
+			return;
+		}
+
+		_selectedSteamId = steamId;
+		_manualSteamId = _players.All( p => p.SteamId != steamId ) ? steamId : null;
+		_showProfile = false;
+		_profileSteamId = null;
+		CancelArgs();
+	}
+
+	/// <summary>Clear the active target from the banner (the "X"); drops both roster and typed selections.</summary>
+	private void Deselect()
+	{
+		_selectedSteamId = null;
+		_manualSteamId = null;
+		_showProfile = false;
+		_profileSteamId = null;
+		CancelArgs();
+	}
+
+	private void CloseProfile()
+	{
+		_showProfile = false;
+		_profileSteamId = null;
+		StateHasChanged();
+	}
+
+	private void ClearSearch()
+	{
+		_searchText = "";
+		StateHasChanged();
+	}
+
+	private void SelectTab( string tab )
+	{
+		_activeTab = tab;
+		CancelArgs();
+
+		// Leaving the profile via a tab just drops the preview — it never targets. Any already-confirmed
+		// target (_selectedSteamId) is untouched, so tabs never feel "stuck" behind the back arrow.
+		_showProfile = false;
+		_profileSteamId = null;
+
+		if ( tab == TabWaypoints )
+		{
+			StaffMenuHost.RefreshWaypoints();
+		}
+		else if ( tab == TabSettings )
+		{
+			_websiteDraft = StaffMenuHost.WebsiteUrl;
+			StaffMenuHost.RefreshSettings();
+		}
+
+		LifePunchUiScrollPolicy.Apply( Panel );
+	}
+
+	private List<StaffAction> GetVisibleTabActions() =>
+		StaffMenuActions.All
+			.Where( a => a.Category == _activeTab && StaffMenuHost.CanView( a.PermissionId ) )
+			.ToList();
+
+	private static bool IsEnabled( StaffAction action, StaffMenuPlayer selected, bool hasTarget )
+	{
+		if ( action.TargetMode != StaffActionTarget.OtherPlayer )
+		{
+			return true;
+		}
+
+		return hasTarget && selected.CanTarget;
+	}
+
+	private void OnActionClick( StaffAction action, StaffMenuPlayer selected, bool enabled )
+	{
+		if ( !enabled )
+		{
+			return;
+		}
+
+		if ( action.Args.Count > 0 )
+		{
+			BeginArgs( action );
+			return;
+		}
+
+		Dispatch( action, selected );
+	}
+
+	private void BeginArgs( StaffAction action )
+	{
+		_pendingAction = action;
+		_reason = "";
+		_duration = "";
+		_amount = "";
+		_name = "";
+		_job = "";
+		_jobFilter = "";
+		_jobDropdownOpen = false;
+		StateHasChanged();
+	}
+
+	private void CancelArgs()
+	{
+		_pendingAction = null;
+		_grantConfirm = false;
+		_jobDropdownOpen = false;
+		StateHasChanged();
+	}
+
+	private void SetDuration( string token, bool allowed )
+	{
+		if ( !allowed )
+		{
+			return;
+		}
+
+		_duration = token;
+		StateHasChanged();
+	}
+
+	private void SetJob( string token )
+	{
+		_job = token;
+		_jobDropdownOpen = false;
+		StateHasChanged();
+	}
+
+	private void ToggleJobDropdown()
+	{
+		_jobDropdownOpen = !_jobDropdownOpen;
+		StateHasChanged();
+	}
+
+	private IEnumerable<StaffJobOption> FilteredJobOptions()
+	{
+		var query = _jobFilter?.Trim() ?? "";
+		var jobs = StaffMenuHost.AssignableJobs();
+		if ( query.Length == 0 )
+		{
+			return jobs;
+		}
+
+		return jobs.Where( job =>
+			job.Label.Contains( query, StringComparison.OrdinalIgnoreCase )
+			|| job.Token.Contains( query, StringComparison.OrdinalIgnoreCase ) );
+	}
+
+	private void ConfirmArgs( StaffMenuPlayer selected )
+	{
+		if ( _pendingAction is not { } action )
+		{
+			return;
+		}
+
+		var args = new Dictionary<string, string>();
+		foreach ( var arg in action.Args )
+		{
+			var value = ValueFor( arg.Name );
+			if ( arg.Required && string.IsNullOrWhiteSpace( value ) )
+			{
+				return; // missing required input — keep the form open
+			}
+
+			args[arg.Name] = value;
+		}
+
+		// A currency grant arms first and fires on the second press, with the amount and the
+		// recipient restated in between.
+		if ( action.Dispatch == StaffDispatchKind.GiveMoney && !_grantConfirm )
+		{
+			_grantConfirm = true;
+			StateHasChanged();
+			return;
+		}
+
+		Dispatch( action, selected, args );
+		CancelArgs();
+	}
+
+	private string ValueFor( string argName ) => argName switch
+	{
+		"destination" => _destination,
+		"reason" => _reason,
+		"duration" => _duration,
+		"amount" => _amount,
+		"name" => _name,
+		"job" => _job,
+		_ => ""
+	};
+
+	private void Dispatch( StaffAction action, StaffMenuPlayer selected, IReadOnlyDictionary<string, string>? args = null )
+	{
+		args ??= new Dictionary<string, string>();
+
+		if ( action.TargetMode != StaffActionTarget.OtherPlayer )
+		{
+			StaffMenuHost.Dispatch( action, StaffMenuHost.LocalSteamId, args );
+			return;
+		}
+
+		if ( selected.SteamId == 0 || !selected.CanTarget )
+		{
+			return;
+		}
+
+		StaffMenuHost.Dispatch( action, selected.SteamId, args );
+	}
+
+	private void ClearAuditPlayer()
+	{
+		_auditPlayerId = "";
+		StateHasChanged();
+	}
+
+	private void ClearAuditEntity()
+	{
+		_auditEntity = "";
+		StateHasChanged();
+	}
+
+	/// <summary>Open the Audit viewer pre-filtered to one player (from their profile pane).</summary>
+	private void OpenAuditForPlayer( long steamId )
+	{
+		_auditPlayerId = steamId.ToString();
+		_auditEntity = "";
+		_activeTab = TabAudit;
+		_showProfile = false;
+		_profileSteamId = null;
+		StateHasChanged();
+	}
+
+	/// <summary>Teleport to a named waypoint from the saved list.</summary>
+	private void GoToWaypoint( string name )
+	{
+		StaffMenuHost.GoToWaypoint( name );
+		StateHasChanged();
+	}
+
+	/// <summary>Teleport to the waypoint typed into the bar (works even when the list isn't readable).</summary>
+	private void GoToTypedWaypoint()
+	{
+		if ( string.IsNullOrWhiteSpace( _waypointName ) )
+		{
+			return;
+		}
+
+		StaffMenuHost.GoToWaypoint( _waypointName );
+	}
+
+	/// <summary>Save a waypoint at the caller's current position under the typed name.</summary>
+	private void SetWaypointFromInput()
+	{
+		if ( string.IsNullOrWhiteSpace( _waypointName ) )
+		{
+			return;
+		}
+
+		StaffMenuHost.SetWaypoint( _waypointName );
+		_waypointName = "";
+		StateHasChanged();
+	}
+
+	private void ClearWaypoint( string name )
+	{
+		StaffMenuHost.ClearWaypoint( name );
+		StateHasChanged();
+	}
+
+	/// <summary>
+	/// Return the player whose SteamID64 was typed in, to where they were brought from. Routes through
+	/// the SAME re-validated host dispatch as the Ability-tab "Return" (the <c>return</c> action /
+	/// <c>/return</c>, gated by ability.teleport), so the Waypoints tab carries no extra authority and
+	/// the host re-checks permission + CanTarget regardless of what's typed here.
+	/// </summary>
+	private void ReturnTypedPlayer()
+	{
+		if ( !long.TryParse( _returnSteamId?.Trim(), out var steamId ) || steamId == 0 )
+		{
+			return;
+		}
+
+		var action = StaffMenuActions.All.FirstOrDefault( a => a.Key == "return" );
+		if ( action is null )
+		{
+			return;
+		}
+
+		StaffMenuHost.Dispatch( action, steamId, new Dictionary<string, string>() );
+		_returnSteamId = "";
+		StateHasChanged();
+	}
+
+	/// <summary>
+	/// Profile-pane quick teleport (Goto/Bring/Return) on the previewed player, routed through the
+	/// same re-validated <see cref="Dispatch"/> as the Ability tab (ability.teleport) — no extra
+	/// authority. The buttons are disabled in-UI for non-targetable/self; Dispatch re-checks anyway.
+	/// </summary>
+	private void QuickTeleport( string key, StaffMenuPlayer target )
+	{
+		if ( target.SteamId == 0 || !target.CanTarget )
+		{
+			return;
+		}
+
+		var action = StaffMenuActions.All.FirstOrDefault( a => a.Key == key );
+		if ( action is null )
+		{
+			return;
+		}
+
+		Dispatch( action, target );
+		StateHasChanged();
+	}
+
+	private void CloseMenu() => StaffMenuHost.RequestClose();
+
+	/// <summary>Collapse / expand the Online Players sidebar to a slim rail.</summary>
+	private void TogglePlayers()
+	{
+		_playersCollapsed = !_playersCollapsed;
+		StateHasChanged();
+	}
+
+	private void ToggleStaffSection()
+	{
+		_staffSectionCollapsed = !_staffSectionCollapsed;
+		StateHasChanged();
+	}
+
+	private void TogglePlayersSection()
+	{
+		_playersSectionCollapsed = !_playersSectionCollapsed;
+		StateHasChanged();
+	}
+
+	/// <summary>Open the Settings view (header cog) and seed the network editor field.</summary>
+	private void OpenSettings()
+	{
+		_websiteDraft = StaffMenuHost.WebsiteUrl;
+		SelectTab( TabSettings );
+	}
+
+	private string GetRootClass() =>
+		$"lifepunchulx ulx-v2 {LifePunchUiScale.CssClass( _uiScale )}";
+
+	private void SetUiScale( LifePunchUiScaleSize size )
+	{
+		_uiScale = size;
+		StaffMenuHost.SavedUiScale = size;
+		StateHasChanged();
+		LifePunchUiScrollPolicy.Apply( Panel, resetOffset: true );
+	}
+
+	/// <summary>Waypoint list filter — typing in the bar narrows visible rows (Go/Set still use the typed name).</summary>
+	private List<string> FilteredWaypoints( IReadOnlyList<string> waypoints )
+	{
+		var query = _waypointName?.Trim() ?? "";
+		if ( query.Length == 0 )
+		{
+			return waypoints.ToList();
+		}
+
+		return waypoints
+			.Where( w => w.Contains( query, StringComparison.OrdinalIgnoreCase ) )
+			.ToList();
+	}
+
+	/// <summary>Open the Player &amp; Staff Management view (sidebar footer entry) — placeholder for now.</summary>
+	private void OpenPlayerMgmt()
+	{
+		SelectTab( TabPlayerMgmt );
+	}
+
+	/// <summary>Save the typed network website URL (host re-checks the owner grant). Empty clears it.</summary>
+	private void SaveWebsiteFromInput()
+	{
+		StaffMenuHost.SaveWebsite( _websiteDraft );
+		_websiteSaved = true;
+		StateHasChanged();
+		_ = RevertSavedLabel();
+	}
+
+	private async System.Threading.Tasks.Task RevertSavedLabel()
+	{
+		await GameTask.DelayRealtimeSeconds( 1.8f );
+		_websiteSaved = false;
+		StateHasChanged();
+	}
+
+	/// <summary>Copy the owner-configured website link to the clipboard, with a brief "copied" confirmation.</summary>
+	private void CopyWebsite()
+	{
+		if ( !StaffMenuHost.HasWebsite )
+		{
+			return;
+		}
+
+		Clipboard.SetText( StaffMenuHost.WebsiteUrl );
+		_websiteCopied = true;
+		StateHasChanged();
+		_ = RevertWebsiteLabel();
+	}
+
+	private async System.Threading.Tasks.Task RevertWebsiteLabel()
+	{
+		await GameTask.DelayRealtimeSeconds( 1.8f );
+		_websiteCopied = false;
+		StateHasChanged();
+	}
+
+	/// <summary>Copy a player's SteamID64 from the profile pane to the OS clipboard.</summary>
+	private void CopySteamId( long steamId )
+	{
+		Clipboard.SetText( steamId.ToString() );
+		_steamIdCopied = true;
+		StateHasChanged();
+		_ = RevertSteamIdLabel();
+	}
+
+	private async System.Threading.Tasks.Task RevertSteamIdLabel()
+	{
+		await GameTask.DelayRealtimeSeconds( 1.8f );
+		_steamIdCopied = false;
+		StateHasChanged();
+	}
+
+	/// <summary>Copy the saved network website from the Settings "Current" line to the clipboard.</summary>
+	private void CopyCurrentWebsite()
+	{
+		if ( !StaffMenuHost.HasWebsite )
+		{
+			return;
+		}
+
+		Clipboard.SetText( StaffMenuHost.WebsiteUrl );
+		_currentCopied = true;
+		StateHasChanged();
+		_ = RevertCurrentLabel();
+	}
+
+	private async System.Threading.Tasks.Task RevertCurrentLabel()
+	{
+		await GameTask.DelayRealtimeSeconds( 1.8f );
+		_currentCopied = false;
+		StateHasChanged();
+	}
+
+	protected override int BuildHash()
+	{
+		// _detailHash is refreshed on the throttled cadence (RecomputeDetailHash), NOT recomputed here
+		// every frame — otherwise a live stat change would rebuild the whole menu continuously and the
+		// sidebar/cog hover would flicker.
+		return HashCode.Combine(
+			HashCode.Combine( _selectedSteamId, _profileSteamId, _showProfile, _searchText ),
+			HashCode.Combine( _players.Count, _playersCollapsed, _staffSectionCollapsed, _playersSectionCollapsed ),
+			_activeTab,
+			_pendingAction?.Key,
+			HashCode.Combine( _destination, _grantConfirm ),
+			HashCode.Combine( _reason, _duration, _amount, _name, _job, _jobFilter, _jobDropdownOpen ),
+			HashCode.Combine( _auditPlayerId, _auditEntity, _websiteDraft, _websiteCopied, _websiteSaved, _steamIdCopied, _currentCopied, StaffMenuHost.SettingsVersion ),
+			HashCode.Combine( _waypointName, StaffMenuHost.WaypointVersion, _returnSteamId, _wpPendingDelete, StaffMenuHost.SanctionsVersion ),
+			HashCode.Combine( _uiScale, _detailHash ) );
+	}
+}

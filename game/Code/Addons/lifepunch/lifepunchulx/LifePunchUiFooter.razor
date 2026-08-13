@@ -1,0 +1,62 @@
+@* ─────────────────────────────────────────────────────────────────────────────
+   PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+
+   "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* · addon ident: lifepunch) is the sole-owned
+   intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+   sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+   LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+   Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+   Presence in this repository or on the DXRP portal grants no rights to anyone else.
+   ───────────────────────────────────────────────────────────────────────────── *@
+@namespace LifePunch.DXRP.Addons
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+@attribute [StyleSheet]
+
+@* Three-zone footer: identity left, legal dead-center, source URL right. *@
+<root class="lp-source-footer">
+	<div class="lp-footer-identity">
+		<span class="lp-mark" style="@AccentStyle()">@LifePunchSourceMark.UiFooterMark</span>
+		<span class="lp-product">@Product</span>
+	</div>
+	<div class="lp-footer-legal">
+		<span class="lp-legal">proprietary IP</span>
+	</div>
+	<div class="lp-footer-link">
+		<button class="lp-url-copy @(_urlCopied ? "copied" : "")"
+		        tooltip="@($"Copy {LifePunchSourceMark.UiFooterUrl}")"
+		        onclick="@CopySourceUrl">
+			@( _urlCopied ? "Link copied!" : LifePunchSourceMark.PublisherUrl )
+		</button>
+	</div>
+</root>
+
+@code {
+	public string Product { get; set; } = string.Empty;
+	public string AccentColor { get; set; } = string.Empty;
+
+	private bool _urlCopied;
+
+    private void CopySourceUrl()
+    {
+        Clipboard.SetText( LifePunchSourceMark.UiFooterUrl );
+        _urlCopied = true;
+        StateHasChanged();
+        _ = RevertCopyLabel();
+    }
+
+    private async System.Threading.Tasks.Task RevertCopyLabel()
+    {
+        await GameTask.DelayRealtimeSeconds( 1.8f );
+        _urlCopied = false;
+        StateHasChanged();
+    }
+
+	private string AccentStyle()
+		=> string.IsNullOrWhiteSpace( AccentColor ) ? string.Empty : $"color: {AccentColor};";
+
+	protected override int BuildHash()
+		=> HashCode.Combine( Product, AccentColor, _urlCopied );
+}
