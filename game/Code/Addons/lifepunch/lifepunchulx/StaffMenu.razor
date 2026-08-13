@@ -1749,14 +1749,15 @@
 		// every frame — otherwise a live stat change would rebuild the whole menu continuously and the
 		// sidebar/cog hover would flicker.
 		return HashCode.Combine(
-			HashCode.Combine( _selectedSteamId, _profileSteamId, _showProfile, _searchText ),
-			HashCode.Combine( _players.Count, _playersCollapsed, _staffSectionCollapsed, _playersSectionCollapsed ),
-			_activeTab,
-			_pendingAction?.Key,
-			HashCode.Combine( _destination, _grantConfirm ),
-			HashCode.Combine( _reason, _duration, _amount, _name, _job, _jobFilter, _jobDropdownOpen ),
-			HashCode.Combine( _auditPlayerId, _auditEntity, _websiteDraft, _websiteCopied, _websiteSaved, _steamIdCopied, _currentCopied, StaffMenuHost.SettingsVersion ),
-			HashCode.Combine( _waypointName, StaffMenuHost.WaypointVersion, _returnSteamId, _wpPendingDelete, StaffMenuHost.SanctionsVersion ),
+			HashCode.Combine(
+				HashCode.Combine( _selectedSteamId, _profileSteamId, _showProfile, _searchText ),
+				HashCode.Combine( _players.Count, _playersCollapsed, _staffSectionCollapsed, _playersSectionCollapsed ),
+				_activeTab,
+				_pendingAction?.Key,
+				HashCode.Combine( _destination, _grantConfirm ),
+				HashCode.Combine( _reason, _duration, _amount, _name, _job, _jobFilter, _jobDropdownOpen ),
+				HashCode.Combine( _auditPlayerId, _auditEntity, _websiteDraft, _websiteCopied, _websiteSaved, _steamIdCopied, _currentCopied, StaffMenuHost.SettingsVersion ),
+				HashCode.Combine( _waypointName, StaffMenuHost.WaypointVersion, _returnSteamId, _wpPendingDelete, StaffMenuHost.SanctionsVersion ) ),
 			HashCode.Combine( _uiScale, _detailHash ) );
 	}
 }
