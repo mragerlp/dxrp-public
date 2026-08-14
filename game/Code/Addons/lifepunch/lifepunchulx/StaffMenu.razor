@@ -72,32 +72,66 @@
 		@if ( _activeTab == TabAudit )
 		{
 			<div class="audit">
-				<div class="audit-head">
-					<i class="material-icons">history</i>
-					<span>Audit Log</span>
-				</div>
-
-				<div class="audit-filters">
-					<div class="audit-filter">
-						<i class="material-icons">person_search</i>
-						<TextEntry class="audit-input" Placeholder="Player ID or name" Value:bind="@_auditPlayerId"/>
-						@if ( !string.IsNullOrEmpty( _auditPlayerId ) )
-						{
-							<button class="icon-btn" tooltip="Clear" onclick="@ClearAuditPlayer"><i class="material-icons">close</i></button>
-						}
+				<div class="audit-toolbar">
+					<div class="audit-filters">
+						<div class="audit-filter">
+							<TextEntry class="audit-input" Placeholder="Player ID" Value:bind="@_auditPlayerId"/>
+							@if ( !string.IsNullOrEmpty( _auditPlayerId ) )
+							{
+								<button class="icon-btn" tooltip="Clear" onclick="@ClearAuditPlayer"><i class="material-icons">close</i></button>
+							}
+						</div>
+						<div class="audit-filter audit-filter-action">
+							<button type="button" class="audit-action-btn" onclick="@ToggleAuditActions">
+								@if ( !string.IsNullOrEmpty( _auditAction ) )
+								{
+									<span class="@ActionPillClass( _auditAction )">@_auditAction</span>
+								}
+								else
+								{
+									<span class="audit-action-placeholder">Actions</span>
+								}
+								<i class="material-icons job-chevron">@(_auditActionOpen ? "expand_less" : "expand_more")</i>
+							</button>
+							@if ( !string.IsNullOrEmpty( _auditAction ) )
+							{
+								<button class="icon-btn" tooltip="Clear action" onclick="@ClearAuditAction"><i class="material-icons">close</i></button>
+							}
+							@if ( _auditActionOpen )
+							{
+								<div class="audit-action-pop">
+									<TextEntry class="audit-input audit-action-search" Placeholder="Search..." Value:bind="@_auditActionSearch"/>
+									<div class="lp-ui-scroll-region audit-action-cloud">
+										@foreach ( var name in FilteredAuditActions() )
+										{
+											<button type="button" class="@ActionPillClass( name )" onclick="@(() => SetAuditAction( name ))">@name</button>
+										}
+									</div>
+								</div>
+							}
+						</div>
+						<div class="audit-filter">
+							<TextEntry class="audit-input" Placeholder="Entity ID" Value:bind="@_auditEntity"/>
+							@if ( !string.IsNullOrEmpty( _auditEntity ) )
+							{
+								<button class="icon-btn" tooltip="Clear" onclick="@ClearAuditEntity"><i class="material-icons">close</i></button>
+							}
+						</div>
+						<button type="button" class="audit-search-btn" tooltip="Apply filters" onclick="@RefreshAudit">
+							<i class="material-icons">search</i>
+						</button>
 					</div>
-					<div class="audit-filter">
-						<i class="material-icons">category</i>
-						<TextEntry class="audit-input" Placeholder="Entity ID" Value:bind="@_auditEntity"/>
-						@if ( !string.IsNullOrEmpty( _auditEntity ) )
-						{
-							<button class="icon-btn" tooltip="Clear" onclick="@ClearAuditEntity"><i class="material-icons">close</i></button>
-						}
-					</div>
+					<button type="button" class="icon-btn audit-refresh-btn" tooltip="Refresh" onclick="@RefreshAudit">
+						<i class="material-icons">refresh</i>
+					</button>
 				</div>
 
 				@{
-					var entries = StaffMenuHost.GetAuditEntries( _auditPlayerId, _auditEntity );
+					var entries = StaffMenuHost.GetAuditEntries( _auditPlayerId, _auditEntity, false, _auditAction );
+					// The ring holds up to 500 rows; rendering them all builds ~2500 panels per
+					// rebuild and drags the whole menu. Newest-first cap — the portal pages at 10,
+					// so 200 is already deep history; filters reach anything older.
+					var auditShown = System.Math.Min( entries.Count, AuditDisplayCap );
 				}
 
 				<div class="audit-table">
@@ -110,12 +144,19 @@
 					</div>
 
 					<div class="lp-ui-scroll-region audit-scroll">
-						@foreach ( var entry in entries )
+						@foreach ( var entry in entries.Take( auditShown ) )
 						{
 							<div class="audit-row">
 								<span class="c-when">@entry.When</span>
-								<span class="c-action"><span class="action-pill">@entry.Action</span></span>
-								<span class="c-player @( entry.PlayerSteamId == 0 ? "audit-player-system" : "" )">@entry.Player</span>
+								<span class="c-action"><span class="@ActionPillClass( entry.Action )">@entry.Action</span></span>
+								@if ( entry.PlayerSteamId == 0 )
+								{
+									<span class="c-player audit-player-system">system</span>
+								}
+								else
+								{
+									<button type="button" class="c-player audit-player-link" onclick="@(() => FilterAuditToPlayer( entry.PlayerSteamId ))">@entry.PlayerSteamId</button>
+								}
 								<span class="c-entity">@entry.Entity</span>
 								<span class="c-desc">@entry.Description</span>
 							</div>
@@ -124,6 +165,10 @@
 						@if ( entries.Count == 0 )
 						{
 							<div class="audit-empty">No audit entries match these filters.</div>
+						}
+						else if ( entries.Count > auditShown )
+						{
+							<div class="audit-overflow">@( $"Showing the newest {auditShown} of {entries.Count} entries — refine the filters to reach older rows." )</div>
 						}
 					</div>
 				</div>
@@ -162,7 +207,6 @@
 				}
 
 				<div class="lp-ui-scroll-region wp-list">
-					<div class="wp-list-tail"></div>
 					@foreach ( var name in filteredWaypoints )
 					{
 						<div class="wp-row">
@@ -202,8 +246,7 @@
 					{
 						<div class="wp-empty">
 							No waypoint matches @(_waypointName?.Trim()).
-							<div class="wp-list-tail"></div>
-				</div>
+						</div>
 					}
 					<div class="wp-list-tail"></div>
 				</div>
@@ -658,7 +701,7 @@
 										{
 											<div class="event-row">
 												<span class="event-when">@entry.When</span>
-												<span class="event-act">@entry.Action</span>
+												<span class="event-act"><span class="@ActionPillClass( entry.Action )">@entry.Action</span></span>
 									<span class="event-what">@entry.Description</span>
 											</div>
 										}
@@ -832,9 +875,10 @@
 										</button>
 										@if ( _jobDropdownOpen )
 										{
+											var jobOptions = FilteredJobOptions().ToList();
 											<div class="lp-ui-scroll-region job-dropdown-list">
 												<TextEntry class="arg-input job-filter" Placeholder="Filter jobs" Value:bind="@_jobFilter"/>
-												@foreach ( var job in FilteredJobOptions() )
+												@foreach ( var job in jobOptions )
 												{
 													<button type="button" class="job-option @( _job == job.Token ? "job-option-active" : "" )"
 													        onclick="@(() => SetJob( job.Token ))">
@@ -845,7 +889,7 @@
 												@* Scroll slack so the last job row clears the list's bottom border (same
 												   tail pattern as .player-scroll-tail). Only when the list is long enough
 												   to overflow — on short filtered lists it reads as trailing dead space. *@
-												@if ( FilteredJobOptions().Count() >= 8 )
+												@if ( jobOptions.Count >= 8 )
 												{
 													<div class="job-list-tail"></div>
 												}
@@ -888,8 +932,9 @@
 				   closes (Confirm or X) instead of letting buttons spill past the border. *@
 				@if ( _pendingAction is null )
 				{
+				var visibleActions = GetVisibleTabActions();
 				<div class="action-grid">
-					@foreach ( var action in GetVisibleTabActions() )
+					@foreach ( var action in visibleActions )
 					{
 						var enabled = IsEnabled( action, selected, hasTarget );
 						var description = string.IsNullOrWhiteSpace( action.Tooltip ) ? action.Label : action.Tooltip;
@@ -911,9 +956,9 @@
 						</button>
 					}
 
-					@* Invisible spacers complete the final three-card row so real cards retain their
+					@* Invisible spacers complete the final four-card row so real cards retain their
 					   uniform flex width instead of growing into unused space. *@
-					@for ( var i = 0; i < (4 - GetVisibleTabActions().Count % 4) % 4; i++ )
+					@for ( var i = 0; i < (4 - visibleActions.Count % 4) % 4; i++ )
 					{
 						<div class="action-spacer"></div>
 					}
@@ -921,7 +966,7 @@
 
 				<div class="action-scroll-tail"></div>
 
-				@if ( GetVisibleTabActions().Count == 0 )
+				@if ( visibleActions.Count == 0 )
 				{
 					<div class="empty">No @_activeTab.ToLower() actions available to your rank.</div>
 				}
@@ -969,6 +1014,18 @@
 	private int _detailHash;
 	private const float RefreshInterval = 0.2f;
 
+	// The roster resamples on its own, slower cadence: OnlinePlayers() runs ~26 permission checks
+	// per player (IsStaff walks the catalog), so at 0.2s a 30-player server paid ~3900 rank
+	// lookups a second for a list whose membership changes on the scale of minutes. 1s is still
+	// immediate to a human; live stats (health, money) keep the fast cadence below.
+	private RealTimeSince _sinceRosterRefresh;
+	private const float RosterRefreshInterval = 1.0f;
+
+	// Identity hash over the sampled roster (id, name, targetability, group, role). BuildHash
+	// previously folded only _players.Count, so a same-size change — one player joins while
+	// another leaves, a rename, a rank move — never re-rendered the sidebar.
+	private int _rosterHash;
+
 	// Non-category tab ids. The tab strip is Moderation / Commands / Ability (action catalog
 	// categories) plus these two full-window views, all driven by a single _activeTab.
 	private const string TabWaypoints = "Waypoints";
@@ -1000,10 +1057,14 @@
 		_ => "folder"
 	};
 
-	// Audit viewer state: a full-window tab mirroring the portal Audit page — its two live filters
-	// (player id/name, entity id) are applied host-side.
+	// Audit viewer state: a full-window tab mirroring the portal Audit page — Player ID,
+	// Actions dropdown, Entity ID. Applied host-side.
+	private const int AuditDisplayCap = 200;
 	private string _auditPlayerId = "";
 	private string _auditEntity = "";
+	private string _auditAction = "";
+	private string _auditActionSearch = "";
+	private bool _auditActionOpen;
 
 	// Waypoints tab state: a full-window view over DXRP's /waypoint command. The list is live in the
 	// editor stub; on the server it's name-driven until a client-readable list lands.
@@ -1090,19 +1151,32 @@
 
 		// Throttle: re-sampling every frame churned BuildHash and rebuilt the whole menu (sidebar/cog
 		// hover would flicker). A few refreshes a second is plenty for a staff roster + live stats.
+		if ( _sinceRosterRefresh >= RosterRefreshInterval )
+		{
+			_sinceRosterRefresh = 0;
+			RefreshRoster();
+		}
+
 		if ( _sinceRefresh < RefreshInterval )
 		{
 			return;
 		}
 
 		_sinceRefresh = 0;
-		RefreshRoster();
 		RecomputeDetailHash();
 	}
 
 	private void RefreshRoster()
 	{
 		_players = StaffMenuHost.OnlinePlayers();
+
+		var rosterHash = 0;
+		foreach ( var p in _players )
+		{
+			rosterHash = HashCode.Combine( rosterHash, p.SteamId, p.Name, p.CanTarget, p.GroupName, p.Role );
+		}
+
+		_rosterHash = rosterHash;
 
 		// Drop a selection whose player left — unless it was a manually typed Steam ID (off-roster target).
 		if ( _selectedSteamId.HasValue
@@ -1132,6 +1206,17 @@
 		// Toggle state is live DXRP state, so it is sampled on the same throttled cadence as the
 		// other volatile values -- sampling it in BuildHash would re-read it every frame.
 		_detailHash = HashCode.Combine( _detailHash, SelfToggleHash() );
+
+		// A new audit row must appear while the Audit tab (or Recent actions) is on screen —
+		// nothing else in the hash changes when the ring grows. Cheap static int read.
+		_detailHash = HashCode.Combine( _detailHash, StaffMenuHost.AuditVersion );
+
+		// Relative "When" labels ("2 minutes ago") go stale while the tab sits open; a minute
+		// bucket re-renders them on the minute, and only for the views that show timestamps.
+		if ( _activeTab == TabAudit || _showProfile )
+		{
+			_detailHash = HashCode.Combine( _detailHash, DateTime.UtcNow.Ticks / TimeSpan.TicksPerMinute );
+		}
 	}
 
 	// Catalog actions grouped by the ROLE their colour communicates. Keys match StaffMenuActions.
@@ -1354,6 +1439,9 @@
 		_showProfile = false;
 		_profileSteamId = null;
 
+		// The actions popover must not still be hanging open when the operator returns to Audit.
+		_auditActionOpen = false;
+
 		if ( tab == TabWaypoints )
 		{
 			StaffMenuHost.RefreshWaypoints();
@@ -1530,11 +1618,67 @@
 		StateHasChanged();
 	}
 
+	private static string ActionPillClass( string action )
+		=> StaffMenuHost.AuditActionTone( action );
+
+	private IEnumerable<string> FilteredAuditActions()
+	{
+		var query = _auditActionSearch?.Trim() ?? "";
+		var all = StaffMenuHost.AuditActionCatalog();
+		if ( query.Length == 0 )
+		{
+			return all;
+		}
+
+		return all.Where( name => name.Contains( query, StringComparison.OrdinalIgnoreCase ) );
+	}
+
+	private void ToggleAuditActions()
+	{
+		_auditActionOpen = !_auditActionOpen;
+		StateHasChanged();
+	}
+
+	private void SetAuditAction( string action )
+	{
+		_auditAction = action ?? "";
+		_auditActionOpen = false;
+		StateHasChanged();
+	}
+
+	private void ClearAuditAction()
+	{
+		_auditAction = "";
+		_auditActionSearch = "";
+		_auditActionOpen = false;
+		StateHasChanged();
+	}
+
+	private void RefreshAudit()
+	{
+		_auditActionOpen = false;
+		StateHasChanged();
+	}
+
+	private void FilterAuditToPlayer( long steamId )
+	{
+		if ( steamId == 0 )
+		{
+			return;
+		}
+
+		_auditPlayerId = steamId.ToString();
+		StateHasChanged();
+	}
+
 	/// <summary>Open the Audit viewer pre-filtered to one player (from their profile pane).</summary>
 	private void OpenAuditForPlayer( long steamId )
 	{
 		_auditPlayerId = steamId.ToString();
 		_auditEntity = "";
+		_auditAction = "";
+		_auditActionSearch = "";
+		_auditActionOpen = false;
 		_activeTab = TabAudit;
 		_showProfile = false;
 		_profileSteamId = null;
@@ -1765,12 +1909,14 @@
 		return HashCode.Combine(
 			HashCode.Combine(
 				HashCode.Combine( _selectedSteamId, _profileSteamId, _showProfile, _searchText ),
-				HashCode.Combine( _players.Count, _playersCollapsed, _staffSectionCollapsed, _playersSectionCollapsed ),
+				HashCode.Combine( _rosterHash, _playersCollapsed, _staffSectionCollapsed, _playersSectionCollapsed ),
 				_activeTab,
 				_pendingAction?.Key,
 				HashCode.Combine( _destination, _grantConfirm ),
 				HashCode.Combine( _reason, _duration, _amount, _name, _job, _jobFilter, _jobDropdownOpen ),
-				HashCode.Combine( _auditPlayerId, _auditEntity, _websiteDraft, _websiteCopied, _websiteSaved, _steamIdCopied, _currentCopied, StaffMenuHost.SettingsVersion ),
+				HashCode.Combine(
+					HashCode.Combine( _auditPlayerId, _auditEntity, _auditAction, _auditActionSearch, _auditActionOpen ),
+					HashCode.Combine( _websiteDraft, _websiteCopied, _websiteSaved, _steamIdCopied, _currentCopied, StaffMenuHost.SettingsVersion ) ),
 				HashCode.Combine( _waypointName, StaffMenuHost.WaypointVersion, _returnSteamId, _wpPendingDelete, StaffMenuHost.SanctionsVersion ) ),
 			HashCode.Combine( _uiScale, _detailHash ) );
 	}
