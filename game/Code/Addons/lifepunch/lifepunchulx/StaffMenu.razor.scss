@@ -42,6 +42,20 @@ $amber: #d99a3f;
 // ramp itself can never drift. These two deliberately keep full HUD saturation: item 11b
 // ("do not approximate, do not invent") outranks the desaturation pass for vitals only.
 $armor-hud: #08b2e3;
+// Portal Audit action-pill tones (dxrp.net/portal/audit). Data color, not chrome.
+// Names are words — s&box SCSS treats `$tone-0` as subtraction.
+$tone-teal: #0f766e;
+$tone-maroon: #9f1239;
+$tone-purple: #6d28d9;
+$tone-green: #3f6212;
+$tone-orange: #c2410c;
+$tone-blue: #1d4ed8;
+$tone-rose: #be123c;
+$tone-olive: #4d7c0f;
+$tone-indigo: #4338ca;
+$tone-rust: #9a3412;
+$tone-slate: #334155;
+$tone-gold: #a16207;
 
 @import "LifePunchUiFooter.razor.scss";
 
@@ -123,9 +137,11 @@ $armor-hud: #08b2e3;
 	.profile-tp,
 	.field,
 	.v-copy,
-	.audit-head,
+	.audit-toolbar,
 	.audit-filters,
 	.audit-filter,
+	.audit-action-btn,
+	.audit-action-cloud,
 	.audit-row,
 	.settings-head,
 	.panel-size-row,
@@ -154,10 +170,10 @@ $armor-hud: #08b2e3;
 	.job-dropdown-list,
 	.profile,
 	.profile-card,
-	.profile-fields,
 	.audit,
 	.audit-table,
 	.audit-scroll,
+	.audit-action-pop,
 	.settings,
 	.settings-group,
 	.waypoints,
@@ -421,7 +437,6 @@ $armor-hud: #08b2e3;
 	.player-scroll,
 	.profile,
 	.profile-card,
-	.profile-fields,
 	.audit,
 	.audit-table,
 	.audit-scroll,
@@ -516,7 +531,6 @@ $armor-hud: #08b2e3;
 	.audit-filter > .material-icons,
 	.settings-bar > .material-icons,
 	.wp-bar > .material-icons {
-		color: rgba($blue, 0.72);
 		flex-shrink: 0;
 		font-size: 17px;
 		color: $muted;
@@ -1218,10 +1232,6 @@ $armor-hud: #08b2e3;
 		background-color: $blue;
 	}
 
-	.action-spacer {
-		height: 0;
-	}
-
 	.empty {
 		padding: 16px;
 		font-size: 13px;
@@ -1236,7 +1246,6 @@ $armor-hud: #08b2e3;
 
 	.profile-head,
 	.settings-head,
-	.audit-head,
 	.wp-head {
 		align-items: center;
 		gap: 9px;
@@ -1249,7 +1258,6 @@ $armor-hud: #08b2e3;
 
 	.profile-head .material-icons,
 	.settings-head .material-icons,
-	.audit-head .material-icons,
 	.wp-head .material-icons {
 		font-size: 20px;
 		color: $blue;
@@ -1320,12 +1328,6 @@ $armor-hud: #08b2e3;
 		color: $text;
 	}
 
-	.profile-role {
-		font-size: 12px;
-		text-align: left;
-		color: $muted;
-	}
-
 	// The grouping panel: one step lighter than the card it sits in, so the stat
 	// block reads as a unit without a single border line.
 	// Nothing in this console is lighter than its parent: the card sits above the shell,
@@ -1342,30 +1344,6 @@ $armor-hud: #08b2e3;
 		width: 100%;
 		gap: 8px;
 		overflow-y: scroll;
-	}
-
-	.profile-fields {
-		flex-direction: column;
-		flex-shrink: 0;
-		width: 100%;
-		gap: 1px;
-		padding: 6px 4px;
-		border: 1px solid $border;
-		border-radius: 8px;
-		background-color: $canvas;
-	}
-
-	// Short numerics pair two-per-row, halving the block's height.
-	.field-pair {
-		flex-direction: row;
-		flex-shrink: 0;
-		gap: 6px;
-		width: 100%;
-	}
-
-	.field-half {
-		flex: 1 1 0;
-		min-width: 0;
 	}
 
 	// 16a -- three escalation cards in one row, destructive at rest because every one of them
@@ -1540,7 +1518,7 @@ $armor-hud: #08b2e3;
 
 	.event-when {
 		flex-shrink: 0;
-		width: 72px;
+		width: 110px;
 		color: $muted;
 		font-size: 11px;
 	}
@@ -1597,10 +1575,6 @@ $armor-hud: #08b2e3;
 
 	.sanction-kick {
 		color: $blue-highlight;
-	}
-
-	.sanction-note {
-		color: $muted;
 	}
 
 	.sanction-reason {
@@ -1662,29 +1636,12 @@ $armor-hud: #08b2e3;
 
 	// Value tones. The class states what the number MEANS, so the same field can change
 	// colour as its value moves -- and zero is never dressed as an error.
-	.v-tone-good {
-		color: $success;
-	}
-
-	.v-tone-warn {
-		color: $amber;
-	}
-
-	.v-tone-crit {
-		color: $danger;
-	}
-
 	.v-tone-zero {
 		color: $muted;
 	}
 
 	.v-armor {
 		color: $armor-hud;
-	}
-
-	// Zero armour drops to the secondary level -- no third gray.
-	.v-armor-none {
-		color: $muted;
 	}
 
 	.v-cash {
@@ -1713,7 +1670,6 @@ $armor-hud: #08b2e3;
 		background-color: rgba($blue, 0.08);
 	}
 
-	.audit,
 	.settings,
 	// The list and the Return card sit SIDE BY SIDE. Stacked, the list rows spanned the whole
 	// workspace so a short waypoint name sat a long way from its own Go button, and the space
@@ -1735,17 +1691,102 @@ $armor-hud: #08b2e3;
 	}
 
 	.audit {
-		overflow-y: scroll;
+		flex-direction: column;
+		flex: 1 1 auto;
+		gap: 10px;
+		padding: 12px 16px;
+		overflow: hidden;
+	}
+
+	.audit-toolbar {
+		align-items: center;
+		gap: 8px;
+		flex-shrink: 0;
 	}
 
 	.audit-filters {
-		gap: 10px;
+		flex: 1 1 auto;
+		gap: 8px;
 		flex-shrink: 0;
+		min-width: 0;
 	}
 
 	.audit-filter {
 		flex: 1 1 0;
+		min-width: 0;
+		height: 36px;
 		padding: 0 8px;
+	}
+
+	.audit-filter-action {
+		flex: 0 0 188px;
+		position: relative;
+	}
+
+	.audit-action-btn {
+		align-items: center;
+		flex: 1 1 auto;
+		min-width: 0;
+		height: 34px;
+		padding: 0 4px;
+		border: 0;
+		background-color: transparent;
+		color: $text;
+		font-size: 13px;
+		cursor: pointer;
+	}
+
+	.audit-action-placeholder {
+		color: $muted;
+	}
+
+	.audit-action-pop {
+		position: absolute;
+		top: 40px;
+		left: 0;
+		width: 420px;
+		max-height: 280px;
+		padding: 8px;
+		border: 1px solid $border;
+		border-radius: 8px;
+		background-color: $surface-raised;
+		overflow: hidden;
+		z-index: 20;
+		pointer-events: all;
+	}
+
+	.audit-action-search {
+		flex-shrink: 0;
+		margin-bottom: 6px;
+	}
+
+	.audit-action-cloud {
+		flex-wrap: wrap;
+		align-content: flex-start;
+		gap: 6px;
+		flex: 1 1 auto;
+		min-height: 0;
+		overflow-y: scroll;
+	}
+
+	.audit-search-btn,
+	.audit-refresh-btn {
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		width: 36px;
+		height: 36px;
+		border: 1px solid $border;
+		border-radius: 8px;
+		background-color: $surface;
+		color: $muted;
+		cursor: pointer;
+	}
+
+	.audit-search-btn:hover,
+	.audit-refresh-btn:hover {
+		color: $blue-highlight;
+		border-color: rgba($blue, 0.48);
 	}
 
 	.audit-filter .icon-btn {
@@ -1770,7 +1811,7 @@ $armor-hud: #08b2e3;
 		align-items: center;
 		gap: 9px;
 		flex-shrink: 0;
-		padding: 9px 11px;
+		padding: 8px 11px;
 		border-bottom: 1px solid $border;
 		font-size: 12px;
 		color: $text;
@@ -1787,27 +1828,69 @@ $armor-hud: #08b2e3;
 		color: $muted;
 	}
 
-	.c-when { flex: 0 0 76px; color: $muted; }
-	.c-action { flex: 0 0 104px; }
-	.c-player { flex: 1 1 0; min-width: 0; }
+	.c-when { flex: 0 0 118px; color: $muted; }
+	.c-action { flex: 0 0 132px; }
+	.c-player { flex: 0 0 168px; min-width: 0; }
 	.audit-player-system { color: $muted; }
-	.c-entity { flex: 0 0 92px; color: $muted; }
-	.c-desc { flex: 2 1 0; min-width: 0; }
-
-	.action-pill {
-		padding: 3px 7px;
-		border: 1px solid rgba($blue, 0.34);
-		border-radius: 5px;
-		background-color: rgba($blue, 0.09);
+	.audit-player-link {
+		padding: 0;
+		border: 0;
+		background-color: transparent;
 		color: $blue-highlight;
+		font-size: 12px;
+		text-align: left;
+		cursor: pointer;
+	}
+	.audit-player-link:hover { color: $blue; }
+	.c-entity { flex: 0 0 72px; color: $muted; }
+	.c-desc { flex: 1 1 0; min-width: 0; }
+
+	.action-pill-teal,
+	.action-pill-maroon,
+	.action-pill-purple,
+	.action-pill-green,
+	.action-pill-orange,
+	.action-pill-blue,
+	.action-pill-rose,
+	.action-pill-olive,
+	.action-pill-indigo,
+	.action-pill-rust,
+	.action-pill-slate,
+	.action-pill-gold {
+		padding: 2px 7px;
+		border: 0;
+		border-radius: 4px;
+		color: $text;
 		font-size: 11px;
+		cursor: pointer;
 	}
 
+	.action-pill-teal { background-color: $tone-teal; }
+	.action-pill-maroon { background-color: $tone-maroon; }
+	.action-pill-purple { background-color: $tone-purple; }
+	.action-pill-green { background-color: $tone-green; }
+	.action-pill-orange { background-color: $tone-orange; }
+	.action-pill-blue { background-color: $tone-blue; }
+	.action-pill-rose { background-color: $tone-rose; }
+	.action-pill-olive { background-color: $tone-olive; }
+	.action-pill-indigo { background-color: $tone-indigo; }
+	.action-pill-rust { background-color: $tone-rust; }
+	.action-pill-slate { background-color: $tone-slate; }
+	.action-pill-gold { background-color: $tone-gold; }
+
 	.audit-empty,
+	.audit-overflow,
 	.wp-empty {
 		padding: 16px;
 		font-size: 13px;
 		color: $muted;
+	}
+
+	// Cap notice, not an error: quieter than a row so the table stays the subject.
+	.audit-overflow {
+		flex-shrink: 0;
+		padding: 10px 11px;
+		font-size: 11px;
 	}
 
 	.settings-group {
@@ -2170,7 +2253,7 @@ $armor-hud: #08b2e3;
 		color: $muted;
 	}
 
-	// S/M/L/XL classes are emitted by LifePunchUiScale; every size retains three columns.
+	// S/M/L/XL classes are emitted by LifePunchUiScale; the action grid keeps four columns at every size.
 	&.lp-ui-size-s .window { width: 1040px; height: 640px; }
 	&.lp-ui-size-m .window { width: 1100px; height: 670px; }
 	&.lp-ui-size-l .window { width: 1140px; height: 690px; }
