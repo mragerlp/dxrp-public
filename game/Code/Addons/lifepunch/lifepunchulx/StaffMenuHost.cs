@@ -657,24 +657,117 @@ internal static class StaffMenuHost
 	public static bool CanViewAudit() => CanView( AuditPermissionId );
 
 	/// <summary>
-	/// Audit entries for the viewer, newest first, pre-filtered by the portal's two live filters:
-	/// free-text <paramref name="playerId"/> (matches SteamID64 or actor name; <c>system</c> for
-	/// server/automated entries) and free-text <paramref name="entityId"/>. The live portal Audit page
-	/// has exactly these two filters — there is no Action dropdown — so the menu mirrors it 1:1.
+	/// Bumped by <c>LocalAuditStore.Record</c>. Folded into the razor's throttled detail hash so a
+	/// row landing while the Audit tab (or a profile's Recent actions) is open renders without any
+	/// other state change. Constant in the editor build (stub rows never change).
+	/// </summary>
+	public static int AuditVersion
+	{
+#if LIFEPUNCH_LOCAL
+		get => 0;
+#else
+		get => LocalAuditStore.Version;
+#endif
+	}
+
+	// Portal Audit action catalog (dxrp.net/portal/audit Actions dropdown) plus staff writers
+	// that already land in the local ring. Unioned with live row actions so a new name appears.
+	private static readonly string[] PortalAuditActions =
+	{
+		"AddLaw", "Advert", "Arrest", "ATM", "Ban", "BulkGiveItems", "BulkRevokeItems",
+		"CancelDemote", "Chat", "CoinFlip", "Create", "CustomJob", "Death", "Delete",
+		"Demote", "DispatchAction", "DropItem", "Expire", "ForceSellDoor", "ForceRpName",
+		"Frame", "Freeze", "Gag", "GenerateToken", "GiveItem", "Hit", "Job", "JobForce",
+		"Kick", "Kill", "MayorAnnounce", "MayorTown", "Me", "Minigame", "ModifyBalance",
+		"MoneySpawn", "MysteryBoxWin", "PickupItem", "PocketDrop", "PocketPickup",
+		"PoliticalPrisoner", "PrivateMessage", "Recycler", "RemoveLaw", "RpName",
+		"Sanction", "SetHealth", "Spectate", "Teleport", "Unarrest", "Update",
+		"WalletCharge", "WalletDeposit", "Warn", "Waypoint"
+	};
+
+	/// <summary>
+	/// CSS tone suffix for an action pill. Pins match the live portal pixels Bloodwave
+	/// attached (ModifyBalance teal, WalletDeposit maroon, Chat purple). Everything else
+	/// is a stable hash into the same 12-tone set.
+	/// </summary>
+	private static readonly string[] AuditActionTones =
+	{
+		"action-pill-teal", "action-pill-maroon", "action-pill-purple", "action-pill-green",
+		"action-pill-orange", "action-pill-blue", "action-pill-rose", "action-pill-olive",
+		"action-pill-indigo", "action-pill-rust", "action-pill-slate", "action-pill-gold"
+	};
+
+	public static string AuditActionTone( string action )
+	{
+		if ( string.IsNullOrEmpty( action ) )
+		{
+			return "action-pill-teal";
+		}
+
+		if ( action.Equals( "ModifyBalance", System.StringComparison.OrdinalIgnoreCase ) ) return "action-pill-teal";
+		if ( action.Equals( "WalletDeposit", System.StringComparison.OrdinalIgnoreCase ) ) return "action-pill-maroon";
+		if ( action.Equals( "Chat", System.StringComparison.OrdinalIgnoreCase ) ) return "action-pill-purple";
+		if ( action.Equals( "SetHealth", System.StringComparison.OrdinalIgnoreCase ) ) return "action-pill-blue";
+
+		var hash = 0;
+		foreach ( var ch in action )
+		{
+			hash = unchecked( ch + ( hash << 5 ) - hash );
+		}
+
+		return AuditActionTones[System.Math.Abs( hash ) % AuditActionTones.Length];
+	}
+
+	/// <summary>Portal-style player cell: SteamID64, or <c>system</c> when the actor is the server.</summary>
+	public static string AuditPlayerLabel( StaffAuditEntry entry )
+		=> entry.PlayerSteamId == 0L ? "system" : entry.PlayerSteamId.ToString();
+
+	/// <summary>
+	/// Action names for the Audit Actions dropdown: portal catalog union live rows, sorted.
+	/// </summary>
+	public static IReadOnlyList<string> AuditActionCatalog()
+	{
+		var set = new SortedSet<string>( PortalAuditActions, System.StringComparer.Ordinal );
+#if LIFEPUNCH_LOCAL
+		foreach ( var row in AuditStub() )
+		{
+			if ( !string.IsNullOrWhiteSpace( row.Action ) )
+			{
+				set.Add( row.Action );
+			}
+		}
+#else
+		foreach ( var row in LocalAuditStore.SnapshotNewestFirst() )
+		{
+			if ( !string.IsNullOrWhiteSpace( row.Action ) )
+			{
+				set.Add( row.Action );
+			}
+		}
+#endif
+		return set.ToList();
+	}
+
+	/// <summary>
+	/// Audit entries for the viewer, newest first, pre-filtered like the live portal Audit page:
+	/// Player ID, Actions dropdown, Entity ID. <paramref name="playerId"/> matches SteamID64 or
+	/// actor name (<c>system</c> for server/automated entries). <paramref name="action"/> is an
+	/// exact action-name match when set.
 	///
 	/// Mirrors the portal's <c>GET /v1/audit/events</c> (pageIndex/pageSize, Bearer, tenant-scoped).
 	/// Editor build returns a representative stub set so the whole UX renders and filters live. The
 	/// workbench / non-local branch reads the host-side <c>LocalAuditStore</c> ring (fed at
 	/// <c>ServerApiClient.Audit</c>). Remote GET remains unbound (TECH_DEBT STAFF-07).
 	/// </summary>
-	public static IReadOnlyList<StaffAuditEntry> GetAuditEntries( string playerId, string entityId, bool matchDescription = false )
+	public static IReadOnlyList<StaffAuditEntry> GetAuditEntries(
+		string playerId, string entityId, bool matchDescription = false, string action = null )
 	{
 #if LIFEPUNCH_LOCAL
 		var source = AuditStub();
 #else
 		var source = ReadLocalAuditEntries();
 #endif
-		return FilterAudit( source, playerId, entityId, matchDescription );
+		return FilterAudit( source, playerId, entityId, matchDescription, action );
 	}
 
 #if !LIFEPUNCH_LOCAL
@@ -689,28 +782,39 @@ internal static class StaffMenuHost
 				row.Action,
 				row.ActorName,
 				row.ActorSteamId,
-				string.Empty,
+				InferAuditEntity( row.ActorSteamId ),
 				row.Description ) );
 		}
 
 		return mapped;
 	}
 
+	private static string InferAuditEntity( long actorSteamId )
+		=> actorSteamId == 0L ? "Server" : "Player";
+
 	private static string FormatAuditWhen( DateTimeOffset whenUtc )
 	{
 		var elapsed = DateTimeOffset.UtcNow - whenUtc;
 		if ( elapsed.TotalSeconds < 60 ) return "just now";
-		if ( elapsed.TotalMinutes < 60 ) return $"{(int)elapsed.TotalMinutes}m ago";
-		if ( elapsed.TotalHours < 24 ) return $"{(int)elapsed.TotalHours}h ago";
+		var minutes = (int)elapsed.TotalMinutes;
+		if ( minutes < 60 ) return minutes <= 1 ? "1 minute ago" : $"{minutes} minutes ago";
+		var hours = (int)elapsed.TotalHours;
+		if ( hours < 24 ) return hours == 1 ? "1 hour ago" : $"{hours} hours ago";
+		if ( elapsed.TotalDays < 2 ) return "Yesterday";
 		return whenUtc.ToLocalTime().ToString( "yyyy-MM-dd HH:mm" );
 	}
 #endif
 
 	private static IReadOnlyList<StaffAuditEntry> FilterAudit(
-		IReadOnlyList<StaffAuditEntry> source, string playerId, string entityId, bool matchDescription = false )
+		IReadOnlyList<StaffAuditEntry> source,
+		string playerId,
+		string entityId,
+		bool matchDescription = false,
+		string action = null )
 	{
 		var player = playerId?.Trim() ?? "";
 		var entity = entityId?.Trim() ?? "";
+		var act = action?.Trim() ?? "";
 
 		return source.Where( e =>
 		{
@@ -728,6 +832,12 @@ internal static class StaffMenuHost
 
 			if ( entity.Length > 0
 			     && !e.Entity.Contains( entity, System.StringComparison.OrdinalIgnoreCase ) )
+			{
+				return false;
+			}
+
+			if ( act.Length > 0
+			     && !e.Action.Equals( act, System.StringComparison.OrdinalIgnoreCase ) )
 			{
 				return false;
 			}
