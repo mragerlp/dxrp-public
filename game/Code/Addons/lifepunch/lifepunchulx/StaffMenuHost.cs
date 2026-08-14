@@ -645,11 +645,13 @@ internal static class StaffMenuHost
 
 	/// <summary>
 	/// Permission Id that gates the in-menu Audit viewer. Hardcoded string (define-free editor build,
-	/// see TECH_DEBT STAFF-01) — reconciles with the portal's audit-visibility grant. The portal's
-	/// recommended tiers (Mod: own-action only → Super Admin / Community Manager: broad) are enforced
-	/// server-side when the real read API is wired (TECH_DEBT STAFF-07).
+	/// see TECH_DEBT STAFF-01). Must match the registered enum id
+	/// <c>Permission.ViewAudit</c> / <c>portal.audit.view</c> in
+	/// <c>game/Code/Api/Enums/Permission.cs</c>. The portal's recommended tiers (Mod: own-action
+	/// only → Super Admin / Community Manager: broad) are enforced server-side when the real read
+	/// API is wired (TECH_DEBT STAFF-07).
 	/// </summary>
-	public const string AuditPermissionId = "audit.view";
+	public const string AuditPermissionId = "portal.audit.view";
 
 	/// <summary>True if the local viewer may open the Audit log. UX gating only; host re-checks the fetch.</summary>
 	public static bool CanViewAudit() => CanView( AuditPermissionId );
