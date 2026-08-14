@@ -667,14 +667,14 @@ internal static class StaffMenuHost
 	/// workbench / non-local branch reads the host-side <c>LocalAuditStore</c> ring (fed at
 	/// <c>ServerApiClient.Audit</c>). Remote GET remains unbound (TECH_DEBT STAFF-07).
 	/// </summary>
-	public static IReadOnlyList<StaffAuditEntry> GetAuditEntries( string playerId, string entityId )
+	public static IReadOnlyList<StaffAuditEntry> GetAuditEntries( string playerId, string entityId, bool matchDescription = false )
 	{
 #if LIFEPUNCH_LOCAL
 		var source = AuditStub();
 #else
 		var source = ReadLocalAuditEntries();
 #endif
-		return FilterAudit( source, playerId, entityId );
+		return FilterAudit( source, playerId, entityId, matchDescription );
 	}
 
 #if !LIFEPUNCH_LOCAL
@@ -707,18 +707,23 @@ internal static class StaffMenuHost
 #endif
 
 	private static IReadOnlyList<StaffAuditEntry> FilterAudit(
-		IReadOnlyList<StaffAuditEntry> source, string playerId, string entityId )
+		IReadOnlyList<StaffAuditEntry> source, string playerId, string entityId, bool matchDescription = false )
 	{
 		var player = playerId?.Trim() ?? "";
 		var entity = entityId?.Trim() ?? "";
 
 		return source.Where( e =>
 		{
-			if ( player.Length > 0
-			     && !e.PlayerSteamId.ToString().Contains( player, System.StringComparison.OrdinalIgnoreCase )
-			     && !e.Player.Contains( player, System.StringComparison.OrdinalIgnoreCase ) )
+			if ( player.Length > 0 )
 			{
-				return false;
+				var actorHit = e.PlayerSteamId.ToString().Contains( player, System.StringComparison.OrdinalIgnoreCase )
+				               || e.Player.Contains( player, System.StringComparison.OrdinalIgnoreCase );
+				var descriptionHit = matchDescription
+				                     && e.Description.Contains( player, System.StringComparison.OrdinalIgnoreCase );
+				if ( !actorHit && !descriptionHit )
+				{
+					return false;
+				}
 			}
 
 			if ( entity.Length > 0

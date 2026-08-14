@@ -646,7 +646,7 @@
 								<div class="profile-section-head">Recent actions</div>
 								<div class="profile-section">
 									@{
-										var recent = StaffMenuHost.GetAuditEntries( profileSteamId.ToString(), "" );
+										var recent = StaffMenuHost.GetAuditEntries( profileSteamId.ToString(), "", true );
 									}
 									@if ( recent.Count == 0 )
 									{
