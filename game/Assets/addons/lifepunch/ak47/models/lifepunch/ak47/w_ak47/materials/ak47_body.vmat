@@ -1,4 +1,4 @@
-﻿// THIS FILE IS AUTO-GENERATED
+// THIS FILE IS AUTO-GENERATED
 
 Layer0
 {
@@ -15,7 +15,7 @@ Layer0
 
 	//---- Color ----
 	g_flModelTintAmount "1.000"
-	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+	g_vColorTint "[1.000000 1.000000 1.000000 1.000000]"
 	TextureColor "addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/textures/ak47_BaseColor.tga.png"
 
 	//---- Fade ----
