@@ -661,23 +661,48 @@ internal static class StaffMenuHost
 	/// has exactly these two filters — there is no Action dropdown — so the menu mirrors it 1:1.
 	///
 	/// Mirrors the portal's <c>GET /v1/audit/events</c> (pageIndex/pageSize, Bearer, tenant-scoped).
-	/// Editor build returns a representative stub set so the whole UX renders and filters live. The real
-	/// dxrp.net read path is portal/HTTP-backed and async; the in-game <c>ServerApiClient</c> doesn't yet
-	/// expose the audit read, so the server branch returns empty until that lands (TECH_DEBT STAFF-07) —
-	/// the UI degrades to a clean "no entries" state rather than blocking a per-frame read.
+	/// Editor build returns a representative stub set so the whole UX renders and filters live. The
+	/// workbench / non-local branch reads the host-side <c>LocalAuditStore</c> ring (fed at
+	/// <c>ServerApiClient.Audit</c>). Remote GET remains unbound (TECH_DEBT STAFF-07).
 	/// </summary>
 	public static IReadOnlyList<StaffAuditEntry> GetAuditEntries( string playerId, string entityId )
 	{
 #if LIFEPUNCH_LOCAL
 		var source = AuditStub();
 #else
-		// TODO(STAFF-07): bind to the DXRP portal audit read API — GET /v1/audit/events
-		// (pageIndex/pageSize, Bearer, tenant-scoped; player/entity filter params) via ServerApiClient,
-		// async + cached by filter with a short TTL, with the portal's per-rank visibility server-side.
-		var source = (IReadOnlyList<StaffAuditEntry>)System.Array.Empty<StaffAuditEntry>();
+		var source = ReadLocalAuditEntries();
 #endif
 		return FilterAudit( source, playerId, entityId );
 	}
+
+#if !LIFEPUNCH_LOCAL
+	private static IReadOnlyList<StaffAuditEntry> ReadLocalAuditEntries()
+	{
+		var rows = LocalAuditStore.SnapshotNewestFirst();
+		var mapped = new List<StaffAuditEntry>( rows.Count );
+		foreach ( var row in rows )
+		{
+			mapped.Add( new StaffAuditEntry(
+				FormatAuditWhen( row.WhenUtc ),
+				row.Action,
+				row.ActorName,
+				row.ActorSteamId,
+				string.Empty,
+				row.Description ) );
+		}
+
+		return mapped;
+	}
+
+	private static string FormatAuditWhen( DateTimeOffset whenUtc )
+	{
+		var elapsed = DateTimeOffset.UtcNow - whenUtc;
+		if ( elapsed.TotalSeconds < 60 ) return "just now";
+		if ( elapsed.TotalMinutes < 60 ) return $"{(int)elapsed.TotalMinutes}m ago";
+		if ( elapsed.TotalHours < 24 ) return $"{(int)elapsed.TotalHours}h ago";
+		return whenUtc.ToLocalTime().ToString( "yyyy-MM-dd HH:mm" );
+	}
+#endif
 
 	private static IReadOnlyList<StaffAuditEntry> FilterAudit(
 		IReadOnlyList<StaffAuditEntry> source, string playerId, string entityId )
