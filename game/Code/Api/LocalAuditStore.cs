@@ -22,6 +22,9 @@ public static class LocalAuditStore
 	private static readonly object Gate = new();
 	private static readonly List<Row> Rows = new();
 
+	/// <summary>Bumped on every <see cref="Record"/> so UI readers re-render on arrival instead of polling row contents.</summary>
+	public static int Version { get; private set; }
+
 	public static void Record( string action, string description, long? cause )
 	{
 		var actorId = cause ?? 0L;
@@ -40,6 +43,7 @@ public static class LocalAuditStore
 			}
 
 			Rows.Add( row );
+			Version++;
 		}
 	}
 
