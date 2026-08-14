@@ -1,0 +1,228 @@
+{
+  "RootObject": {
+    "__guid": "42a3c29d-4bb2-4aa8-ba33-8b8323783b56",
+    "__version": 1,
+    "Flags": 0,
+    "Name": "vm_ak47",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "player,viewmodel",
+    "Enabled": true,
+    "NetworkMode": 0,
+    "NetworkInterpolation": true,
+    "NetworkOrphaned": 0,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Dxura.RP.Game.ViewModel",
+        "__guid": "2dd95a44-30f3-41fd-ac16-dd967ea5d163",
+        "__enabled": true,
+        "Arms": {
+          "_type": "component",
+          "component_id": "f46fd200-29f1-4c4f-8f26-4e993ed5cec4",
+          "go": "42a3c29d-4bb2-4aa8-ba33-8b8323783b56",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "CanADS": true,
+        "EjectionPort": {
+          "_type": "gameobject",
+          "go": "60019c0b-5443-4e23-9154-37648ba90882"
+        },
+        "IronsightsFireScale": 0.1,
+        "ModelRenderer": {
+          "_type": "component",
+          "component_id": "2d65235d-6a43-421f-9bae-49d28004f322",
+          "go": "42a3c29d-4bb2-4aa8-ba33-8b8323783b56",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "Muzzle": {
+          "_type": "gameobject",
+          "go": "17537c4e-23c1-45b8-9429-f950b345213d"
+        },
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "renderingEnabled": true,
+        "UseMovementInertia": true
+      },
+      {
+        "__type": "Sandbox.SkinnedModelRenderer",
+        "__guid": "2d65235d-6a43-421f-9bae-49d28004f322",
+        "__enabled": true,
+        "AnimationGraph": null,
+        "BodyGroups": 9235,
+        "BoneMergeTarget": null,
+        "CreateAttachments": false,
+        "CreateBoneObjects": true,
+        "LodOverride": null,
+        "MaterialGroup": null,
+        "MaterialOverride": null,
+        "Materials": null,
+        "Model": "addons/lifepunch/ak47/models/lifepunch/ak47/v_ak47/v_ak47.vmdl",
+        "Morphs": {},
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "Parameters": {
+          "bools": {},
+          "ints": {},
+          "floats": {},
+          "vectors": {},
+          "rotations": {}
+        },
+        "PlaybackRate": 1,
+        "RenderOptions": {
+          "GameLayer": false,
+          "OverlayLayer": true,
+          "BloomLayer": false,
+          "AfterUILayer": false
+        },
+        "RenderType": "Off",
+        "Sequence": {
+          "Name": null,
+          "Looping": true,
+          "Blending": false
+        },
+        "Tint": "1,1,1,1",
+        "UseAnimGraph": false
+      },
+      {
+        "__type": "Sandbox.SkinnedModelRenderer",
+        "__guid": "f46fd200-29f1-4c4f-8f26-4e993ed5cec4",
+        "__enabled": false,
+        "AnimationGraph": null,
+        "BodyGroups": 21,
+        "BoneMergeTarget": {
+          "_type": "component",
+          "component_id": "2d65235d-6a43-421f-9bae-49d28004f322",
+          "go": "42a3c29d-4bb2-4aa8-ba33-8b8323783b56",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "CreateAttachments": false,
+        "CreateBoneObjects": false,
+        "LodOverride": null,
+        "MaterialGroup": null,
+        "MaterialOverride": null,
+        "Materials": null,
+        "Model": "models/first_person/v_first_person_arms_human.vmdl",
+        "Morphs": {},
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "Parameters": {
+          "bools": {},
+          "ints": {},
+          "floats": {},
+          "vectors": {},
+          "rotations": {}
+        },
+        "PlaybackRate": 1,
+        "RenderOptions": {
+          "GameLayer": false,
+          "OverlayLayer": true,
+          "BloomLayer": false,
+          "AfterUILayer": false
+        },
+        "RenderType": "Off",
+        "Sequence": {
+          "Name": null,
+          "Looping": true,
+          "Blending": false
+        },
+        "Tint": "1,1,1,1",
+        "UseAnimGraph": true
+      }
+    ],
+    "Children": [
+      {
+        "__guid": "f7e627b3-5e09-46e2-9788-73703e999b75",
+        "__version": 1,
+        "Flags": 4,
+        "Name": "camera",
+        "Position": "0,0,0",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkInterpolation": true,
+        "NetworkOrphaned": 0,
+        "OwnerTransfer": 1,
+        "Components": [],
+        "Children": []
+      },
+      {
+        "__guid": "17537c4e-23c1-45b8-9429-f950b345213d",
+        "__version": 1,
+        "Flags": 4,
+        "Name": "muzzle",
+        "Position": "20.07571,0,7.212921",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkInterpolation": true,
+        "NetworkOrphaned": 0,
+        "OwnerTransfer": 1,
+        "Components": [],
+        "Children": []
+      },
+      {
+        "__guid": "60019c0b-5443-4e23-9154-37648ba90882",
+        "__version": 1,
+        "Flags": 4,
+        "Name": "ejectionport",
+        "Position": "1.774985,-0.4210945,7.672482",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkInterpolation": true,
+        "NetworkOrphaned": 0,
+        "OwnerTransfer": 1,
+        "Components": [],
+        "Children": []
+      }
+    ],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": true,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": ""
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": false,
+  "MenuPath": null,
+  "MenuIcon": null,
+  "DontBreakAsTemplate": false,
+  "__references": [
+    "facepunch.v_first_person_arms_human#205798"
+  ],
+  "__version": 2
+}
