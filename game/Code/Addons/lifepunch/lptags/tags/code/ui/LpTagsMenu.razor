@@ -1,0 +1,628 @@
+@* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+PROPRIETARY & CONFIDENTIAL â€” Â© 2026 lifepunch.co. All rights reserved.
+
+"LIFEPUNCHâ„¢ Tags for DXRP" (s&box ident: lifepunch.tags Â· addon ident: lptags) is the sole-owned
+intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+sublicensing, copying, or reuse by ANY person or entity â€” including DXRP and
+LifePunch staff, contributors, or community â€” EXCEPT the owner (lifepunch.co).
+Third-party material identified by an accompanying notice remains under its stated license.
+Presence in this repository or on the DXRP portal grants no rights to anyone else.
+
+Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): Bloodwave
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ *@
+@namespace LifePunch.DXRP.Addons.Tags
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits PanelComponent
+@attribute [StyleSheet]
+
+<root class="@RootClass">
+    @if ( _state is not null )
+    {
+        var chat = SurfacePreferenceFor( _state.Draft, LpTagSurface.Chat );
+        var scoreboard = SurfacePreferenceFor( _state.Draft, LpTagSurface.Scoreboard );
+        var nameplate = SurfacePreferenceFor( _state.Draft, LpTagSurface.Nameplate );
+        var selected = SurfacePreferenceFor( _state.Draft, _state.SelectedSurface );
+
+        <header class="lp-tags-menu__header">
+            <div class="lp-tags-menu__wordmark" aria-label="lifepunch.tags">
+                <span class="lp-tags-menu__wordmark-base">lifepunch</span><span class="lp-tags-menu__wordmark-dot">.</span><span class="lp-tags-menu__wordmark-t">t</span><span class="lp-tags-menu__wordmark-a">a</span><span class="lp-tags-menu__wordmark-g">g</span><span class="lp-tags-menu__wordmark-s">s</span>
+            </div>
+            <div class="lp-tags-menu__header-title">NAME APPEARANCE</div>
+            <button class="lp-tags-menu__close" aria-label="Close LifePunch tags menu" onclick="@RequestClose">
+                <span class="material-icons lp-tags-menu__close-icon" aria-hidden="true">close</span>
+            </button>
+        </header>
+
+        <div class="lp-tags-menu__body">
+            <nav class="lp-tags-menu__rail" aria-label="Name appearance sections">
+                <div class="lp-tags-menu__rail-group-label">SURFACES</div>
+
+                <button class="@SurfaceRowClass( LpTagSurface.Chat )"
+                        aria-pressed="@IsSurfacePageSelected( LpTagSurface.Chat )"
+                        onclick="@(() => SelectSurface( LpTagSurface.Chat ))">
+                    <span class="material-icons lp-tags-menu__rail-icon" aria-hidden="true">chat_bubble_outline</span>
+                    <span class="lp-tags-menu__rail-copy">
+                        <span class="lp-tags-menu__rail-name">Chat</span>
+                        <span class="lp-tags-menu__rail-effect">@EffectLabelForKey( chat.SelectedEffectKey )</span>
+                    </span>
+                    <span class="lp-tags-menu__rail-state">
+                        <span class="@EnabledDotClass( chat.Enabled )" aria-hidden="true"></span>
+                        <span>@OnOffCopy( chat.Enabled )</span>
+                    </span>
+                </button>
+
+                <button class="@SurfaceRowClass( LpTagSurface.Scoreboard )"
+                        aria-pressed="@IsSurfacePageSelected( LpTagSurface.Scoreboard )"
+                        onclick="@(() => SelectSurface( LpTagSurface.Scoreboard ))">
+                    <span class="material-icons lp-tags-menu__rail-icon" aria-hidden="true">leaderboard</span>
+                    <span class="lp-tags-menu__rail-copy">
+                        <span class="lp-tags-menu__rail-name">Scoreboard</span>
+                        <span class="lp-tags-menu__rail-effect">@EffectLabelForKey( scoreboard.SelectedEffectKey )</span>
+                    </span>
+                    <span class="lp-tags-menu__rail-state">
+                        <span class="@EnabledDotClass( scoreboard.Enabled )" aria-hidden="true"></span>
+                        <span>@OnOffCopy( scoreboard.Enabled )</span>
+                    </span>
+                </button>
+
+                <button class="@SurfaceRowClass( LpTagSurface.Nameplate )"
+                        aria-pressed="@IsSurfacePageSelected( LpTagSurface.Nameplate )"
+                        onclick="@(() => SelectSurface( LpTagSurface.Nameplate ))">
+                    <span class="material-icons lp-tags-menu__rail-icon" aria-hidden="true">badge</span>
+                    <span class="lp-tags-menu__rail-copy">
+                        <span class="lp-tags-menu__rail-name">Nameplate</span>
+                        <span class="lp-tags-menu__rail-effect">@EffectLabelForKey( nameplate.SelectedEffectKey )</span>
+                    </span>
+                    <span class="lp-tags-menu__rail-state">
+                        <span class="@EnabledDotClass( nameplate.Enabled )" aria-hidden="true"></span>
+                        <span>@OnOffCopy( nameplate.Enabled )</span>
+                    </span>
+                </button>
+
+                <div class="lp-tags-menu__rail-group-label lp-tags-menu__rail-group-label--viewing">LOCAL</div>
+                <button class="@ViewingRowClass"
+                        aria-pressed="@_showViewing"
+                        onclick="@ShowViewing">
+                    <span class="material-icons lp-tags-menu__rail-icon" aria-hidden="true">visibility</span>
+                    <span class="lp-tags-menu__rail-copy">
+                        <span class="lp-tags-menu__rail-name">Viewing</span>
+                        <span class="lp-tags-menu__rail-effect">This player only</span>
+                    </span>
+                </button>
+            </nav>
+
+            <main class="lp-tags-menu__main">
+                @if ( _showViewing )
+                {
+                    <section class="lp-tags-menu__page lp-tags-menu__page--viewing" aria-label="Viewing preferences">
+                        <div class="lp-tags-menu__section-heading">
+                            <div>
+                                <div class="lp-tags-menu__section-label">VIEWING</div>
+                                <h1>LOCAL DISPLAY</h1>
+                            </div>
+                        </div>
+
+                        <div class="lp-tags-menu__preview lp-tags-menu__preview--viewing">
+                            <div class="lp-tags-menu__preview-label">YOUR VIEW OF @(SurfaceLabel( _state.SelectedSurface ).ToUpperInvariant())</div>
+                            @if ( _previewPresenter is not null )
+                            {
+                                <LpTagName Presenter="@_previewPresenter" />
+                            }
+                        </div>
+
+                        <div class="lp-tags-menu__viewer-controls">
+                            <button class="@ViewerControlClass( _state.ViewerPreferences.ReduceMotion )"
+                                    aria-pressed="@_state.ViewerPreferences.ReduceMotion"
+                                    onclick="@ToggleReduceMotion">
+                                <span class="material-icons" aria-hidden="true">motion_photos_off</span>
+                                <span class="lp-tags-menu__viewer-label">Reduce Motion</span>
+                                <span class="lp-tags-menu__viewer-value">@OnOffCopy( _state.ViewerPreferences.ReduceMotion )</span>
+                            </button>
+                            <button class="@ViewerControlClass( _state.ViewerPreferences.DisableAnimations )"
+                                    aria-pressed="@_state.ViewerPreferences.DisableAnimations"
+                                    onclick="@ToggleDisableAnimations">
+                                <span class="material-icons" aria-hidden="true">pause_circle_outline</span>
+                                <span class="lp-tags-menu__viewer-label">Disable Animations</span>
+                                <span class="lp-tags-menu__viewer-value">@OnOffCopy( _state.ViewerPreferences.DisableAnimations )</span>
+                            </button>
+                            <button class="@ViewerControlClass( _state.ViewerPreferences.HideDotPlusDecorations )"
+                                    aria-pressed="@_state.ViewerPreferences.HideDotPlusDecorations"
+                                    onclick="@ToggleHideDecorations">
+                                <span class="material-icons" aria-hidden="true">flare</span>
+                                <span class="lp-tags-menu__viewer-label">Hide Dot/Plus Decorations</span>
+                                <span class="lp-tags-menu__viewer-value">@OnOffCopy( _state.ViewerPreferences.HideDotPlusDecorations )</span>
+                            </button>
+                        </div>
+
+                        <p class="lp-tags-menu__local-copy">
+                            These settings affect only what this player sees. They do not change what other players selected.
+                        </p>
+                    </section>
+                }
+                else
+                {
+                    <section class="lp-tags-menu__page" aria-label="@($"{SurfaceLabel( _state.SelectedSurface )} name appearance")">
+                        <div class="lp-tags-menu__section-heading">
+                            <div>
+                                <div class="lp-tags-menu__section-label">@(SurfaceLabel( _state.SelectedSurface ).ToUpperInvariant())</div>
+                                <h1>@SurfaceLabel( _state.SelectedSurface ) STYLE</h1>
+                            </div>
+                            <button class="@OutgoingToggleClass( selected.Enabled )"
+                                    aria-label="@($"Turn {SurfaceLabel( _state.SelectedSurface )} appearance {(selected.Enabled ? "off" : "on")}")"
+                                    aria-pressed="@selected.Enabled"
+                                    disabled="@(!_state.CanEditOutgoing)"
+                                    onclick="@ToggleSelectedSurface">
+                                <span class="lp-tags-menu__toggle-track" aria-hidden="true">
+                                    <span class="lp-tags-menu__toggle-knob"></span>
+                                </span>
+                                <span class="lp-tags-menu__toggle-copy">@OnOffCopy( selected.Enabled )</span>
+                            </button>
+                        </div>
+
+                        <div class="lp-tags-menu__preview">
+                            <div class="lp-tags-menu__preview-label">CANDIDATE PREVIEW · @(SurfaceLabel( _state.SelectedSurface ).ToUpperInvariant())</div>
+                            @if ( _previewPresenter is not null )
+                            {
+                                <LpTagName Presenter="@_previewPresenter" />
+                            }
+                            @if ( !selected.Enabled )
+                            {
+                                <div class="lp-tags-menu__preview-note">PUBLIC SURFACE OFF · SHOWING REMEMBERED STYLE</div>
+                            }
+                        </div>
+
+                        <div class="lp-tags-menu__gallery-heading">
+                            <span>CHOOSE A STYLE</span>
+                            <span class="lp-tags-menu__current-effect">CURRENT · @EffectLabelForKey( selected.SelectedEffectKey )</span>
+                        </div>
+
+                        <div class="lp-tags-menu__effect-gallery" aria-label="Available name effects">
+                            @for ( var index = 0; index < CardDefinitions.Length; index++ )
+                            {
+                                var definition = CardDefinitions[index];
+                                var cardPresenter = index < _cardPresenters.Length ? _cardPresenters[index] : null;
+                                var isSelected = string.Equals( selected.SelectedEffectKey, definition.Key, StringComparison.Ordinal );
+                                <button class="@EffectCardClass( isSelected )"
+                                        aria-label="@($"Select {EffectLabel( definition.Id )} for {SurfaceLabel( _state.SelectedSurface )}")"
+                                        aria-pressed="@isSelected"
+                                        disabled="@(!_state.CanEditOutgoing)"
+                                        onclick="@(() => SelectEffect( definition.Key ))">
+                                    <span class="lp-tags-menu__effect-name">@EffectLabel( definition.Id )</span>
+                                    <span class="lp-tags-menu__effect-sample">
+                                        @if ( cardPresenter is not null )
+                                        {
+                                            <LpTagName Presenter="@cardPresenter" />
+                                        }
+                                    </span>
+                                    <span class="lp-tags-menu__effect-selected">@(isSelected ? "SELECTED" : "SELECT")</span>
+                                </button>
+                            }
+                        </div>
+                    </section>
+                }
+
+                <div class="@StatusClass">
+                    <span class="material-icons lp-tags-menu__status-icon" aria-hidden="true">@StatusIcon</span>
+                    <span class="lp-tags-menu__status-copy">@_state.StatusCopy</span>
+                    @if ( _state.CanRetry )
+                    {
+                        <button class="lp-tags-menu__status-action" onclick="@Retry">Retry</button>
+                    }
+                    @if ( _state.CanRefresh )
+                    {
+                        <button class="lp-tags-menu__status-action" onclick="@Refresh">Refresh</button>
+                    }
+                </div>
+            </main>
+        </div>
+
+        <footer class="lp-tags-menu__footer">
+            <div class="lp-tags-menu__availability">
+                @if ( _state.IsOnline )
+                {
+                    <span class="lp-tags-menu__availability-dot" aria-hidden="true"></span>
+                    <span>ONLINE</span>
+                }
+                else if ( _state.ClientMode == LpTagClientMode.LocalPreview )
+                {
+                    <span>LOCAL PREVIEW</span>
+                }
+                else if ( _state.ClientMode == LpTagClientMode.Unavailable )
+                {
+                    <span>INTEGRATION UNAVAILABLE</span>
+                }
+                else
+                {
+                    <span>NOT ONLINE</span>
+                }
+            </div>
+            <div class="lp-tags-menu__close-hint">ESC · CLOSE</div>
+            <div class="lp-tags-menu__scale" aria-label="Menu scale">
+                <span class="lp-tags-menu__scale-label">UI SCALE</span>
+                <button class="@ScaleButtonClass( MenuScale.Small )" aria-label="Small menu scale" aria-pressed="@(_menuScale == MenuScale.Small)" onclick="@(() => SetScale( MenuScale.Small ))">S</button>
+                <button class="@ScaleButtonClass( MenuScale.Medium )" aria-label="Medium menu scale" aria-pressed="@(_menuScale == MenuScale.Medium)" onclick="@(() => SetScale( MenuScale.Medium ))">M</button>
+                <button class="@ScaleButtonClass( MenuScale.Large )" aria-label="Large menu scale" aria-pressed="@(_menuScale == MenuScale.Large)" onclick="@(() => SetScale( MenuScale.Large ))">L</button>
+                <button class="@ScaleButtonClass( MenuScale.ExtraLarge )" aria-label="Extra large menu scale" aria-pressed="@(_menuScale == MenuScale.ExtraLarge)" onclick="@(() => SetScale( MenuScale.ExtraLarge ))">XL</button>
+            </div>
+        </footer>
+    }
+</root>
+
+@code
+{
+    private const ulong PreviewSteamId = 76561198000000001UL;
+    private const string PreviewDisplayName = "LifePunch Player";
+
+    private static readonly LpTagEffectDefinition[] CardDefinitions =
+    {
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.SolidRed ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.SolidGreen ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.SolidYellow ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.SolidBlue ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.SolidCyan ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.ColorWipe ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.RainbowWave ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.RedScanner ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.Slide ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.BouncingDot ),
+        LpTagEffectCatalog.GetRequired( LpTagEffectId.BouncingPlus )
+    };
+
+    private LpTagsMenuState? _state;
+    private LpTagNamePresenter? _previewPresenter;
+    private LpTagNamePresenter[] _cardPresenters = Array.Empty<LpTagNamePresenter>();
+    private bool _showViewing;
+    private bool _menuStateDisposed;
+    private bool _presentersDisposed;
+    private MenuScale _menuScale = MenuScale.Large;
+
+    public void Initialize( LpTagsMenuState state )
+    {
+        ArgumentNullException.ThrowIfNull( state );
+        if ( _state is not null || _menuStateDisposed )
+            throw new InvalidOperationException( "The LifePunch tags menu can be initialized only once." );
+
+        _state = state;
+        _state.Changed += HandleStateChanged;
+        CreatePresenters();
+        ConfigurePresenters();
+        StateHasChanged();
+    }
+
+    public void DisposeMenuState()
+    {
+        if ( _menuStateDisposed )
+            return;
+
+        var state = _state;
+        if ( state is null )
+            return;
+
+        state.Changed -= HandleStateChanged;
+        state.Dispose();
+
+        DisposePresenters();
+        _state = null;
+        _menuStateDisposed = true;
+    }
+
+    protected override void OnUpdate()
+    {
+        base.OnUpdate();
+        if ( !Input.EscapePressed )
+            return;
+
+        Input.EscapePressed = false;
+        RequestClose();
+    }
+
+    protected override void OnDisabled()
+    {
+        try
+        {
+            DisposeMenuState();
+        }
+        finally
+        {
+            base.OnDisabled();
+        }
+    }
+
+    protected override int BuildHash()
+    {
+        var state = _state;
+        if ( state is null )
+            return HashCode.Combine( _showViewing, _menuScale, _menuStateDisposed );
+
+        var stateHash = HashCode.Combine(
+            state.SelectedSurface,
+            state.Draft,
+            state.ViewerPreferences,
+            state.Status,
+            state.StatusCopy,
+            state.CanEditOutgoing,
+            state.CanRetry,
+            state.CanRefresh );
+        return HashCode.Combine( stateHash, state.IsOnline, _showViewing, _menuScale );
+    }
+
+    private string RootClass => $"lp-tags-menu lp-tags-menu--scale-{ScaleSuffix( _menuScale )}";
+
+    private string ViewingRowClass => _showViewing
+        ? "lp-tags-menu__rail-row lp-tags-menu__rail-row--selected"
+        : "lp-tags-menu__rail-row";
+
+    private string StatusClass => _state?.Status switch
+    {
+        LpTagClientStatus.Saved => "lp-tags-menu__status lp-tags-menu__status--success",
+        LpTagClientStatus.Conflict or LpTagClientStatus.SaveFailed => "lp-tags-menu__status lp-tags-menu__status--danger",
+        LpTagClientStatus.Unavailable or LpTagClientStatus.ReadOnly => "lp-tags-menu__status lp-tags-menu__status--warning",
+        LpTagClientStatus.LocalPreview => "lp-tags-menu__status lp-tags-menu__status--local",
+        _ => "lp-tags-menu__status"
+    };
+
+    private string StatusIcon => _state?.Status switch
+    {
+        LpTagClientStatus.Loading => "hourglass_empty",
+        LpTagClientStatus.Saving => "sync",
+        LpTagClientStatus.Verifying => "manage_search",
+        LpTagClientStatus.Saved => "check_circle_outline",
+        LpTagClientStatus.Conflict => "compare_arrows",
+        LpTagClientStatus.SaveFailed => "error_outline",
+        LpTagClientStatus.Unavailable => "cloud_off",
+        LpTagClientStatus.ReadOnly => "lock",
+        LpTagClientStatus.LocalPreview => "desktop_windows",
+        _ => "info_outline"
+    };
+
+    private void CreatePresenters()
+    {
+        var scene = Game.ActiveScene ?? throw new InvalidOperationException( "An active scene is required for tag previews." );
+        _previewPresenter = LpTagNamePresenter.Create( scene );
+        _cardPresenters = new LpTagNamePresenter[CardDefinitions.Length];
+        for ( var index = 0; index < CardDefinitions.Length; index++ )
+            _cardPresenters[index] = LpTagNamePresenter.Create( scene );
+    }
+
+    private void ConfigurePresenters()
+    {
+        var state = _state;
+        var previewPresenter = _previewPresenter;
+        if ( state is null || previewPresenter is null || _presentersDisposed )
+            return;
+
+        var selected = SurfacePreferenceFor( state.Draft, state.SelectedSurface );
+        previewPresenter.Configure(
+            PreviewSteamId,
+            PreviewDisplayName,
+            state.SelectedSurface,
+            ResolveEffectId( selected.SelectedEffectKey ),
+            state.ViewerPreferences );
+        previewPresenter.SetVisible( true );
+
+        var cardPreferences = state.ViewerPreferences with
+        {
+            ReduceMotion = true
+        };
+        for ( var index = 0; index < CardDefinitions.Length && index < _cardPresenters.Length; index++ )
+        {
+            var presenter = _cardPresenters[index];
+            presenter.Configure(
+                PreviewSteamId,
+                PreviewDisplayName,
+                state.SelectedSurface,
+                CardDefinitions[index].Id,
+                cardPreferences );
+            presenter.SetVisible( true );
+        }
+    }
+
+    private void DisposePresenters()
+    {
+        if ( _presentersDisposed )
+            return;
+
+        _previewPresenter?.Dispose();
+        foreach ( var presenter in _cardPresenters )
+            presenter?.Dispose();
+
+        _previewPresenter = null;
+        _cardPresenters = Array.Empty<LpTagNamePresenter>();
+        _presentersDisposed = true;
+    }
+
+    private void HandleStateChanged()
+    {
+        ConfigurePresenters();
+        StateHasChanged();
+    }
+
+    private void SelectSurface( LpTagSurface surface )
+    {
+        _showViewing = false;
+        _state?.SelectSurface( surface );
+        ConfigurePresenters();
+        StateHasChanged();
+    }
+
+    private void ShowViewing()
+    {
+        _showViewing = true;
+        ConfigurePresenters();
+        StateHasChanged();
+    }
+
+    private void SelectEffect( string effectKey )
+    {
+        var state = _state;
+        if ( state is not null )
+            state.SelectEffect( state.SelectedSurface, effectKey );
+    }
+
+    private void ToggleSelectedSurface()
+    {
+        var state = _state;
+        if ( state is null )
+            return;
+
+        var selected = SurfacePreferenceFor( state.Draft, state.SelectedSurface );
+        state.SetEnabled( state.SelectedSurface, !selected.Enabled );
+    }
+
+    private void ToggleReduceMotion()
+    {
+        if ( _state is not null )
+            _state.SetReduceMotion( !_state.ViewerPreferences.ReduceMotion );
+    }
+
+    private void ToggleDisableAnimations()
+    {
+        if ( _state is not null )
+            _state.SetDisableAnimations( !_state.ViewerPreferences.DisableAnimations );
+    }
+
+    private void ToggleHideDecorations()
+    {
+        if ( _state is not null )
+            _state.SetHideDotPlusDecorations( !_state.ViewerPreferences.HideDotPlusDecorations );
+    }
+
+    private void Retry() => _state?.Retry();
+
+    private void Refresh() => _state?.Refresh();
+
+    private static void RequestClose() => LpTagsMenuHost.RequestClose();
+
+    private void SetScale( MenuScale scale )
+    {
+        _menuScale = scale;
+        StateHasChanged();
+    }
+
+    private bool IsSurfacePageSelected( LpTagSurface surface )
+    {
+        return !_showViewing && _state?.SelectedSurface == surface;
+    }
+
+    private string SurfaceRowClass( LpTagSurface surface )
+    {
+        return IsSurfacePageSelected( surface )
+            ? "lp-tags-menu__rail-row lp-tags-menu__rail-row--selected"
+            : "lp-tags-menu__rail-row";
+    }
+
+    private static string EnabledDotClass( bool enabled )
+    {
+        return enabled
+            ? "lp-tags-menu__enabled-dot lp-tags-menu__enabled-dot--on"
+            : "lp-tags-menu__enabled-dot";
+    }
+
+    private static string OutgoingToggleClass( bool enabled )
+    {
+        return enabled
+            ? "lp-tags-menu__outgoing-toggle lp-tags-menu__outgoing-toggle--on"
+            : "lp-tags-menu__outgoing-toggle";
+    }
+
+    private static string ViewerControlClass( bool enabled )
+    {
+        return enabled
+            ? "lp-tags-menu__viewer-control lp-tags-menu__viewer-control--on"
+            : "lp-tags-menu__viewer-control";
+    }
+
+    private static string EffectCardClass( bool selected )
+    {
+        return selected
+            ? "lp-tags-menu__effect-card lp-tags-menu__effect-card--selected"
+            : "lp-tags-menu__effect-card";
+    }
+
+    private string ScaleButtonClass( MenuScale scale )
+    {
+        return _menuScale == scale
+            ? "lp-tags-menu__scale-button lp-tags-menu__scale-button--selected"
+            : "lp-tags-menu__scale-button";
+    }
+
+    private static string ScaleSuffix( MenuScale scale )
+    {
+        return scale switch
+        {
+            MenuScale.Small => "s",
+            MenuScale.Medium => "m",
+            MenuScale.ExtraLarge => "xl",
+            _ => "l"
+        };
+    }
+
+    private static string OnOffCopy( bool enabled ) => enabled ? "ON" : "OFF";
+
+    private static string SurfaceLabel( LpTagSurface surface )
+    {
+        return surface switch
+        {
+            LpTagSurface.Chat => "Chat",
+            LpTagSurface.Scoreboard => "Scoreboard",
+            LpTagSurface.Nameplate => "Nameplate",
+            _ => "Name"
+        };
+    }
+
+    private static LpTagSurfacePreference SurfacePreferenceFor(
+        LpStoredTagPreferencesV1 profile,
+        LpTagSurface surface )
+    {
+        return surface switch
+        {
+            LpTagSurface.Chat => profile.Chat,
+            LpTagSurface.Scoreboard => profile.Scoreboard,
+            LpTagSurface.Nameplate => profile.Nameplate,
+            _ => default
+        };
+    }
+
+    private static LpTagEffectId ResolveEffectId( string key )
+    {
+        return LpTagEffectCatalog.TryGet( key, out var definition )
+            ? definition.Id
+            : LpTagEffectId.None;
+    }
+
+    private static string EffectLabelForKey( string key )
+    {
+        return LpTagEffectCatalog.TryGet( key, out var definition ) && definition.Id != LpTagEffectId.None
+            ? EffectLabel( definition.Id )
+            : "No style selected";
+    }
+
+    private static string EffectLabel( LpTagEffectId effectId )
+    {
+        return effectId switch
+        {
+            LpTagEffectId.SolidRed => "Solid Red",
+            LpTagEffectId.SolidGreen => "Solid Green",
+            LpTagEffectId.SolidYellow => "Solid Yellow",
+            LpTagEffectId.SolidBlue => "Solid Blue",
+            LpTagEffectId.SolidCyan => "Solid Cyan",
+            LpTagEffectId.ColorWipe => "Color Wipe",
+            LpTagEffectId.RainbowWave => "Rainbow Wave",
+            LpTagEffectId.RedScanner => "Red Scanner",
+            LpTagEffectId.Slide => "Slide",
+            LpTagEffectId.BouncingDot => "Bouncing Dot",
+            LpTagEffectId.BouncingPlus => "Bouncing Plus",
+            _ => "No style selected"
+        };
+    }
+
+    private enum MenuScale : byte
+    {
+        Small,
+        Medium,
+        Large,
+        ExtraLarge
+    }
+}

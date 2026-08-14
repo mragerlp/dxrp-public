@@ -1,0 +1,73 @@
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PROPRIETARY & CONFIDENTIAL â€” Â© 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCHâ„¢ Tags for DXRP" (s&box ident: lifepunch.tags Â· addon ident: lptags) is the sole-owned
+// intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+// sublicensing, copying, or reuse by ANY person or entity â€” including DXRP and
+// LifePunch staff, contributors, or community â€” EXCEPT the owner (lifepunch.co).
+// Third-party material identified by an accompanying notice remains under its stated license.
+// Presence in this repository or on the DXRP portal grants no rights to anyone else.
+//
+// Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): Bloodwave
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+$lp-tags-shell-width: 1160px;
+$lp-tags-shell-height: 700px;
+$lp-tags-shell-max-width: 94vw;
+$lp-tags-shell-max-height: 92vh;
+$lp-tags-shell-xl-max-width: 85.45vw;
+$lp-tags-shell-xl-max-height: 83.64vh;
+$lp-tags-header-height: 64px;
+$lp-tags-rail-width: 220px;
+$lp-tags-footer-height: 40px;
+$lp-tags-gallery-columns: 4;
+$lp-tags-gallery-gap: 10px;
+$lp-tags-gallery-card-basis: calc(25% - 7.5px);
+$lp-tags-target-minimum: 44px;
+$lp-tags-target-minimum-s: 55px;
+$lp-tags-target-minimum-m: 49px;
+$lp-tags-target-minimum-l: 44px;
+$lp-tags-target-minimum-xl: 44px;
+$lp-tags-interaction-duration: 140ms;
+
+$lp-tags-radius-shell: 8px;
+$lp-tags-radius-panel: 6px;
+$lp-tags-radius-card: 8px;
+$lp-tags-radius-control: 4px;
+$lp-tags-space-1: 4px;
+$lp-tags-space-2: 8px;
+$lp-tags-space-3: 12px;
+$lp-tags-space-4: 16px;
+$lp-tags-space-5: 20px;
+$lp-tags-space-6: 24px;
+
+$lp-tags-color-canvas: #000000;
+$lp-tags-color-shell: #0b0d11;
+$lp-tags-color-surface: #11151b;
+$lp-tags-color-raised: #161b23;
+$lp-tags-color-border: #242b36;
+$lp-tags-color-border-strong: #354052;
+$lp-tags-color-text: #f5f7fa;
+$lp-tags-color-white: #ffffff;
+$lp-tags-color-muted: #87919e;
+$lp-tags-color-subtle: #5f6976;
+$lp-tags-color-accent: #00eaf2;
+$lp-tags-color-accent-bright: #55f6ff;
+$lp-tags-color-accent-soft: rgba(0, 238, 255, 0.14);
+$lp-tags-color-accent-faint: rgba(0, 238, 255, 0.07);
+$lp-tags-color-danger: #ff4d5a;
+$lp-tags-color-danger-soft: rgba(255, 77, 90, 0.14);
+$lp-tags-color-success: #2dda78;
+$lp-tags-color-success-soft: rgba(45, 218, 120, 0.12);
+$lp-tags-color-warning: #ffff00;
+$lp-tags-color-warning-soft: rgba(255, 255, 0, 0.11);
+$lp-tags-color-disabled: rgba(135, 145, 158, 0.42);
+$lp-tags-color-overlay: rgba(0, 0, 0, 0.88);
+$lp-tags-color-shell-shadow: rgba(0, 0, 0, 0.64);
+$lp-tags-color-transparent: rgba(0, 0, 0, 0);
+
+$lp-tags-brand-dot: #ffff00;
+$lp-tags-brand-t: #00ff00;
+$lp-tags-brand-a: #0000ff;
+$lp-tags-brand-g: #ff0000;
+$lp-tags-brand-s: #00ffff;
+$lp-tags-brand-blue-readability-shadow: rgba(85, 246, 255, 0.42);

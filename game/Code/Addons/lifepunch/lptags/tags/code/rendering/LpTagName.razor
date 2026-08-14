@@ -1,0 +1,65 @@
+@* â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+PROPRIETARY & CONFIDENTIAL â€” Â© 2026 lifepunch.co. All rights reserved.
+
+"LIFEPUNCHâ„¢ Tags for DXRP" (s&box ident: lifepunch.tags Â· addon ident: lptags) is the sole-owned
+intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+sublicensing, copying, or reuse by ANY person or entity â€” including DXRP and
+LifePunch staff, contributors, or community â€” EXCEPT the owner (lifepunch.co).
+Third-party material identified by an accompanying notice remains under its stated license.
+Presence in this repository or on the DXRP portal grants no rights to anyone else.
+
+Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): Bloodwave
+â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€ *@
+@namespace LifePunch.DXRP.Addons.Tags
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+@attribute [StyleSheet]
+
+<root class="lp-tag-name @(Presenter?.SurfaceClass ?? "lp-tag-name--chat")"
+      aria-label="@(Presenter?.PlainIdentity ?? string.Empty)">
+    @if ( Presenter is not null )
+    {
+        <span class="lp-tag-name__content @Presenter.TranslationClass">
+            @if ( Presenter.HasDecoration )
+            {
+                <span class="lp-tag-name__decoration" aria-hidden="true">
+                    <span class="lp-tag-name__bracket">[</span>
+                    @for ( var index = 0; index < LpTagNamePresenter.DecorationCellCount; index++ )
+                    {
+                        <span class="lp-tag-name__decoration-cell">@Presenter.GetDecorationCell( index )</span>
+                    }
+                    <span class="lp-tag-name__bracket">]</span>
+                </span>
+            }
+
+            <span class="lp-tag-name__identity">
+                @if ( Presenter.UsesGraphemeRuns )
+                {
+                    @for ( var index = 0; index < Presenter.RunCount; index++ )
+                    {
+                        var run = Presenter.GetRun( index );
+                        <span class="lp-tag-name__run @run.RoleClass">@run.Text</span>
+                    }
+                }
+                else
+                {
+                    <span class="lp-tag-name__whole @Presenter.WholeNameClass">@Presenter.PlainIdentity</span>
+                }
+            </span>
+        </span>
+    }
+</root>
+
+@code
+{
+    [Property] public LpTagNamePresenter? Presenter { get; set; }
+
+    protected override int BuildHash()
+    {
+        return Presenter is null
+            ? 0
+            : HashCode.Combine( Presenter, Presenter.RenderRevision );
+    }
+}

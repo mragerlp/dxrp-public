@@ -1,0 +1,89 @@
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PROPRIETARY & CONFIDENTIAL â€” Â© 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCHâ„¢ Tags for DXRP" (s&box ident: lifepunch.tags Â· addon ident: lptags) is the sole-owned
+// intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+// sublicensing, copying, or reuse by ANY person or entity â€” including DXRP and
+// LifePunch staff, contributors, or community â€” EXCEPT the owner (lifepunch.co).
+// Third-party material identified by an accompanying notice remains under its stated license.
+// Presence in this repository or on the DXRP portal grants no rights to anyone else.
+//
+// Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): Bloodwave
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+.lp-tag-name {
+    display: flex;
+    flex-shrink: 0;
+    align-items: center;
+    color: #ffffff;
+    white-space: nowrap;
+
+    .lp-tag-name__content,
+    .lp-tag-name__identity,
+    .lp-tag-name__decoration {
+        display: flex;
+        align-items: center;
+    }
+
+    .lp-tag-name__content {
+        transform: translateX(0);
+    }
+
+    .lp-tag-name__decoration {
+        flex-shrink: 0;
+        margin-right: 0.5em;
+        color: #ffffff;
+    }
+
+    .lp-tag-name__bracket,
+    .lp-tag-name__decoration-cell,
+    .lp-tag-name__run,
+    .lp-tag-name__whole {
+        display: flex;
+        flex-shrink: 0;
+    }
+
+    .lp-tag-name__role-neutral { color: #ffffff; }
+    .lp-tag-name__role-red { color: #ff3333; }
+    .lp-tag-name__role-green { color: #00ff00; }
+    .lp-tag-name__role-yellow { color: #ffff00; }
+    .lp-tag-name__role-cyan { color: #00ffff; }
+
+    .lp-tag-name__role-blue {
+        color: #0000ff;
+        text-shadow:
+            -1px 0 rgba(245, 247, 250, 0.72),
+            1px 0 rgba(245, 247, 250, 0.72),
+            0 -1px rgba(245, 247, 250, 0.72),
+            0 1px rgba(245, 247, 250, 0.72);
+    }
+
+    .lp-tag-name__translate-n8 { transform: translateX(-8px); }
+    .lp-tag-name__translate-n7 { transform: translateX(-7px); }
+    .lp-tag-name__translate-n6 { transform: translateX(-6px); }
+    .lp-tag-name__translate-n5 { transform: translateX(-5px); }
+    .lp-tag-name__translate-n4 { transform: translateX(-4px); }
+    .lp-tag-name__translate-n3 { transform: translateX(-3px); }
+    .lp-tag-name__translate-n2 { transform: translateX(-2px); }
+    .lp-tag-name__translate-n1 { transform: translateX(-1px); }
+    .lp-tag-name__translate-0 { transform: translateX(0); }
+    .lp-tag-name__translate-p1 { transform: translateX(1px); }
+    .lp-tag-name__translate-p2 { transform: translateX(2px); }
+    .lp-tag-name__translate-p3 { transform: translateX(3px); }
+    .lp-tag-name__translate-p4 { transform: translateX(4px); }
+    .lp-tag-name__translate-p5 { transform: translateX(5px); }
+    .lp-tag-name__translate-p6 { transform: translateX(6px); }
+    .lp-tag-name__translate-p7 { transform: translateX(7px); }
+    .lp-tag-name__translate-p8 { transform: translateX(8px); }
+
+    &.lp-tag-name--chat {
+        line-height: 1.2;
+    }
+
+    &.lp-tag-name--scoreboard {
+        line-height: 1.15;
+    }
+
+    &.lp-tag-name--nameplate {
+        line-height: 1;
+    }
+}

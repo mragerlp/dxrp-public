@@ -1,0 +1,716 @@
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// PROPRIETARY & CONFIDENTIAL â€” Â© 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCHâ„¢ Tags for DXRP" (s&box ident: lifepunch.tags Â· addon ident: lptags) is the sole-owned
+// intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+// sublicensing, copying, or reuse by ANY person or entity â€” including DXRP and
+// LifePunch staff, contributors, or community â€” EXCEPT the owner (lifepunch.co).
+// Third-party material identified by an accompanying notice remains under its stated license.
+// Presence in this repository or on the DXRP portal grants no rights to anyone else.
+//
+// Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): Bloodwave
+// â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+@import "LpTagsTokens.scss";
+
+.lp-tags-menu {
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: $lp-tags-shell-width;
+    height: $lp-tags-shell-height;
+    max-width: $lp-tags-shell-max-width;
+    max-height: $lp-tags-shell-max-height;
+    display: flex;
+    flex-direction: column;
+    overflow: visible;
+    pointer-events: all;
+    background-color: $lp-tags-color-shell;
+    border: 1px solid $lp-tags-color-border-strong;
+    border-radius: $lp-tags-radius-shell;
+    box-shadow: 0 18px 48px $lp-tags-color-shell-shadow;
+    color: $lp-tags-color-text;
+    font-family: "Roboto Mono", "Courier New", monospace;
+    font-size: 13px;
+    transform-origin: 50% 50%;
+    transform: translate(-50%, -50%) scale(1);
+
+    &.lp-tags-menu--scale-s {
+        transform: translate(-50%, -50%) scale(0.80);
+
+        button {
+            min-width: $lp-tags-target-minimum-s;
+            min-height: $lp-tags-target-minimum-s;
+        }
+    }
+
+    &.lp-tags-menu--scale-m {
+        transform: translate(-50%, -50%) scale(0.90);
+
+        button {
+            min-width: $lp-tags-target-minimum-m;
+            min-height: $lp-tags-target-minimum-m;
+        }
+    }
+
+    &.lp-tags-menu--scale-l {
+        transform: translate(-50%, -50%) scale(1);
+
+        button {
+            min-width: $lp-tags-target-minimum-l;
+            min-height: $lp-tags-target-minimum-l;
+        }
+    }
+
+    &.lp-tags-menu--scale-xl {
+        max-width: $lp-tags-shell-xl-max-width;
+        max-height: $lp-tags-shell-xl-max-height;
+        transform: translate(-50%, -50%) scale(1.10);
+
+        button {
+            min-width: $lp-tags-target-minimum-xl;
+            min-height: $lp-tags-target-minimum-xl;
+        }
+    }
+
+    button {
+        min-width: $lp-tags-target-minimum;
+        min-height: $lp-tags-target-minimum;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        background-color: $lp-tags-color-surface;
+        border: 1px solid $lp-tags-color-border;
+        border-radius: $lp-tags-radius-control;
+        color: $lp-tags-color-text;
+        font-family: "Roboto Mono", "Courier New", monospace;
+        cursor: pointer;
+        transition: background-color $lp-tags-interaction-duration,
+            border-color $lp-tags-interaction-duration,
+            color $lp-tags-interaction-duration,
+            opacity $lp-tags-interaction-duration;
+
+        &:hover:not(:disabled) {
+            border-color: $lp-tags-color-border-strong;
+            background-color: $lp-tags-color-raised;
+        }
+
+        &:focus {
+            background-color: $lp-tags-color-accent-soft;
+            border-color: $lp-tags-color-accent-bright;
+            border-width: 2px;
+        }
+
+        &:disabled {
+            color: $lp-tags-color-disabled;
+            cursor: default;
+            opacity: 0.46;
+        }
+    }
+
+    .material-icons {
+        flex: 0 0 auto;
+        color: $lp-tags-color-muted;
+        font-family: "Material Icons";
+        font-size: 20px;
+        font-weight: normal;
+        line-height: 1;
+    }
+}
+
+.lp-tags-menu__header {
+    width: 100%;
+    height: $lp-tags-header-height;
+    flex: 0 0 $lp-tags-header-height;
+    display: flex;
+    align-items: center;
+    background-color: $lp-tags-color-shell;
+    border-bottom: 1px solid $lp-tags-color-border;
+    border-radius: $lp-tags-radius-shell $lp-tags-radius-shell 0 0;
+}
+
+.lp-tags-menu__wordmark {
+    width: $lp-tags-rail-width;
+    padding-left: $lp-tags-space-5;
+    display: flex;
+    align-items: center;
+    color: $lp-tags-color-white;
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.7px;
+    white-space: nowrap;
+}
+
+.lp-tags-menu__wordmark-base {
+    color: $lp-tags-color-white;
+}
+
+.lp-tags-menu__wordmark-dot {
+    color: $lp-tags-brand-dot;
+}
+
+.lp-tags-menu__wordmark-t {
+    color: $lp-tags-brand-t;
+}
+
+.lp-tags-menu__wordmark-a {
+    color: $lp-tags-brand-a;
+    text-shadow: 0 0 4px $lp-tags-brand-blue-readability-shadow;
+}
+
+.lp-tags-menu__wordmark-g {
+    color: $lp-tags-brand-g;
+}
+
+.lp-tags-menu__wordmark-s {
+    color: $lp-tags-brand-s;
+}
+
+.lp-tags-menu__header-title {
+    flex: 1 1 auto;
+    padding-left: $lp-tags-space-5;
+    color: $lp-tags-color-white;
+    font-size: 15px;
+    font-weight: 700;
+    letter-spacing: 1.4px;
+}
+
+.lp-tags-menu__close {
+    width: $lp-tags-target-minimum;
+    height: $lp-tags-target-minimum;
+    margin-right: $lp-tags-space-3;
+    background-color: $lp-tags-color-transparent;
+    border-color: $lp-tags-color-transparent;
+    color: $lp-tags-color-danger;
+    font-size: 16px;
+    font-weight: 800;
+
+    &:hover:not(:disabled) {
+        background-color: $lp-tags-color-danger-soft;
+        border-color: $lp-tags-color-transparent;
+    }
+
+    &:focus {
+        background-color: $lp-tags-color-danger-soft;
+        border-color: $lp-tags-color-danger;
+        border-width: 2px;
+        color: $lp-tags-color-danger;
+    }
+}
+
+.lp-tags-menu__close-icon.material-icons {
+    color: $lp-tags-color-danger;
+}
+
+.lp-tags-menu__body {
+    width: 100%;
+    flex: 1 1 auto;
+    min-height: 0;
+    display: flex;
+    background-color: $lp-tags-color-shell;
+    overflow: hidden;
+}
+
+.lp-tags-menu__rail {
+    width: $lp-tags-rail-width;
+    flex: 0 0 $lp-tags-rail-width;
+    padding: $lp-tags-space-4 $lp-tags-space-3;
+    display: flex;
+    flex-direction: column;
+    background-color: $lp-tags-color-surface;
+    border-right: 1px solid $lp-tags-color-border;
+}
+
+.lp-tags-menu__rail-group-label {
+    height: 24px;
+    padding: 0 $lp-tags-space-2;
+    display: flex;
+    align-items: center;
+    color: $lp-tags-color-subtle;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1.3px;
+}
+
+.lp-tags-menu__rail-group-label--viewing {
+    margin-top: $lp-tags-space-5;
+}
+
+.lp-tags-menu__rail-row {
+    width: 100%;
+    height: 64px;
+    margin-bottom: $lp-tags-space-2;
+    padding: 0 $lp-tags-space-3;
+    justify-content: flex-start;
+    background-color: $lp-tags-color-transparent;
+    border-color: $lp-tags-color-transparent;
+    text-align: left;
+
+    &.lp-tags-menu__rail-row--selected {
+        background-color: $lp-tags-color-accent-soft;
+        border-color: $lp-tags-color-accent;
+    }
+}
+
+.lp-tags-menu__rail-icon {
+    width: 22px;
+    margin-right: $lp-tags-space-3;
+    text-align: center;
+}
+
+.lp-tags-menu__rail-row--selected .lp-tags-menu__rail-icon,
+.lp-tags-menu__rail-row--selected .lp-tags-menu__rail-name {
+    color: $lp-tags-color-accent-bright;
+}
+
+.lp-tags-menu__rail-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+}
+
+.lp-tags-menu__rail-name {
+    color: $lp-tags-color-text;
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.lp-tags-menu__rail-effect {
+    width: 100%;
+    margin-top: 3px;
+    overflow: hidden;
+    color: $lp-tags-color-muted;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lp-tags-menu__rail-state {
+    min-width: 32px;
+    margin-left: $lp-tags-space-2;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    color: $lp-tags-color-muted;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.lp-tags-menu__enabled-dot {
+    width: 8px;
+    height: 8px;
+    margin-bottom: $lp-tags-space-1;
+    background-color: $lp-tags-color-transparent;
+    border: 1px solid $lp-tags-color-subtle;
+    border-radius: 50%;
+}
+
+.lp-tags-menu__enabled-dot--on {
+    background-color: $lp-tags-color-success;
+    border-color: $lp-tags-color-success;
+}
+
+.lp-tags-menu__main {
+    min-width: 0;
+    min-height: 0;
+    flex: 1 1 auto;
+    padding: $lp-tags-space-5;
+    display: flex;
+    flex-direction: column;
+    background-color: $lp-tags-color-shell;
+}
+
+.lp-tags-menu__page {
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-direction: column;
+}
+
+.lp-tags-menu__section-heading {
+    min-height: $lp-tags-target-minimum;
+    margin-bottom: $lp-tags-space-3;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+
+    h1 {
+        margin: 2px 0 0;
+        color: $lp-tags-color-white;
+        font-size: 19px;
+        font-weight: 700;
+        letter-spacing: 0.5px;
+    }
+}
+
+.lp-tags-menu__section-label {
+    color: $lp-tags-color-accent;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1.5px;
+}
+
+.lp-tags-menu__outgoing-toggle {
+    width: 132px;
+    height: $lp-tags-target-minimum;
+    padding: 0 $lp-tags-space-3;
+    justify-content: flex-start;
+    background-color: $lp-tags-color-surface;
+}
+
+.lp-tags-menu__toggle-track {
+    width: 38px;
+    height: 20px;
+    margin-right: $lp-tags-space-3;
+    padding: 2px;
+    display: flex;
+    justify-content: flex-start;
+    background-color: $lp-tags-color-border;
+    border: 1px solid $lp-tags-color-border-strong;
+    border-radius: 10px;
+}
+
+.lp-tags-menu__toggle-knob {
+    width: 14px;
+    height: 14px;
+    background-color: $lp-tags-color-muted;
+    border-radius: 50%;
+}
+
+.lp-tags-menu__outgoing-toggle--on {
+    background-color: $lp-tags-color-accent-soft;
+    border-color: $lp-tags-color-accent;
+
+    .lp-tags-menu__toggle-track {
+        justify-content: flex-end;
+        background-color: $lp-tags-color-accent;
+        border-color: $lp-tags-color-accent;
+    }
+
+    .lp-tags-menu__toggle-knob {
+        background-color: $lp-tags-color-shell;
+    }
+
+    .lp-tags-menu__toggle-copy {
+        color: $lp-tags-color-accent-bright;
+    }
+}
+
+.lp-tags-menu__toggle-copy {
+    flex: 1 1 auto;
+    color: $lp-tags-color-muted;
+    font-size: 11px;
+    font-weight: 800;
+    text-align: center;
+}
+
+.lp-tags-menu__preview {
+    height: 76px;
+    flex: 0 0 76px;
+    margin-bottom: $lp-tags-space-3;
+    padding: $lp-tags-space-2 $lp-tags-space-4;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    background-color: $lp-tags-color-raised;
+    border: 1px solid $lp-tags-color-border-strong;
+    border-radius: $lp-tags-radius-panel;
+
+    LpTagName {
+        max-width: 100%;
+        min-height: 24px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+    }
+}
+
+.lp-tags-menu__preview--viewing {
+    height: 112px;
+    flex-basis: 112px;
+    margin-top: $lp-tags-space-2;
+    margin-bottom: $lp-tags-space-5;
+}
+
+.lp-tags-menu__preview-label {
+    margin-bottom: $lp-tags-space-1;
+    color: $lp-tags-color-muted;
+    font-size: 9px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.lp-tags-menu__preview-note {
+    margin-top: $lp-tags-space-1;
+    color: $lp-tags-color-warning;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.6px;
+}
+
+.lp-tags-menu__gallery-heading {
+    height: 28px;
+    flex: 0 0 28px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    color: $lp-tags-color-muted;
+    font-size: 10px;
+    font-weight: 700;
+    letter-spacing: 1px;
+}
+
+.lp-tags-menu__current-effect {
+    color: $lp-tags-color-text;
+    letter-spacing: 0;
+}
+
+.lp-tags-menu__effect-gallery {
+    min-height: 0;
+    flex: 1 1 auto;
+    display: flex;
+    flex-wrap: wrap;
+    align-content: flex-start;
+    gap: $lp-tags-gallery-gap;
+    overflow-y: scroll;
+}
+
+.lp-tags-menu__effect-card {
+    min-width: 0;
+    min-height: 82px;
+    flex: 0 0 $lp-tags-gallery-card-basis;
+    padding: $lp-tags-space-2 $lp-tags-space-3;
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    justify-content: space-between;
+    background-color: $lp-tags-color-surface;
+    border-color: $lp-tags-color-border;
+    border-radius: $lp-tags-radius-card;
+    text-align: left;
+
+    &.lp-tags-menu__effect-card--selected {
+        background-color: $lp-tags-color-accent-soft;
+        border-color: $lp-tags-color-accent;
+    }
+}
+
+.lp-tags-menu__effect-name {
+    width: 100%;
+    color: $lp-tags-color-text;
+    font-size: 10px;
+    font-weight: 700;
+    white-space: nowrap;
+}
+
+.lp-tags-menu__effect-sample {
+    width: 100%;
+    min-height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    overflow: hidden;
+
+    LpTagName {
+        max-width: 100%;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 10px;
+    }
+}
+
+.lp-tags-menu__effect-selected {
+    width: 100%;
+    color: $lp-tags-color-muted;
+    font-size: 8px;
+    font-weight: 700;
+    letter-spacing: 0.8px;
+    text-align: right;
+}
+
+.lp-tags-menu__effect-card--selected .lp-tags-menu__effect-selected {
+    color: $lp-tags-color-accent-bright;
+}
+
+.lp-tags-menu__viewer-controls {
+    display: flex;
+    flex-direction: column;
+    gap: $lp-tags-space-3;
+}
+
+.lp-tags-menu__viewer-control {
+    width: 100%;
+    height: 52px;
+    padding: 0 $lp-tags-space-4;
+    justify-content: flex-start;
+
+    .material-icons {
+        width: 24px;
+        margin-right: $lp-tags-space-3;
+    }
+}
+
+.lp-tags-menu__viewer-control--on {
+    background-color: $lp-tags-color-accent-soft;
+    border-color: $lp-tags-color-accent;
+
+    .material-icons,
+    .lp-tags-menu__viewer-value {
+        color: $lp-tags-color-accent-bright;
+    }
+}
+
+.lp-tags-menu__viewer-label {
+    flex: 1 1 auto;
+    color: $lp-tags-color-text;
+    font-size: 12px;
+    font-weight: 700;
+    text-align: left;
+}
+
+.lp-tags-menu__viewer-value {
+    color: $lp-tags-color-muted;
+    font-size: 11px;
+    font-weight: 800;
+}
+
+.lp-tags-menu__local-copy {
+    margin: $lp-tags-space-5 0 0;
+    padding: $lp-tags-space-4;
+    background-color: $lp-tags-color-accent-faint;
+    border: 1px solid $lp-tags-color-border;
+    border-radius: $lp-tags-radius-panel;
+    color: $lp-tags-color-muted;
+    font-size: 11px;
+    line-height: 1.5;
+}
+
+.lp-tags-menu__status {
+    min-height: $lp-tags-target-minimum;
+    flex: 0 0 $lp-tags-target-minimum;
+    margin-top: $lp-tags-space-2;
+    padding-left: $lp-tags-space-3;
+    display: flex;
+    align-items: center;
+    background-color: $lp-tags-color-surface;
+    border: 1px solid $lp-tags-color-border;
+    border-radius: $lp-tags-radius-control;
+
+    &.lp-tags-menu__status--success {
+        background-color: $lp-tags-color-success-soft;
+        border-color: $lp-tags-color-success;
+    }
+
+    &.lp-tags-menu__status--danger {
+        background-color: $lp-tags-color-danger-soft;
+        border-color: $lp-tags-color-danger;
+    }
+
+    &.lp-tags-menu__status--warning {
+        background-color: $lp-tags-color-warning-soft;
+        border-color: $lp-tags-color-warning;
+    }
+
+    &.lp-tags-menu__status--local {
+        background-color: $lp-tags-color-accent-faint;
+        border-color: $lp-tags-color-accent;
+    }
+}
+
+.lp-tags-menu__status-icon {
+    width: 22px;
+    margin-right: $lp-tags-space-2;
+}
+
+.lp-tags-menu__status-copy {
+    min-width: 0;
+    flex: 1 1 auto;
+    overflow: hidden;
+    color: $lp-tags-color-text;
+    font-size: 10px;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.lp-tags-menu__status-action {
+    min-width: 72px;
+    height: $lp-tags-target-minimum;
+    margin-left: $lp-tags-space-2;
+    background-color: $lp-tags-color-transparent;
+    border-color: $lp-tags-color-border-strong;
+    color: $lp-tags-color-accent-bright;
+    font-size: 10px;
+    font-weight: 700;
+}
+
+.lp-tags-menu__footer {
+    width: 100%;
+    height: $lp-tags-footer-height;
+    flex: 0 0 $lp-tags-footer-height;
+    padding: 0 $lp-tags-space-3 0 $lp-tags-space-4;
+    display: flex;
+    align-items: center;
+    background-color: $lp-tags-color-surface;
+    border-top: 1px solid $lp-tags-color-border;
+    border-radius: 0 0 $lp-tags-radius-shell $lp-tags-radius-shell;
+    overflow: visible;
+}
+
+.lp-tags-menu__availability {
+    min-width: $lp-tags-rail-width;
+    display: flex;
+    align-items: center;
+    color: $lp-tags-color-muted;
+    font-size: 9px;
+    font-weight: 800;
+    letter-spacing: 0.8px;
+}
+
+.lp-tags-menu__availability-dot {
+    width: 7px;
+    height: 7px;
+    margin-right: $lp-tags-space-2;
+    background-color: $lp-tags-color-success;
+    border-radius: 50%;
+}
+
+.lp-tags-menu__close-hint {
+    flex: 1 1 auto;
+    color: $lp-tags-color-subtle;
+    font-size: 9px;
+    text-align: center;
+}
+
+.lp-tags-menu__scale {
+    display: flex;
+    align-items: center;
+}
+
+.lp-tags-menu__scale-label {
+    margin-right: $lp-tags-space-2;
+    color: $lp-tags-color-muted;
+    font-size: 9px;
+    font-weight: 700;
+}
+
+.lp-tags-menu__scale-button {
+    width: $lp-tags-target-minimum;
+    height: $lp-tags-target-minimum;
+    margin-left: $lp-tags-space-1;
+    background-color: $lp-tags-color-shell;
+    border-color: $lp-tags-color-border;
+    color: $lp-tags-color-muted;
+    font-size: 10px;
+    font-weight: 800;
+
+    &.lp-tags-menu__scale-button--selected {
+        background-color: $lp-tags-color-accent-soft;
+        border-color: $lp-tags-color-accent;
+        color: $lp-tags-color-accent-bright;
+    }
+}
