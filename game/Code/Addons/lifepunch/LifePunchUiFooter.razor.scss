@@ -31,13 +31,34 @@
 	letter-spacing: 0.5px;
 	overflow: hidden;
 
+	// Left and right zones share equal flex so the legal line sits dead-center.
 	.lp-footer-identity {
-		flex: 1 1 auto;
+		flex: 1 1 0;
 		min-width: 0;
 		display: flex;
 		flex-direction: row;
 		align-items: center;
+		justify-content: flex-start;
 		gap: 4px;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+
+	.lp-footer-legal {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.lp-footer-link {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-end;
 		overflow: hidden;
 		white-space: nowrap;
 	}
@@ -60,11 +81,6 @@
 
 	.lp-legal {
 		color: rgba(255, 255, 255, 0.5);
-		white-space: nowrap;
-	}
-
-	.lp-footer-separator {
-		color: rgba(255, 255, 255, 0.28);
 		white-space: nowrap;
 	}
 
