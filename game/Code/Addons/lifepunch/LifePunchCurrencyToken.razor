@@ -1,0 +1,35 @@
+@* ─────────────────────────────────────────────────────────────────────────────
+   PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+
+   "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* · addon ident: lifepunch) is the sole-owned
+   intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+   sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+   LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+   Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+   Presence in this repository or on the DXRP portal grants no rights to anyone else.
+   ───────────────────────────────────────────────────────────────────────────── *@
+@namespace LifePunch.DXRP.Addons
+@using System
+@using Sandbox.UI
+@inherits Panel
+@attribute [StyleSheet]
+
+<root class="lp-currency-token @TokenClass">
+	<span class="@SignClass">@Sign</span>
+	<span class="lp-money-amt">@Amount</span>
+	@if ( !string.IsNullOrWhiteSpace( Label ) )
+	{
+		<span class="lp-money-unit lp-currency-label">@Label</span>
+	}
+</root>
+
+@code {
+	public string Sign { get; set; } = string.Empty;
+	public string Amount { get; set; } = string.Empty;
+	public string Label { get; set; } = string.Empty;
+	public string SignClass { get; set; } = "lp-money-btc";
+	public string TokenClass { get; set; } = string.Empty;
+
+	protected override int BuildHash()
+		=> HashCode.Combine( Sign, Amount, Label, SignClass, TokenClass );
+}
