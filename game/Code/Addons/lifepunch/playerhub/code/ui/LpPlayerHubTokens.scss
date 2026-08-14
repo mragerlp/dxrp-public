@@ -1,0 +1,39 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Player Hub locked token surface. Component styles import these variables and
+// contain no raw colour literals.
+// -----------------------------------------------------------------------------
+
+$lp-blue: #017AEF;
+$lp-blue-hover: #33A0FF;
+$accent-soft: rgba(1, 122, 239, 0.08);
+$accent-soft-strong: rgba(1, 122, 239, 0.14);
+$accent-focus: rgba(1, 122, 239, 0.28);
+
+$bg: #000000;
+$surface: #1a1d23;
+$surface-inset: #12151a;
+$card-header: #22262e;
+$border: #374151;
+
+$text-main: #ffffff;
+$text-dim: #9ca3af;
+$good: #199c3b;
+$bad: #931010;
+$good-soft: rgba(25, 156, 59, 0.14);
+$bad-soft: rgba(147, 16, 16, 0.14);
+$dim-soft: rgba(156, 163, 175, 0.08);
+$dim-soft-strong: rgba(156, 163, 175, 0.14);
+
+$radius: 6px;
+$radius-card: 12px;
+$hit: 44px;
+$gap-control: 8px;
+$gap-content: 12px;
+$gap-dense: 10px;
+$panel-pad: 12px;
+$bar-h: 34px;
+$row-h: 44px;
+$sidebar-w: 190px;
+$header-h: 64px;

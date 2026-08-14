@@ -1,0 +1,68 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Shared Player Hub shell primitives. Self-contained for s&box resource compile.
+// -----------------------------------------------------------------------------
+
+@import "LpPlayerHubTokens.scss";
+
+.lp-hub-panel {
+	flex-direction: column;
+	min-width: 0;
+	background-color: $surface-inset;
+	border: 1px solid $border;
+	border-radius: $radius;
+	overflow: hidden;
+}
+
+.lp-hub-bar {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	min-height: $bar-h;
+	padding-left: $panel-pad;
+	padding-right: $panel-pad;
+	background-color: $card-header;
+	border-bottom: 1px solid $border;
+}
+
+.lp-hub-chip-row {
+	flex-direction: row;
+	align-items: center;
+	min-height: $row-h;
+	padding-left: $panel-pad;
+	padding-right: $panel-pad;
+	border-bottom: 1px solid $border;
+}
+
+.lp-hub-chip-row:last-child {
+	border-bottom: 0;
+}
+
+.lp-hub-field-row {
+	flex-direction: row;
+	align-items: stretch;
+	border-top: 1px solid $border;
+}
+
+.lp-hub-field {
+	flex-direction: column;
+	flex-grow: 1;
+	min-width: 0;
+	gap: 3px;
+	padding: 8px 10px;
+	border-right: 1px solid $border;
+}
+
+.lp-hub-field:last-child {
+	border-right: 0;
+}
+
+.lp-hub-button:focus {
+	border-color: $lp-blue;
+	background-color: $accent-focus;
+}
+
+.lp-hub-button:active {
+	background-color: $accent-soft-strong;
+}

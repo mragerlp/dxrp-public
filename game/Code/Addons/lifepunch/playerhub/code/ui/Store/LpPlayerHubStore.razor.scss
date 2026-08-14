@@ -1,0 +1,317 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+// -----------------------------------------------------------------------------
+
+@import "../LpPlayerHubTokens.scss";
+@import "../LpPlayerHubPrimitives.scss";
+
+.lp-playerhub-store {
+	flex-direction: column;
+	flex-grow: 1;
+	min-height: 0;
+	min-width: 0;
+	gap: $gap-dense;
+	padding: $panel-pad;
+	overflow: hidden;
+	font-family: Inter, Arial, sans-serif;
+	color: $text-main;
+}
+
+.store-balance-strip {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 52px;
+	flex-shrink: 0;
+	padding: 8px 11px;
+}
+
+.store-balance-copy,
+.store-balance-note > div,
+.store-item-copy,
+.store-detail {
+	flex-direction: column;
+	gap: 2px;
+}
+
+.store-balance-label,
+.store-balance-note-title,
+.store-section-title,
+.store-detail-label,
+.store-price-label {
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0.8px;
+	color: $text-dim;
+}
+
+.store-money {
+	flex-direction: row;
+	align-items: baseline;
+	gap: 5px;
+}
+
+.store-money.compact {
+	gap: 3px;
+}
+
+.store-lp-sign {
+	font-size: 12px;
+	font-weight: 700;
+	color: $lp-blue;
+}
+
+.store-money-amount {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 18px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.store-money.compact .store-money-amount {
+	font-size: 12px;
+}
+
+.store-balance-note {
+	flex-direction: row;
+	align-items: center;
+	gap: 7px;
+}
+
+.store-balance-note > .material-icons {
+	font-size: 17px;
+	color: $lp-blue;
+}
+
+.store-balance-note-copy,
+.store-section-note,
+.store-item-description,
+.store-detail-description,
+.store-detail-footnote {
+	font-size: 9px;
+	line-height: 12px;
+	color: $text-dim;
+}
+
+.store-category-row {
+	flex-direction: row;
+	gap: 6px;
+	min-height: $hit;
+	flex-shrink: 0;
+}
+
+.store-category {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	min-width: 96px;
+	min-height: $hit;
+	padding-left: 11px;
+	padding-right: 11px;
+	border: 1px solid $border;
+	border-radius: $radius;
+	background-color: $surface-inset;
+	color: $text-dim;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 10px;
+}
+
+.store-category:hover {
+	color: $text-main;
+	background-color: $dim-soft;
+}
+
+.store-category.is-active {
+	border-color: $lp-blue;
+	background-color: $accent-soft;
+	color: $text-main;
+}
+
+.store-category > .material-icons {
+	font-size: 16px;
+	color: $lp-blue;
+}
+
+.store-workspace {
+	flex-direction: row;
+	flex-grow: 1;
+	min-height: 0;
+	min-width: 0;
+	gap: $gap-dense;
+	align-items: stretch;
+	overflow: hidden;
+}
+
+.store-catalog {
+	flex-grow: 1;
+	min-height: 0;
+	min-width: 0;
+}
+
+.store-item-list {
+	flex-direction: column;
+	flex-grow: 1;
+	min-height: 0;
+}
+
+.store-item {
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	flex-grow: 1;
+	min-height: 62px;
+	padding: 7px 9px;
+	border-bottom: 1px solid $border;
+	background-color: $surface-inset;
+	color: $text-dim;
+	text-align: left;
+}
+
+.store-item:hover {
+	background-color: $dim-soft;
+}
+
+.store-item.is-selected {
+	background-color: $accent-soft;
+}
+
+.store-item-icon {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 38px;
+	height: 38px;
+	flex-shrink: 0;
+	border-radius: $radius;
+	background-color: $card-header;
+	color: $lp-blue;
+}
+
+.store-item-icon > .material-icons {
+	font-size: 20px;
+}
+
+.store-item-copy {
+	flex-grow: 1;
+	min-width: 0;
+}
+
+.store-item-title {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.store-item-meta {
+	flex-direction: row;
+	align-items: center;
+	gap: 4px;
+	margin-top: auto;
+}
+
+.store-item-price {
+	font-size: 11px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.store-item-status {
+	margin-left: auto;
+	font-size: 7px;
+	font-weight: 700;
+	letter-spacing: 0.5px;
+	color: $text-dim;
+}
+
+.store-item-status.is-owned {
+	color: $good;
+}
+
+.store-item-status.is-available {
+	color: $lp-blue;
+}
+
+.store-detail {
+	width: 266px;
+	min-height: 0;
+	flex-shrink: 0;
+	gap: 7px;
+	padding: 10px;
+}
+
+.store-detail-hero {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.store-detail-icon {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 40px;
+	height: 40px;
+	border-radius: $radius;
+	background-color: $accent-soft;
+	color: $lp-blue;
+}
+
+.store-detail-icon > .material-icons {
+	font-size: 21px;
+}
+
+.store-detail-state {
+	font-size: 8px;
+	font-weight: 700;
+	letter-spacing: 0.7px;
+	color: $lp-blue;
+}
+
+.store-detail-title {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 16px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.store-detail-fields,
+.store-price-summary {
+	margin-left: -10px;
+	margin-right: -10px;
+}
+
+.store-detail-value {
+	font-size: 10px;
+	line-height: 13px;
+	color: $text-main;
+}
+
+.store-price-summary {
+	border-bottom: 1px solid $border;
+}
+
+.store-price-row {
+	justify-content: center;
+}
+
+.store-review {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	min-height: $hit;
+	margin-top: auto;
+	border: 1px solid $border;
+	border-radius: $radius;
+	background-color: $card-header;
+	color: $text-dim;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 9px;
+	opacity: 0.66;
+}
+
+.store-review > .material-icons {
+	font-size: 15px;
+}
