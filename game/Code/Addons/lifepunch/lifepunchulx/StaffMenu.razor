@@ -1050,6 +1050,20 @@
 	private string _jobFilter = "";
 	private bool _jobDropdownOpen;
 
+	// Same combat lock every other LifePunch menu takes (LpHashdPanel, LpBitcoinTerminalPanel,
+	// LpPlayerHubRoot): while the console is open a UI click must not fire the held weapon,
+	// USE a world entity, or slot-switch. Without this the ULX menu was the ONE LifePunch
+	// surface where clicking "Kick" could also discharge a shotgun.
+	protected override void OnEnabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuOpened();
+	}
+
+	protected override void OnDisabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuClosed();
+	}
+
 	protected override void OnStart()
 	{
 		_uiScale = StaffMenuHost.SavedUiScale;
