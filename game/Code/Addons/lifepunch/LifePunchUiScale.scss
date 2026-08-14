@@ -1,0 +1,52 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// LifePunch UI scale (S / M / L / XL) — shared shell dimensions + layout law.
+//
+// CANON: lifepunch-ui-scale.mdc + flex-scroll utilities in LifePunchUiShell.scss
+//
+// Scale law (hub/admin menus):
+//   • Each lp-ui-size-* step ONLY changes outer shell width/height.
+//   • Do NOT nest tab/sidebar/pane overrides under &.lp-ui-size-* .shell { … } —
+//     s&box silently drops SCSS rules nested 4+ selectors deep.
+//   • Do NOT change font-size on the shell for hub/admin panels — fixed px chrome
+//     (buttons, sidebars) will desync from text. CRT terminals (.lp-ops-crt) may
+//     scale font-size because the whole console is monospace + scrollback-driven.
+//
+// Flex-scroll law (required whenever lp-ui-size-* is offered):
+//   • Shell: flex column, overflow hidden, fixed footer/header slots flex-shrink 0.
+//   • Body/workspace: flex 1 1 0, min-height 0, overflow hidden.
+//   • Tab lists / panes: flex 1 1 auto, min-height 0, overflow-y scroll (.lp-ui-scroll).
+//   • Wheel scroll only — LifePunchUiScrollPolicy disables Panel.CanDragScroll on menu trees.
+//
+// Per-panel shell overrides:
+//   • CRT terminals — .lp-ops-crt (below)
+//   • Bitcoin hub — LpHashdPanel.razor.scss (.lp-bitcoin-ops)
+//   • ULX staff menu — StaffMenu.razor.scss (.lifepunchulx)
+// ─────────────────────────────────────────────────────────────────────────────
+
+.lp-ops-crt {
+	&.lp-ui-size-s .shell {
+		width: 736px;
+		height: 448px;
+		font-size: 12px;
+	}
+
+	&.lp-ui-size-m .shell {
+		width: 920px;
+		height: 560px;
+		font-size: 13px;
+	}
+
+	&.lp-ui-size-l .shell {
+		width: 1012px;
+		height: 616px;
+		font-size: 14px;
+	}
+
+	&.lp-ui-size-xl .shell {
+		width: 1150px;
+		height: 700px;
+		font-size: 15px;
+	}
+}
