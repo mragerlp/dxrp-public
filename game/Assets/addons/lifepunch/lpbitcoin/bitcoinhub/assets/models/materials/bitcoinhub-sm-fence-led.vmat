@@ -1,0 +1,20 @@
+// LifePunch bitcoinhub — Steam Machine fence LEDs (self-illum mask, runtime g_flSelfIllumScale)
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	F_SPECULAR 1
+	F_SELF_ILLUM 1
+
+	TextureColor "addons/lifepunch/lpbitcoin/bitcoinhub/assets/textures/sm_fence_led_mat_BaseColor-sm_fence_led_mat_Alpha.png"
+	TextureNormal "addons/lifepunch/lpbitcoin/bitcoinhub/assets/textures/sm_fence_led_mat_Normal.png"
+	TextureRoughness "addons/lifepunch/lpbitcoin/bitcoinhub/assets/textures/sm_fence_led_mat_Metallic-sm_fence_led_mat_Roughness@channel.png"
+
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+
+	g_flSelfIllumScale "0.000"
+	g_vSelfIllumTint "[0.150000 1.000000 0.450000 0.000000]"
+	TextureSelfIllumMask "addons/lifepunch/lpbitcoin/bitcoinhub/assets/textures/sm_fence_led_mat_Emissive.png"
+}

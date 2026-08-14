@@ -1,0 +1,41 @@
+{
+  "schemaVersion": 2,
+  "product": {
+    "displayName": "GPU Rack",
+    "entitySlug": "gpurack",
+    "package": "lpbitcoin"
+  },
+  "models": [
+    {
+      "displayName": "GPU rack (single)",
+      "slug": "gpurack",
+      "sourceFbx": "assets/source/fbx/gpurack.fbx",
+      "targetModel": "assets/models/gpurack.vmdl",
+      "targetPrefab": "assets/entities/gpurack.prefab",
+      "importScale": 0.72,
+      "importRotation": [0, 90, 0]
+    },
+    {
+      "displayName": "GPU rack (stacked farm)",
+      "slug": "advancedgpurack",
+      "sourceFbx": "assets/source/fbx/advancedgpurack.fbx",
+      "staticObj": "assets/source/GPU_Farm_Static.obj",
+      "targetModel": "assets/models/advancedgpurack.vmdl",
+      "targetPrefab": "assets/entities/advancedgpurack.prefab",
+      "importScale": 0.72,
+      "importRotation": [0, 90, 0]
+    }
+  ],
+  "materials": [
+    { "name": "gpu-rack-cord", "fbxSlot": "Cord", "vmat": "assets/models/materials/gpu-rack-cord.vmat", "textures": "assets/textures/Wires/" },
+    { "name": "gpu-rack-psu", "fbxSlot": "PSU", "vmat": "assets/models/materials/gpu-rack-psu.vmat", "textures": "assets/textures/Power_Supply/" },
+    { "name": "gpu-rack-rack", "fbxSlot": "Rack", "vmat": "assets/models/materials/gpu-rack-rack.vmat", "textures": "assets/textures/GPU_Rack/" },
+    { "name": "gpu-rack-motherboard", "fbxSlot": "Motherboard", "vmat": "assets/models/materials/gpu-rack-motherboard.vmat", "textures": "assets/textures/Motherboard/" },
+    { "name": "gpu-rack-gpu", "fbxSlot": "GPU", "vmat": "assets/models/materials/gpu-rack-gpu.vmat", "textures": "assets/textures/GPU_GraphicsCard/" }
+  ],
+  "modelDoc": {
+    "useGlobalDefault": true,
+    "note": "KV3 true compiles full body; per-slot remaps still bind ship vmats. Compile gpurack.vmdl + advancedgpurack.vmdl only — not gpu-rack*.vmdl.",
+    "extraRemaps": ["Wires_Cord", "GPU_GraphicsCard", "PSU_Power", "Rack_Frame", "Motherboard_Base", "FanBlades.*", "GPU_Fan_*"]
+  }
+}

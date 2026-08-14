@@ -1,0 +1,32 @@
+// LIFEPUNCH lpbitcoin — HASHD terminal monitor (4K TGA source — compile in ModelDoc).
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	F_METALNESS_TEXTURE 1
+	F_SPECULAR 1
+	F_SELF_ILLUM 1
+	F_SELF_ILLUM_FRESNEL 0
+
+	g_flAmbientOcclusionDirectDiffuse "0.000"
+	g_flAmbientOcclusionDirectSpecular "0.000"
+	TextureAmbientOcclusion "addons/lifepunch/lpbitcoin/hashdterminal/assets/textures/monitor_ao.tga"
+
+	g_vColorTint "[0.15 0.13 0.10 1.000]"
+	TextureColor "addons/lifepunch/lpbitcoin/hashdterminal/assets/textures/monitor_color.tga"
+
+	g_flFadeExponent "1.000"
+	g_bFogEnabled "1"
+
+	TextureMetalness "addons/lifepunch/lpbitcoin/hashdterminal/assets/textures/monitor_metallic.tga"
+
+	TextureNormal "addons/lifepunch/lpbitcoin/hashdterminal/assets/textures/monitor_normal.tga"
+
+	g_flRoughnessScaleFactor "1.000"
+	TextureRoughness "addons/lifepunch/lpbitcoin/hashdterminal/assets/textures/monitor_roughness.tga"
+
+	g_vSelfIllumTint "[0.94 0.65 0.00 1.000]"
+	g_flSelfIllumScale "0.350"
+	TextureSelfIllumMask "addons/lifepunch/lpbitcoin/hashdterminal/assets/textures/monitor_emissive.tga"
+}

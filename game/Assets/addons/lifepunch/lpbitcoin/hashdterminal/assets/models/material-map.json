@@ -1,0 +1,47 @@
+{
+  "schemaVersion": 1,
+  "product": {
+    "displayName": "HASHD Terminal",
+    "entitySlug": "hashdterminal",
+    "package": "lpbitcoin"
+  },
+  "model": {
+    "displayName": "HASHD terminal",
+    "slug": "hashdterminal",
+    "activeSource": "assets/source/fbx/hashdterminal.fbx",
+    "sourceCanonical": "assets/source/fbx/hashdterminal.fbx",
+    "blendArchive": "assets/source/blend/hashd-terminal.blend",
+    "ownerDrop": "Desktop/addon test/addons/lifepunch/lpbitcoin/hashdterminal/assets/source/HASHDTerminal.{blend,fbx}",
+    "targetModel": "assets/models/hashdterminal.vmdl",
+    "targetPrefab": "assets/entities/hashdterminal.prefab",
+    "importScale": 0.286,
+    "notes": "Greenfield HASHDTerminal export (Jun 2026). Entity slug = FBX = vmdl = prefab (hashdterminal.*). Compile hashdterminal.vmdl_c only."
+  },
+  "materials": [
+    {
+      "name": "hashd-terminal-monitor",
+      "fbxSlot": "Monitor",
+      "targetMaterial": "assets/models/materials/hashd-terminal-monitor.vmat",
+      "channels": {
+        "baseColor": "assets/textures/monitor_color.tga",
+        "normal": "assets/textures/monitor_normal.tga",
+        "metallic": "assets/textures/monitor_metallic.tga",
+        "roughness": "assets/textures/monitor_roughness.tga",
+        "emissive": "assets/textures/monitor_emissive.tga",
+        "ao": "assets/textures/monitor_ao.tga"
+      }
+    },
+    {
+      "name": "hashd-terminal-keyboard",
+      "fbxSlot": "Keyboard_mause",
+      "targetMaterial": "assets/models/materials/hashd-terminal-keyboard.vmat",
+      "channels": {
+        "baseColor": "assets/textures/keyboard_mause_color.tga",
+        "normal": "assets/textures/keyboard_mause_normal.tga",
+        "metallic": "assets/textures/keyboard_mause_metallic.tga",
+        "roughness": "assets/textures/keyboard_mause_roughness.tga",
+        "ao": "assets/textures/keyboard_mause_ao.tga"
+      }
+    }
+  ]
+}

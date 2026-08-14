@@ -1,0 +1,30 @@
+{
+  "entity": "bitcoinhub",
+  "package": "lpbitcoin",
+  "repoIdent": "bitcoinmining",
+  "promoted": "2026-06-23",
+  "components": [
+    "components/LpBitcoinHubEntity.cs",
+    "components/LpBitcoinHubVisuals.cs",
+    "components/LpBitcoinHubPin.cs",
+    "components/LpBitcoinHubAlert.cs",
+    "components/LpBitcoinHubAlertBridge.cs",
+    "components/LpHashdUiHost.cs",
+    "components/LpBitcoinDevSpawn.cs"
+  ],
+  "ui": [
+    "ui/LpHashdPanel.razor",
+    "ui/LpHashdPanel.razor.scss"
+  ],
+  "sharedFromRepoIdent": [
+    "LpBitcoinIdent.cs",
+    "LpBitcoinPowerLeds.cs",
+    "LpBitcoinUi.cs",
+    "LpOpsCrtTheme.cs",
+    "LpUiScale.cs",
+    "LpUiChrome.scss",
+    "LpUiMenuLayout.scss",
+    "LpUiScale.scss"
+  ],
+  "notes": "Package-wide economy/terminal/rack code remains in Code/Addons/lifepunch/bitcoinmining/ until those entities promote."
+}

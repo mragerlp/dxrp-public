@@ -1,0 +1,65 @@
+﻿{
+    "packageSlug":  "lifepunchbitcoin",
+    "healthScore":  85,
+    "slotCount":  4,
+    "package":  "lpbitcoin",
+    "role":  "Bitcoin mining chain (highest priority)",
+    "totalSizeMB":  799,
+    "generated":  "2026-06-17T00:38:06.3562701-04:00",
+    "slots":  [
+                  {
+                      "fbx":  1,
+                      "textures":  32,
+                      "blend":  1,
+                      "obj":  0,
+                      "sizeMB":  33.41,
+                      "role":  "Advanced GPU Rack (stacked)",
+                      "issues":  [
+                                     "Stacked anim FBX only â€” may need static stacked export from blend"
+                                 ],
+                      "slot":  "advancedgpurack",
+                      "primary_mesh":  "assets/source/fbx/GPU_Farm_Stacked_Anim.fbx"
+                  },
+                  {
+                      "fbx":  1,
+                      "textures":  0,
+                      "blend":  1,
+                      "obj":  0,
+                      "sizeMB":  145.34,
+                      "role":  "Bitcoin HUB (CPU GAMER)",
+                      "issues":  [
+
+                                 ],
+                      "slot":  "bitcoinhub",
+                      "primary_mesh":  "assets/source/fbx/cpu_gamer.fbx"
+                  },
+                  {
+                      "fbx":  0,
+                      "textures":  32,
+                      "blend":  1,
+                      "obj":  1,
+                      "sizeMB":  34.61,
+                      "role":  "GPU Rack (standard)",
+                      "issues":  [
+                                     "Confirm static OBJ vs blend export for ModelDoc body",
+                                     "WARN: primary_mesh is OBJ â€” OK for ModelDoc OBJ import; prefer FBX if Fab provides one"
+                                 ],
+                      "slot":  "gpurack",
+                      "primary_mesh":  "assets/source/obj/GPU_Farm_Static.obj"
+                  },
+                  {
+                      "fbx":  1,
+                      "textures":  22,
+                      "blend":  1,
+                      "obj":  0,
+                      "sizeMB":  585.64,
+                      "role":  "HASHD Terminal",
+                      "issues":  [
+
+                                 ],
+                      "slot":  "hashdterminal",
+                      "primary_mesh":  "assets/source/fbx/PC.fbx"
+                  }
+              ],
+    "priority":  "P0"
+}

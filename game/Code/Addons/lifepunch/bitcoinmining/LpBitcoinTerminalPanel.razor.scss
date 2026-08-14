@@ -1,0 +1,843 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCH Bitcoin Miner for DXRP" (s&box ident: lifepunch.bitcoin · addon ident: bitcoinmining)
+// Bitcoin CRT — gray shell with amber HASHD prompt accents
+// ─────────────────────────────────────────────────────────────────────────────
+
+$hashd-amber: #f0a500;
+$hashd-amber-dim: #c4882a;
+$crt-bg: #0a0a0a;
+$crt-frame-bg: #141414;
+$crt-header-bg: #1c1c1c;
+$crt-sidebar-bg: #101010;
+$crt-border: #2a2a2a;
+$crt-text: #d4d4d4;
+$crt-text-dim: #9a9a9a;
+
+@import "LpUiChrome.scss";
+@import "LpUiScale.scss";
+@import "LpUiMenuLayout.scss";
+@import "LpOpsCrtTerminal.scss";
+@import "../LifePunchUiFooter.razor.scss";
+@import "../LifePunchUiShell.scss";
+
+// Top-level theme selector keeps terminal palette overrides easy to audit.
+.lp-ops-crt {
+	z-index: 100;
+}
+
+.lp-ops-crt.lp-ops-crt--gray {
+	color: $crt-text;
+
+	.shell {
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		overflow: hidden;
+		background-color: rgba(6, 6, 6, 0.98);
+		border: 1px solid #333333;
+		border-radius: 8px 8px 0 0;
+		box-shadow: 0 24px 64px rgba(0, 0, 0, 0.72);
+	}
+
+	.crt-frame {
+		flex: 1 1 0;
+		min-height: 0;
+		background-color: $crt-frame-bg;
+		border: 3px solid #3a3a3a;
+		box-shadow: 0 0 24px rgba(255, 255, 255, 0.04);
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.crt-body {
+		// Positioning context so the PIN/boot overlay spans the full body (sidebar + screen).
+		position: relative;
+		flex: 1 1 0;
+		display: flex;
+		flex-direction: row;
+		min-height: 0;
+		min-width: 0;
+		overflow: hidden;
+	}
+
+	.crt-header {
+		background-color: $crt-header-bg;
+		border-bottom: 1px solid #333333;
+	}
+
+	.crt-header-title {
+		color: $hashd-amber;
+		font-weight: bold;
+		flex-shrink: 0;
+	}
+
+	.sidebar {
+		background-color: $crt-sidebar-bg;
+		border-right: 1px solid $crt-border;
+		color: $crt-text-dim;
+	}
+
+	.sidebar-title,
+	.sidebar-foot {
+		color: #c8c8c8;
+	}
+
+	.sidebar-foot {
+		border-top: 1px solid $crt-border;
+	}
+
+	.log-shell {
+		// .prompt color lives on .hashd-prompt-accent (flat rule below — nested loses to LpOpsCrtTerminal import).
+		flex: 1 1 0;
+		min-height: 0;
+		min-width: 0;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+	}
+
+	.log {
+		flex: 1 1 0;
+		min-height: 0;
+		min-width: 0;
+		cursor: text;
+		padding-right: 4px;
+		pointer-events: all;
+		overflow-x: hidden;
+		overflow-y: scroll;
+		justify-content: flex-start;
+		align-items: flex-start;
+		align-content: flex-start;
+	}
+
+	.log-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		width: 100%;
+		flex: 0 0 auto;
+		flex-grow: 0;
+		flex-shrink: 0;
+		justify-content: flex-start;
+		align-items: flex-start;
+		align-content: flex-start;
+		padding-bottom: 12px;
+	}
+
+	.screen {
+		// Positioning context moved up to .crt-body so the boot/PIN overlay covers the sidebar too.
+		background-color: $crt-bg;
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		min-width: 0;
+		flex: 1 1 0;
+		overflow: hidden;
+		padding: 12px;
+	}
+
+	.log-line {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-start;
+		width: 100%;
+		font-size: inherit;
+		line-height: 1.4;
+		color: $crt-text;
+		flex-shrink: 0;
+		cursor: text;
+		pointer-events: all;
+		white-space: pre-wrap;
+		border: none;
+		background-color: transparent;
+		padding: 0;
+		margin: 0;
+
+		&.dim {
+			color: #8a8a8a;
+		}
+
+		&.ok {
+			color: #b8d4b0;
+		}
+
+		&.err {
+			color: #e07070;
+		}
+
+		&.cmd {
+			color: #ececec;
+		}
+	}
+
+	.prompt-row {
+		border-top: 1px solid $crt-border;
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		margin-top: 8px;
+		padding-top: 8px;
+		cursor: text;
+	}
+
+	.cmd-ref {
+		opacity: 1;
+		color: $crt-text-dim;
+		cursor: pointer;
+		padding: 2px 0;
+		line-height: 1.35;
+
+		&:hover {
+			color: $hashd-amber;
+		}
+
+		&.copied {
+			color: $hashd-amber;
+		}
+	}
+
+	.crt-status-row {
+		color: #7a7a7a;
+	}
+
+	.status-ok {
+		// Power state is not a currency signal — style-native amber, never green (BTC Currency Standard v1).
+		color: $hashd-amber;
+	}
+
+	.status-warn {
+		color: $hashd-amber-dim;
+	}
+
+	.prompt {
+		color: $hashd-amber;
+		font-weight: bold;
+	}
+
+	.cmd-input {
+		color: #ececec;
+		caret-color: $hashd-amber;
+		background-color: transparent;
+		pointer-events: all;
+		cursor: text;
+		flex: 1 1 auto;
+		min-width: 0;
+		border: none;
+		font-family: inherit;
+		font-size: inherit;
+		padding: 4px 0;
+	}
+
+	.boot-splash {
+		position: absolute;
+		left: 0;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		// Full-window scrim + blur so the commands/status sidebar sits UNDER the overlay (blurred), not beside it.
+		background-color: rgba(8, 8, 8, 0.8);
+		backdrop-filter: blur(8px);
+		z-index: 2;
+		gap: 10px;
+		cursor: pointer;
+		pointer-events: all;
+	}
+
+	.boot-mark {
+		width: 96px;
+		height: 96px;
+		background-image: url(/addons/lifepunch/lpbitcoin/bitcoinhub/assets/ui/hashd/btc.png);
+		background-size: contain;
+		background-repeat: no-repeat;
+		background-position: center;
+	}
+
+	.boot-title {
+		color: $hashd-amber;
+		font-size: 13px;
+		letter-spacing: 0.14em;
+	}
+
+	.boot-status {
+		color: #8a8a8a;
+		font-size: 11px;
+		min-height: 14px;
+		letter-spacing: 0.06em;
+	}
+
+	.boot-hint {
+		color: #5a5a5a;
+		font-size: 10px;
+		letter-spacing: 0.08em;
+		margin-top: 8px;
+	}
+
+	// HASHD secure-rig PIN gate — same CRT art as the boot splash, with an amber keypad.
+	.term-pin-gate {
+		cursor: default;
+		gap: 14px;
+	}
+
+	.term-pin-sub {
+		color: #8a8a8a;
+		font-size: 11px;
+		letter-spacing: 0.08em;
+		margin-top: 2px;
+	}
+
+	.term-pin-dots {
+		display: flex;
+		flex-direction: row;
+		gap: 12px;
+		margin-top: 4px;
+	}
+
+	.term-pin-dot {
+		width: 12px;
+		height: 12px;
+		border-radius: 50%;
+		border: 1px solid $hashd-amber-dim;
+		background-color: transparent;
+	}
+
+	.term-pin-dot.filled {
+		background-color: $hashd-amber;
+		border-color: $hashd-amber;
+		box-shadow: 0 0 8px rgba(240, 165, 0, 0.55);
+	}
+
+	.term-pin-error {
+		color: #e0564a;
+		font-size: 11px;
+		letter-spacing: 0.06em;
+		min-height: 14px;
+	}
+
+	.term-pin-pad {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		width: 192px;
+		gap: 10px;
+		margin-top: 4px;
+	}
+
+	.term-pin-key {
+		width: 52px;
+		height: 44px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		font-size: 16px;
+		font-weight: bold;
+		color: $crt-text;
+		background-color: rgba(20, 20, 20, 0.92);
+		border: 1px solid $crt-border;
+		border-radius: 6px;
+		cursor: pointer;
+		pointer-events: all;
+		transition: all 0.08s ease-out;
+	}
+
+	.term-pin-key:hover {
+		border-color: $hashd-amber;
+		color: $hashd-amber;
+		background-color: rgba(36, 28, 8, 0.92);
+	}
+
+	.term-pin-key.ok {
+		color: #0a0a0a;
+		background-color: $hashd-amber;
+		border-color: $hashd-amber;
+	}
+
+	.term-pin-key.ok:hover {
+		background-color: #ffc23a;
+		color: #0a0a0a;
+	}
+
+	.term-pin-key.clr {
+		color: $hashd-amber-dim;
+	}
+
+	.term-pin-key .material-icons {
+		font-size: 18px;
+	}
+}
+
+// Footer overrides stay flat so the terminal palette remains explicit.
+.lp-ops-crt.lp-ops-crt--gray .lp-window-watermark {
+	flex: 0 0 32px;
+	flex-shrink: 0;
+	align-self: stretch;
+	width: 100%;
+	height: 32px;
+	min-height: 32px;
+	max-height: 32px;
+	overflow: hidden;
+	background-color: #060606;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	border-radius: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: stretch;
+}
+
+.lp-ops-crt.lp-ops-crt--gray .lp-window-watermark .lp-source-footer {
+	flex: 1 1 auto;
+	align-self: stretch;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	gap: 10px;
+	width: 100%;
+	min-width: 100%;
+	height: $lp-menu-footer-h;
+	min-height: $lp-menu-footer-h;
+	max-height: $lp-menu-footer-h;
+	padding: 0 16px;
+	border-radius: 0;
+	border-top: none;
+	background-color: #060606;
+	font-family: $lp-menu-mono;
+	font-size: 10px;
+	letter-spacing: 0.5px;
+	overflow: hidden;
+}
+
+.lp-ops-crt.lp-ops-crt--gray .lp-window-watermark .lp-mark {
+	display: flex;
+	align-items: center;
+	flex-shrink: 0;
+	line-height: 1;
+	white-space: nowrap;
+	letter-spacing: 0.06em;
+	color: $hashd-amber;
+}
+
+.lp-ops-crt.lp-ops-crt--gray .lp-window-watermark .lp-url-copy {
+	display: flex;
+	align-items: center;
+	margin-left: auto;
+	padding: 0;
+	border: none;
+	background-color: transparent;
+	color: rgba(255, 255, 255, 0.55);
+	font-family: $lp-menu-mono;
+	font-size: 10px;
+	letter-spacing: 0.5px;
+	line-height: 1;
+	cursor: pointer;
+	text-align: right;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.lp-ops-crt.lp-ops-crt--gray .lp-window-watermark .lp-url-copy:hover {
+	color: #8ec8ff;
+}
+
+.lp-ops-crt.lp-ops-crt--gray .lp-window-watermark .lp-url-copy.copied {
+	color: #8ec8ff;
+}
+
+// Brand + prompt accent — flat only (must match rig@hub> / $hashd-amber).
+.lp-ops-crt.lp-ops-crt--gray .hashd-prompt-accent {
+	color: #f0a500;
+	font-weight: bold;
+}
+
+// CRT chrome — flat (imported LpOpsCrtTerminal nested rules may not compile).
+.lp-ops-crt .crt-frame {
+	flex: 1 1 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.lp-ops-crt .crt-body {
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.lp-ops-crt .screen {
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.lp-ops-crt .log-shell {
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+.lp-ops-crt .log.lp-ui-scroll-region,
+.lp-ops-crt .lp-ui-scroll-region.terminal-log-scroll {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	pointer-events: all;
+	justify-content: flex-start;
+	align-items: stretch;
+	align-content: flex-start;
+}
+
+.lp-ops-crt .log {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	pointer-events: all;
+	justify-content: flex-start;
+	align-items: stretch;
+	align-content: flex-start;
+}
+
+.lp-ops-crt .terminal-log-scroll > .log-stack,
+.lp-ops-crt .log > .log-stack {
+	flex: 0 0 auto;
+	align-self: flex-start;
+	width: 100%;
+	min-height: 0;
+}
+
+.lp-ops-crt .log.lp-ui-scroll-region,
+.lp-ops-crt .lp-ui-scroll-region.terminal-log-scroll {
+	padding-top: 0;
+}
+
+.lp-ops-crt .log-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	width: 100%;
+	flex: 0 0 auto;
+	flex-grow: 0;
+	flex-shrink: 0;
+	justify-content: flex-start;
+	align-items: flex-start;
+	align-content: flex-start;
+	padding-top: 0;
+	padding-bottom: 20px;
+}
+
+.lp-ops-crt.lp-ops-crt--gray .shell {
+	border-radius: 10px 10px 0 0;
+	overflow: hidden;
+}
+
+.lp-ops-crt .crt-header {
+	font-size: 11px;
+	border-top-left-radius: 10px;
+	border-top-right-radius: 10px;
+}
+
+.lp-ops-crt .sidebar {
+	width: $lp-menu-sidebar-w;
+	flex: 0 0 $lp-menu-sidebar-w;
+	flex-shrink: 0;
+	padding: 10px;
+	font-size: 11px;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.lp-ops-crt .sidebar-cmd-list.lp-ui-scroll-region,
+.lp-ops-crt .lp-ui-scroll-region.terminal-sidebar-scroll {
+	flex: 1 1 0;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.lp-ops-crt .sidebar-cmd-list {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	overflow: hidden;
+	padding-bottom: 10px;
+}
+
+.lp-ops-crt .sidebar-title {
+	font-weight: bold;
+	margin-bottom: 8px;
+	flex-shrink: 0;
+}
+
+.lp-ops-crt .sidebar-status {
+	margin-top: auto;
+	padding-top: 10px;
+	border-top: 1px solid $crt-border;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+}
+
+.lp-ops-crt .sidebar-status-title {
+	font-weight: bold;
+	color: #c8c8c8;
+	font-size: 10px;
+	letter-spacing: 0.08em;
+	margin-bottom: 2px;
+}
+
+.lp-ops-crt .sidebar-status-row {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 8px;
+	line-height: 1.4;
+	font-size: 10px;
+}
+
+.lp-ops-crt .sidebar-status-k {
+	color: $crt-text-dim;
+	flex-shrink: 0;
+}
+
+.lp-ops-crt .sidebar-status-v {
+	color: $hashd-amber;
+	text-align: right;
+}
+
+.lp-ops-crt .cmd-ref {
+	opacity: 1;
+	color: $crt-text-dim;
+	cursor: pointer;
+	padding: 3px 0;
+	line-height: 1.45;
+}
+
+.lp-ops-crt.lp-ui-size-s .sidebar {
+	width: $lp-menu-sidebar-w-s;
+	flex: 0 0 $lp-menu-sidebar-w-s;
+	padding: 8px;
+	font-size: 10px;
+}
+
+.lp-ops-crt.lp-ui-size-s .terminal-sidebar-scroll {
+	width: 100%;
+}
+
+.lp-ops-crt.lp-ui-size-s .screen {
+	padding: 8px;
+}
+
+.lp-ops-crt.lp-ui-size-s .crt-header {
+	padding: 6px 10px;
+	font-size: 10px;
+	gap: 8px;
+}
+
+.lp-ops-crt.lp-ui-size-s .boot-mark {
+	width: 72px;
+	height: 72px;
+}
+
+.lp-ops-crt.lp-ui-size-s .lp-window-watermark .lp-source-footer {
+	font-size: 9px;
+	padding: 0 10px;
+}
+
+.lp-ops-crt.lp-ui-size-m .sidebar {
+	width: $lp-menu-sidebar-w-m;
+	flex: 0 0 $lp-menu-sidebar-w-m;
+}
+
+.lp-ops-crt.lp-ui-size-m .screen {
+	padding: 10px;
+}
+
+.lp-ops-crt.lp-ui-size-l .sidebar {
+	width: $lp-menu-sidebar-w-l;
+	flex: 0 0 $lp-menu-sidebar-w-l;
+}
+
+.lp-ops-crt.lp-ui-size-l .screen {
+	padding: 12px;
+}
+
+.lp-ops-crt.lp-ui-size-l .crt-header {
+	padding: 8px 12px;
+	font-size: 11px;
+}
+
+.lp-ops-crt.lp-ui-size-xl .sidebar {
+	width: $lp-menu-sidebar-w-xl;
+	flex: 0 0 $lp-menu-sidebar-w-xl;
+}
+
+.lp-ops-crt.lp-ui-size-xl .screen {
+	padding: 14px;
+}
+
+.lp-ops-crt.lp-ui-size-xl .crt-header {
+	padding: 10px 14px;
+	font-size: 12px;
+	gap: 14px;
+}
+
+.lp-ops-crt.lp-ui-size-xl .boot-mark {
+	width: 108px;
+	height: 108px;
+}
+
+.lp-ops-crt.lp-ui-size-xl .lp-window-watermark .lp-source-footer {
+	font-size: 11px;
+	padding: 0 18px;
+}
+
+.lp-ops-crt .status-dim {
+	color: $crt-text-dim;
+}
+
+.lp-terminal-settings-menu {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+}
+
+.lp-terminal-settings-dropdown {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	min-width: 260px;
+	max-width: 340px;
+	max-height: 360px;
+	padding: 8px;
+	border-radius: 8px;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	background-color: rgba(12, 14, 18, 0.98);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+	z-index: 20;
+	overflow: hidden;
+}
+
+.lp-terminal-settings-title {
+	padding: 4px 8px 8px;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	color: #8b95a8;
+	text-transform: uppercase;
+}
+
+.lp-terminal-settings-empty {
+	padding: 8px 10px 10px;
+	font-size: 11px;
+	line-height: 1.45;
+	color: $crt-text-dim;
+}
+
+.lp-terminal-settings-racks {
+	flex: 1 1 0;
+	min-height: 0;
+	max-height: 240px;
+	overflow-y: scroll;
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding: 0 2px 4px;
+}
+
+.lp-terminal-settings-rack-row {
+	padding: 8px 10px;
+	border-radius: 6px;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background-color: rgba(255, 255, 255, 0.03);
+}
+
+.lp-terminal-settings-rack-row.selected {
+	border-color: rgba(240, 165, 0, 0.35);
+	background-color: rgba(240, 165, 0, 0.08);
+}
+
+.lp-terminal-settings-rack-head {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	margin-bottom: 4px;
+}
+
+.lp-terminal-settings-rack-name {
+	font-size: 12px;
+	font-weight: 700;
+	color: $crt-text;
+}
+
+.lp-terminal-settings-rack-state {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+	text-transform: uppercase;
+	flex-shrink: 0;
+}
+
+.lp-terminal-settings-rack-sub {
+	font-size: 10px;
+	line-height: 1.35;
+	color: $crt-text-dim;
+}
+
+.lp-terminal-settings-actions {
+	margin-top: 8px;
+	padding-top: 8px;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lp-terminal-settings-clear-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	height: 32px;
+	padding: 0 12px;
+	border-radius: 6px;
+	border: 1px solid rgba(228, 0, 43, 0.35);
+	background-color: rgba(228, 0, 43, 0.08);
+	color: #f5b8c2;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	cursor: pointer;
+
+	&:hover {
+		background-color: rgba(228, 0, 43, 0.18);
+		border-color: rgba(228, 0, 43, 0.55);
+		color: #ffd6dc;
+	}
+}

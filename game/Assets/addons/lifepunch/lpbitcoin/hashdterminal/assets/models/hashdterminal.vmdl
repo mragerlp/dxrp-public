@@ -1,0 +1,73 @@
+<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d} format:modeldoc30:version{8c2d7a91-9c42-4bf0-883a-5a3b1762d4f1} -->
+{
+	rootNode = 
+	{
+		_class = "RootNode"
+		children = 
+		[
+			{
+				_class = "MaterialGroupList"
+				children = 
+				[
+					{
+						_class = "DefaultMaterialGroup"
+						remaps = 
+						[
+							{
+								from = "Monitor"
+								to = "addons/lifepunch/lpbitcoin/hashdterminal/assets/models/materials/hashd-terminal-monitor.vmat"
+							},
+							{
+								from = "Keyboard_mause"
+								to = "addons/lifepunch/lpbitcoin/hashdterminal/assets/models/materials/hashd-terminal-keyboard.vmat"
+							},
+							{
+								from = "Keyboard"
+								to = "addons/lifepunch/lpbitcoin/hashdterminal/assets/models/materials/hashd-terminal-keyboard.vmat"
+							},
+						]
+						use_global_default = false
+						global_default_material = "addons/lifepunch/lpbitcoin/hashdterminal/assets/models/materials/hashd-terminal-keyboard.vmat"
+					},
+				]
+			},
+			{
+				_class = "PhysicsShapeList"
+				children = 
+				[
+					{
+						_class = "PhysicsHullFromRender"
+						parent_bone = ""
+						surface_prop = "metal"
+						collision_tags = "solid"
+						faceMergeAngle = 20.0
+						maxHullVertices = 32
+						hull_mode = "HullPerElement"
+					},
+				]
+			},
+			{
+				_class = "RenderMeshList"
+				children = 
+				[
+					{
+						_class = "RenderMeshFile"
+						name = "LOD0"
+						filename = "addons/lifepunch/lpbitcoin/hashdterminal/assets/source/fbx/hashdterminal.fbx"
+						import_translation = [ 0.0, 0.0, 0.0 ]
+						import_rotation = [ 0.0, 0.0, 0.0 ]
+						import_scale = 0.286
+						align_origin_x_type = "Center"
+						align_origin_y_type = "Center"
+						align_origin_z_type = "Bottom"
+						parent_bone = ""
+					},
+				]
+			},
+		]
+		model_archetype = ""
+		primary_associated_entity = "prop_dynamic"
+		anim_graph_name = ""
+		base_model_name = ""
+	}
+}

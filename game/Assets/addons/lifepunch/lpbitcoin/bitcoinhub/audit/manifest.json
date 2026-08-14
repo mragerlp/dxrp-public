@@ -1,0 +1,11 @@
+{
+    "slot":  "bitcoinhub",
+    "primary_mesh":  "assets/source/fbx/steam-machine.fbx",
+    "prefab":  "assets/entities/bitcoinhub.prefab",
+    "vmdl":  "assets/models/bitcoinhub.vmdl",
+    "role":  "Bitcoin HUB (Steam Machine)",
+    "notes":  [
+                  "Jun 2026 promotion — canonical path is lpbitcoin/bitcoinhub"
+              ],
+    "promotedFrom":  "bitcoinmining/models/.../bitcoin-miner"
+}

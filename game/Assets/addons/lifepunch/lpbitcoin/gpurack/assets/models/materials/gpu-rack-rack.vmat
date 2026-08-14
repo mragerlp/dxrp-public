@@ -1,0 +1,27 @@
+// LIFEPUNCH lpbitcoin — GPU rack frame + cooling fans.
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	F_METALNESS_TEXTURE 1
+	F_SPECULAR 1
+
+	g_flAmbientOcclusionDirectDiffuse "0.000"
+	g_flAmbientOcclusionDirectSpecular "0.000"
+	TextureAmbientOcclusion "addons/lifepunch/lpbitcoin/gpurack/assets/textures/GPU_Rack/Rack_AO.png"
+
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+	TextureColor "addons/lifepunch/lpbitcoin/gpurack/assets/textures/GPU_Rack/Rack_BaseColor.png"
+
+	g_flFadeExponent "1.000"
+	g_bFogEnabled "1"
+
+	TextureMetalness "addons/lifepunch/lpbitcoin/gpurack/assets/textures/GPU_Rack/Rack_Metallic.png"
+
+	TextureNormal "addons/lifepunch/lpbitcoin/gpurack/assets/textures/GPU_Rack/Rack_Normal_GL.png"
+
+	g_flRoughnessScaleFactor "1.000"
+	TextureRoughness "addons/lifepunch/lpbitcoin/gpurack/assets/textures/GPU_Rack/Rack_Roughness.png"
+}

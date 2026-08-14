@@ -5,7 +5,7 @@
   "Ident": "rp",
   "Schema": 1,
   "IncludeSourceFiles": false,
-  "Resources": "ui/*\ngameplay/entities/jobs/mayor/gun_license/gun_license.png\naddons/lifepunch/playerhub/**",
+  "Resources": "ui/*\ngameplay/entities/jobs/mayor/gun_license/gun_license.png\naddons/lifepunch/playerhub/**\naddons/lifepunch/lpbitcoin/**",
   "PackageReferences": [],
   "EditorReferences": null,
   "Mounts": null,

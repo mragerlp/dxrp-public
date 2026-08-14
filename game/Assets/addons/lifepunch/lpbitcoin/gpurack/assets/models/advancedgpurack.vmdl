@@ -1,0 +1,190 @@
+<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d} format:modeldoc30:version{8c2d7a91-9c42-4bf0-883a-5a3b1762d4f1} -->
+{
+	rootNode = 
+	{
+		_class = "RootNode"
+		children = 
+		[
+			{
+				_class = "MaterialGroupList"
+				children = 
+				[
+					{
+						_class = "DefaultMaterialGroup"
+						remaps = 
+						[
+							{
+								from = "cord.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-cord.vmat"
+							},
+							{
+								from = "psu.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-psu.vmat"
+							},
+							{
+								from = "rack.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "motherboard.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-motherboard.vmat"
+							},
+							{
+								from = "gpu.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-gpu.vmat"
+							},
+							{
+								from = "wires_cord.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-cord.vmat"
+							},
+							{
+								from = "gpu_graphicscard.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-gpu.vmat"
+							},
+							{
+								from = "psu_power.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-psu.vmat"
+							},
+							{
+								from = "rack_frame.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "motherboard_base.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-motherboard.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "fanblades.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+							},
+							{
+								from = "gpu_fan_1.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-gpu.vmat"
+							},
+							{
+								from = "gpu_fan_2.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-gpu.vmat"
+							},
+							{
+								from = "gpu_fan_3.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-gpu.vmat"
+							},
+							{
+								from = "gpu_fan_4.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-gpu.vmat"
+							},
+							{
+								from = "gpu_fan_5.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-gpu.vmat"
+							},
+							{
+								from = "gpu_fan_6.vmat"
+								to = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-gpu.vmat"
+							},
+						]
+						use_global_default = false
+						global_default_material = "addons/lifepunch/lpbitcoin/gpurack/assets/models/materials/gpu-rack-rack.vmat"
+					},
+				]
+			},
+			{
+				_class = "PhysicsShapeList"
+				children = 
+				[
+					{
+						_class = "PhysicsHullFromRender"
+						parent_bone = ""
+						surface_prop = "metal"
+						collision_tags = "solid"
+						faceMergeAngle = 20.0
+						maxHullVertices = 32
+						hull_mode = "HullPerElement"
+					},
+				]
+			},
+			{
+				_class = "RenderMeshList"
+				children = 
+				[
+					{
+						_class = "RenderMeshFile"
+						name = "LOD0"
+						filename = "addons/lifepunch/lpbitcoin/gpurack/assets/source/fbx/advancedgpurack.fbx"
+						import_translation = [ -1.389, -0.208, 27.681999 ]
+						import_rotation = [ 0.0, 90.0, 0.0 ]
+						import_scale = 0.72
+						align_origin_x_type = "None"
+						align_origin_y_type = "None"
+						align_origin_z_type = "None"
+						parent_bone = ""
+						import_filter = 
+						{
+							exclude_by_default = false
+							exception_list = [  ]
+						}
+					},
+				]
+			},
+		]
+		model_archetype = ""
+		primary_associated_entity = "prop_dynamic"
+		anim_graph_name = ""
+		base_model_name = ""
+	}
+}

@@ -1,0 +1,108 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCH Bitcoin Miner for DXRP" (s&box ident: lifepunch.bitcoin · addon ident: bitcoinmining)
+// Shared menu/CRT layout tokens — header rows, footer strip, scroll slots (s&box-safe flex only).
+// ─────────────────────────────────────────────────────────────────────────────
+
+$lp-menu-footer-h: 32px;
+$lp-menu-header-pad-y: 8px;
+$lp-menu-header-pad-x: 12px;
+$lp-menu-header-gap: 12px;
+$lp-menu-body-pad: 12px;
+$lp-menu-sidebar-w: 180px;
+$lp-menu-sidebar-w-m: 156px;
+$lp-menu-sidebar-w-s: 132px;
+$lp-menu-sidebar-w-l: 168px;
+$lp-menu-sidebar-w-xl: 180px;
+$lp-menu-mono: "Roboto Mono", "Courier New", monospace;
+
+// CRT / ops header — title | status | chrome actions on one row.
+.lp-ops-crt .crt-header {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	padding: $lp-menu-header-pad-y $lp-menu-header-pad-x;
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	gap: $lp-menu-header-gap;
+	flex-shrink: 0;
+	min-height: 0;
+	min-width: 0;
+}
+
+.lp-ops-crt .crt-header-title {
+	flex: 0 0 auto;
+	flex-shrink: 0;
+	white-space: nowrap;
+	line-height: 1.2;
+}
+
+.lp-ops-crt .crt-status-row {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 6px 12px;
+	line-height: 1.35;
+	white-space: nowrap;
+}
+
+.lp-ops-crt .lp-ui-chrome-actions {
+	flex: 0 0 auto;
+	flex-shrink: 0;
+}
+
+// Terminal log — top-aligned flex scroll + manual wheel (LifePunchScrollRegionPanel).
+.lp-ops-crt .log.lp-ui-scroll-region,
+.lp-ops-crt .lp-ui-scroll-region.terminal-log-scroll {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	pointer-events: all;
+	justify-content: flex-start;
+	align-items: stretch;
+	align-content: flex-start;
+}
+
+.lp-ops-crt .terminal-log-scroll > .log-stack {
+	flex: 0 0 auto;
+	align-self: flex-start;
+	width: 100%;
+}
+
+.lp-ops-crt .lp-ui-scroll-region.terminal-sidebar-scroll {
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .lp-ui-scroll-region.overview-miners-scroll,
+.lp-bitcoin-ops .lp-ui-scroll-region.racks-scroll,
+.lp-bitcoin-ops .lp-ui-scroll-region.upgrades-scroll,
+.lp-bitcoin-ops .lp-ui-scroll-region.logs-scroll {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+.lp-ops-crt .terminal-sidebar-scroll {
+	width: 100%;
+	flex: 1 1 0;
+}

@@ -1,0 +1,54 @@
+{
+    "SelectionMode":  "Random",
+    "DistanceAttenuation":  true,
+    "UI":  false,
+    "Volume":  "1",
+    "Sounds":  [
+                   "addons/lifepunch/lpbitcoin/bitcoinhub/assets/sounds/bitcoinminer/hub-fan-down.vsnd"
+               ],
+    "Transmission":  true,
+    "Pitch":  "1",
+    "AirAbsorption":  true,
+    "Decibels":  44,
+    "Falloff":  [
+                    {
+                        "y":  1,
+                        "out":  -1.8,
+                        "in":  0,
+                        "mode":  "Mirrored",
+                        "x":  0
+                    },
+                    {
+                        "y":  0.22,
+                        "out":  -3.5,
+                        "in":  3.5,
+                        "mode":  "Mirrored",
+                        "x":  0.05
+                    },
+                    {
+                        "y":  0.04,
+                        "out":  -0.16,
+                        "in":  0.16,
+                        "mode":  "Mirrored",
+                        "x":  0.2
+                    },
+                    {
+                        "y":  0,
+                        "out":  0,
+                        "in":  0,
+                        "mode":  "Mirrored",
+                        "x":  1
+                    }
+                ],
+    "__version":  1,
+    "Occlusion":  true,
+    "Distance":  15000,
+    "OcclusionRadius":  64,
+    "__references":  [
+
+                     ],
+    "DefaultMixer":  {
+                         "Id":  "00000000-0000-0000-0000-000000000000",
+                         "Name":  "unknown"
+                     }
+}
