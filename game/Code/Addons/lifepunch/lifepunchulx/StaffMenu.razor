@@ -83,9 +83,9 @@
 						</div>
 						<div class="audit-filter audit-filter-action">
 							<button type="button" class="audit-action-btn" onclick="@ToggleAuditActions">
-								@if ( !string.IsNullOrEmpty( _auditAction ) )
+								@if ( _auditActions.Count > 0 )
 								{
-									<span class="@ActionPillClass( _auditAction )">@_auditAction</span>
+									<span class="@ActionPillClass( _auditActions[0] )">@AuditActionSummary()</span>
 								}
 								else
 								{
@@ -93,7 +93,7 @@
 								}
 								<i class="material-icons job-chevron">@(_auditActionOpen ? "expand_less" : "expand_more")</i>
 							</button>
-							@if ( !string.IsNullOrEmpty( _auditAction ) )
+							@if ( _auditActions.Count > 0 )
 							{
 								<button class="icon-btn" tooltip="Clear action" onclick="@ClearAuditAction"><i class="material-icons">close</i></button>
 							}
@@ -104,7 +104,7 @@
 									<div class="lp-ui-scroll-region audit-action-cloud">
 										@foreach ( var name in FilteredAuditActions() )
 										{
-											<button type="button" class="@ActionPillClass( name )" onclick="@(() => SetAuditAction( name ))">@name</button>
+											<button type="button" class="@AuditActionFilterPillClass( name )" onclick="@(() => ToggleAuditAction( name ))">@name</button>
 										}
 									</div>
 								</div>
@@ -127,7 +127,7 @@
 				</div>
 
 				@{
-					var entries = StaffMenuHost.GetAuditEntries( _auditPlayerId, _auditEntity, false, _auditAction );
+					var entries = StaffMenuHost.GetAuditEntries( _auditPlayerId, _auditEntity, false, _auditActions );
 					// The ring holds up to 500 rows; rendering them all builds ~2500 panels per
 					// rebuild and drags the whole menu. Newest-first cap — the portal pages at 10,
 					// so 200 is already deep history; filters reach anything older.
@@ -1062,7 +1062,8 @@
 	private const int AuditDisplayCap = 200;
 	private string _auditPlayerId = "";
 	private string _auditEntity = "";
-	private string _auditAction = "";
+	private readonly List<string> _auditActions = new();
+	private int _auditActionsVersion;
 	private string _auditActionSearch = "";
 	private bool _auditActionOpen;
 
@@ -1621,6 +1622,17 @@
 	private static string ActionPillClass( string action )
 		=> StaffMenuHost.AuditActionTone( action );
 
+	private bool IsAuditActionSelected( string action )
+		=> _auditActions.Any( selected => selected.Equals( action, StringComparison.OrdinalIgnoreCase ) );
+
+	private string AuditActionFilterPillClass( string action )
+		=> $"{ActionPillClass( action )}{(IsAuditActionSelected( action ) ? " is-active" : "")}";
+
+	private string AuditActionSummary()
+		=> _auditActions.Count == 1
+			? _auditActions[0]
+			: $"{_auditActions[0]} +{_auditActions.Count - 1}";
+
 	private IEnumerable<string> FilteredAuditActions()
 	{
 		var query = _auditActionSearch?.Trim() ?? "";
@@ -1639,16 +1651,32 @@
 		StateHasChanged();
 	}
 
-	private void SetAuditAction( string action )
+	private void ToggleAuditAction( string action )
 	{
-		_auditAction = action ?? "";
-		_auditActionOpen = false;
+		if ( string.IsNullOrWhiteSpace( action ) )
+		{
+			return;
+		}
+
+		var index = _auditActions.FindIndex( selected =>
+			selected.Equals( action, StringComparison.OrdinalIgnoreCase ) );
+		if ( index >= 0 )
+		{
+			_auditActions.RemoveAt( index );
+		}
+		else
+		{
+			_auditActions.Add( action );
+		}
+
+		_auditActionsVersion++;
 		StateHasChanged();
 	}
 
 	private void ClearAuditAction()
 	{
-		_auditAction = "";
+		_auditActions.Clear();
+		_auditActionsVersion++;
 		_auditActionSearch = "";
 		_auditActionOpen = false;
 		StateHasChanged();
@@ -1676,7 +1704,8 @@
 	{
 		_auditPlayerId = steamId.ToString();
 		_auditEntity = "";
-		_auditAction = "";
+		_auditActions.Clear();
+		_auditActionsVersion++;
 		_auditActionSearch = "";
 		_auditActionOpen = false;
 		_activeTab = TabAudit;
@@ -1915,7 +1944,7 @@
 				HashCode.Combine( _destination, _grantConfirm ),
 				HashCode.Combine( _reason, _duration, _amount, _name, _job, _jobFilter, _jobDropdownOpen ),
 				HashCode.Combine(
-					HashCode.Combine( _auditPlayerId, _auditEntity, _auditAction, _auditActionSearch, _auditActionOpen ),
+					HashCode.Combine( _auditPlayerId, _auditEntity, _auditActionsVersion, _auditActionSearch, _auditActionOpen ),
 					HashCode.Combine( _websiteDraft, _websiteCopied, _websiteSaved, _steamIdCopied, _currentCopied, StaffMenuHost.SettingsVersion ) ),
 				HashCode.Combine( _waypointName, StaffMenuHost.WaypointVersion, _returnSteamId, _wpPendingDelete, StaffMenuHost.SanctionsVersion ) ),
 			HashCode.Combine( _uiScale, _detailHash ) );

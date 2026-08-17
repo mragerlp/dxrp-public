@@ -752,8 +752,8 @@ internal static class StaffMenuHost
 	/// <summary>
 	/// Audit entries for the viewer, newest first, pre-filtered like the live portal Audit page:
 	/// Player ID, Actions dropdown, Entity ID. <paramref name="playerId"/> matches SteamID64 or
-	/// actor name (<c>system</c> for server/automated entries). <paramref name="action"/> is an
-	/// exact action-name match when set.
+	/// actor name (<c>system</c> for server/automated entries). <paramref name="actions"/> is an
+	/// exact, case-insensitive action-name set when populated; null or empty means all actions.
 	///
 	/// Mirrors the portal's <c>GET /v1/audit/events</c> (pageIndex/pageSize, Bearer, tenant-scoped).
 	/// Editor build returns a representative stub set so the whole UX renders and filters live. The
@@ -761,14 +761,15 @@ internal static class StaffMenuHost
 	/// <c>ServerApiClient.Audit</c>). Remote GET remains unbound (TECH_DEBT STAFF-07).
 	/// </summary>
 	public static IReadOnlyList<StaffAuditEntry> GetAuditEntries(
-		string playerId, string entityId, bool matchDescription = false, string action = null )
+		string playerId, string entityId, bool matchDescription = false,
+		IReadOnlyCollection<string> actions = null )
 	{
 #if LIFEPUNCH_LOCAL
 		var source = AuditStub();
 #else
 		var source = ReadLocalAuditEntries();
 #endif
-		return FilterAudit( source, playerId, entityId, matchDescription, action );
+		return FilterAudit( source, playerId, entityId, matchDescription, actions );
 	}
 
 #if !LIFEPUNCH_LOCAL
@@ -811,11 +812,22 @@ internal static class StaffMenuHost
 		string playerId,
 		string entityId,
 		bool matchDescription = false,
-		string action = null )
+		IReadOnlyCollection<string> actions = null )
 	{
 		var player = playerId?.Trim() ?? "";
 		var entity = entityId?.Trim() ?? "";
-		var act = action?.Trim() ?? "";
+		var selectedActions = new HashSet<string>( System.StringComparer.OrdinalIgnoreCase );
+		if ( actions is not null )
+		{
+			foreach ( var action in actions )
+			{
+				var normalized = action?.Trim() ?? "";
+				if ( normalized.Length > 0 )
+				{
+					selectedActions.Add( normalized );
+				}
+			}
+		}
 
 		return source.Where( e =>
 		{
@@ -837,8 +849,8 @@ internal static class StaffMenuHost
 				return false;
 			}
 
-			if ( act.Length > 0
-			     && !e.Action.Equals( act, System.StringComparison.OrdinalIgnoreCase ) )
+			if ( selectedActions.Count > 0
+			     && !selectedActions.Contains( e.Action ) )
 			{
 				return false;
 			}

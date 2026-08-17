@@ -1865,6 +1865,10 @@ $tone-gold: #a16207;
 		cursor: pointer;
 	}
 
+	.audit-action-cloud .is-active {
+		box-shadow: 0 0 0 2px $text;
+	}
+
 	.action-pill-teal { background-color: $tone-teal; }
 	.action-pill-maroon { background-color: $tone-maroon; }
 	.action-pill-purple { background-color: $tone-purple; }
