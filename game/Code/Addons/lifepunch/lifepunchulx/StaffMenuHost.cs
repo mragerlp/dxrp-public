@@ -708,6 +708,7 @@ internal static class StaffMenuHost
 		if ( action.Equals( "WalletDeposit", System.StringComparison.OrdinalIgnoreCase ) ) return "action-pill-maroon";
 		if ( action.Equals( "Chat", System.StringComparison.OrdinalIgnoreCase ) ) return "action-pill-purple";
 		if ( action.Equals( "SetHealth", System.StringComparison.OrdinalIgnoreCase ) ) return "action-pill-blue";
+		if ( action.Equals( "Ban", System.StringComparison.OrdinalIgnoreCase ) ) return "action-pill-rose";
 
 		var hash = 0;
 		foreach ( var ch in action )
