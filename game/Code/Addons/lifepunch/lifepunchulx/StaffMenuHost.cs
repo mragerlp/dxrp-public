@@ -728,7 +728,7 @@ internal static class StaffMenuHost
 	/// </summary>
 	public static IReadOnlyList<string> AuditActionCatalog()
 	{
-		var set = new SortedSet<string>( PortalAuditActions, System.StringComparer.Ordinal );
+		var set = new SortedSet<string>( PortalAuditActions, System.StringComparer.OrdinalIgnoreCase );
 #if LIFEPUNCH_LOCAL
 		foreach ( var row in AuditStub() )
 		{
