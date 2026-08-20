@@ -954,7 +954,6 @@
 					@foreach ( var action in visibleActions )
 					{
 						var enabled = IsEnabled( action, selected, hasTarget );
-						var description = string.IsNullOrWhiteSpace( action.Tooltip ) ? action.Label : action.Tooltip;
 							<button class="action-btn @( ActionStateClasses( action, enabled ) )"
 						        tooltip="@( string.IsNullOrEmpty( action.Tooltip ) ? action.Label : action.Tooltip )"
 						        onclick="@(() => OnActionClick( action, selected, enabled ))">
@@ -965,10 +964,6 @@
 							@if ( !enabled && action.TargetMode == StaffActionTarget.OtherPlayer )
 							{
 								<span class="action-disabled-reason">@( _selectedSteamId is null ? "Select a target" : "Target protected" )</span>
-							}
-							else
-							{
-								<span class="action-description">@description</span>
 							}
 						</button>
 					}

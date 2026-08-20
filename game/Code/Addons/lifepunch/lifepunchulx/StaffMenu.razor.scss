@@ -1692,7 +1692,12 @@ $tone-gold: #a16207;
 		background-color: rgba($blue, 0.08);
 	}
 
-	.settings,
+	.settings {
+		flex: 1 1 auto;
+		gap: 13px;
+		padding: 16px;
+	}
+
 	// The list and the Return card sit SIDE BY SIDE. Stacked, the list rows spanned the whole
 	// workspace so a short waypoint name sat a long way from its own Go button, and the space
 	// beneath the card was empty. Two columns shorten the rows and use the width.
