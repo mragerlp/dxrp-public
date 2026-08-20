@@ -826,8 +826,15 @@
 
 						@foreach ( var arg in pending.Args )
 						{
+							// U1c: the marker must reflect SATISFACTION, not just the static requirement --
+							// "Required" reading identically whether the field is filled or empty carries no
+							// information. A satisfied required field clears its marker. The completion gate
+							// (requiredArgsComplete, and the early return in ConfirmArgs) is NOT touched: it
+							// still reads the values themselves, so an empty required field still blocks.
+							var argFilled = !string.IsNullOrWhiteSpace( ValueFor( arg.Name ) );
+							var argMarker = arg.Required ? ( argFilled ? "" : "Required" ) : "Optional";
 							<div class="arg-row">
-								<label>@arg.Label <span class="arg-required">@( arg.Required ? "Required" : "Optional" )</span></label>
+								<label>@arg.Label <span class="arg-required @( argMarker.Length == 0 ? "arg-required-off" : "" )">@argMarker</span></label>
 
 								@if ( arg.Kind == StaffArgKind.Duration )
 								{
@@ -916,7 +923,7 @@
 						@if ( pending.Dispatch == StaffDispatchKind.GiveMoney && _grantConfirm && requiredArgsComplete )
 						{
 							<div class="grant-confirm">
-								<span class="grant-confirm-line">Give <span class="grant-amount">$@_amount</span> to <span class="grant-target">@targetContext</span>, into their <span class="grant-amount">@_destination</span>?</span>
+								<span class="grant-confirm-line"><span class="grant-word-lead">Give</span><span class="grant-amount">$@_amount</span><span class="grant-word-mid">to</span><span class="grant-target">@targetContext</span><span class="grant-word-lead">, into their</span><span class="grant-amount">@_destination</span>?</span>
 								<span class="grant-confirm-sub">This is audited and cannot be reversed from this console.</span>
 							</div>
 						}
@@ -925,6 +932,16 @@
 							<i class="material-icons">@( _grantConfirm ? "warning" : "check" )</i> @( _grantConfirm ? "Yes, give the money" : $"Confirm {pending.Label}" )
 						</button>
 					</div>
+
+					@* U1 scroll slack: the confirm control must be able to clear the bottom edge of
+					   .actions. GetStackedContentHeight sums only child Box heights, so .arg-form's
+					   bottom margin and the .actions bottom padding are never counted -- the last
+					   band of the form is unreachable and the confirm button falls below the fold
+					   with the job dropdown open, or once the grant-confirm block is inserted.
+					   This is the same tail every other scroll branch in this file already carries
+					   (.player-scroll-tail, .profile-fields-tail, .job-list-tail, .wp-list-tail,
+					   .action-scroll-tail); the arg-form branch was the only one without one. *@
+					<div class="arg-form-tail"></div>
 				}
 
 				@* While an arg-form (Set Job, Ban…) is open it owns the pane — the grid would overflow the

@@ -602,6 +602,7 @@ $tone-gold: #a16207;
 
 	.player-scroll-tail,
 	.profile-fields-tail,
+	.arg-form-tail,
 	.job-list-tail {
 		flex-shrink: 0;
 		width: 100%;
@@ -950,6 +951,12 @@ $tone-gold: #a16207;
 		margin-left: 5px;
 		color: $blue-highlight;
 		font-size: 12px;
+	}
+
+	// U1c: a satisfied required field clears its marker. Drop the gap with it, so the
+	// label does not carry 5px of dead space where the word used to be.
+	.arg-required-off {
+		margin-left: 0;
 	}
 
 	.arg-input {
@@ -1362,6 +1369,21 @@ $tone-gold: #a16207;
 	.grant-confirm-line {
 		color: $text;
 		font-size: 13px;
+	}
+
+	// U1b / LAW 15 Separator Law: a literal run sitting between two value nodes is a
+	// discrete element carrying its own spacing -- never a bare text node, which Razor
+	// splits off and collapses ("Give$100toBloodwave, into theircash?"). Same 5px the
+	// .arg-required marker above and the HASHD .lp-chip-sep already use. -lead pads on
+	// the right only, because its left edge must hug the value before it (or the line
+	// start); -mid pads both sides, because it sits between two values.
+	.grant-word-lead {
+		margin-right: 5px;
+	}
+
+	.grant-word-mid {
+		margin-left: 5px;
+		margin-right: 5px;
 	}
 
 	.grant-amount {
