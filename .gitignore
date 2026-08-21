@@ -500,3 +500,6 @@ game/Assets/**/*.sound_c
 game/Assets/**/*.prefab_c
 game/Assets/**/*.scene_c
 game/Assets/**/*.generated.vtex_c
+
+# Asset rollback backups (keep on disk, ignore in git)
+*.bak
