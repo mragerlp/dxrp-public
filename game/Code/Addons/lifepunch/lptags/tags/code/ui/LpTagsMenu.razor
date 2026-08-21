@@ -149,7 +149,7 @@ Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): B
                                 <div class="lp-tags-menu__section-label">@(SurfaceLabel( _state.SelectedSurface ).ToUpperInvariant())</div>
                                 <h1>@SurfaceLabel( _state.SelectedSurface ) STYLE</h1>
                             </div>
-                            <button class="@OutgoingToggleClass( selected.Enabled )"
+                            <button class="@OutgoingToggleClass( selected.Enabled, !_state.CanEditOutgoing )"
                                     aria-label="@($"Turn {SurfaceLabel( _state.SelectedSurface )} appearance {(selected.Enabled ? "off" : "on")}")"
                                     aria-pressed="@selected.Enabled"
                                     disabled="@(!_state.CanEditOutgoing)"
@@ -184,7 +184,7 @@ Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): B
                                 var definition = CardDefinitions[index];
                                 var cardPresenter = index < _cardPresenters.Length ? _cardPresenters[index] : null;
                                 var isSelected = string.Equals( selected.SelectedEffectKey, definition.Key, StringComparison.Ordinal );
-                                <button class="@EffectCardClass( isSelected )"
+                                <button class="@EffectCardClass( isSelected, !_state.CanEditOutgoing )"
                                         aria-label="@($"Select {EffectLabel( definition.Id )} for {SurfaceLabel( _state.SelectedSurface )}")"
                                         aria-pressed="@isSelected"
                                         disabled="@(!_state.CanEditOutgoing)"
@@ -457,14 +457,16 @@ Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): B
     private void SelectEffect( string effectKey )
     {
         var state = _state;
-        if ( state is not null )
-            state.SelectEffect( state.SelectedSurface, effectKey );
+        if ( state is null || !state.CanEditOutgoing )
+            return;
+
+        state.SelectEffect( state.SelectedSurface, effectKey );
     }
 
     private void ToggleSelectedSurface()
     {
         var state = _state;
-        if ( state is null )
+        if ( state is null || !state.CanEditOutgoing )
             return;
 
         var selected = SurfacePreferenceFor( state.Draft, state.SelectedSurface );
@@ -520,11 +522,12 @@ Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): B
             : "lp-tags-menu__enabled-dot";
     }
 
-    private static string OutgoingToggleClass( bool enabled )
+    private static string OutgoingToggleClass( bool enabled, bool disabled )
     {
-        return enabled
+        var className = enabled
             ? "lp-tags-menu__outgoing-toggle lp-tags-menu__outgoing-toggle--on"
             : "lp-tags-menu__outgoing-toggle";
+        return disabled ? $"{className} is-disabled" : className;
     }
 
     private static string ViewerControlClass( bool enabled )
@@ -534,11 +537,12 @@ Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): B
             : "lp-tags-menu__viewer-control";
     }
 
-    private static string EffectCardClass( bool selected )
+    private static string EffectCardClass( bool selected, bool disabled )
     {
-        return selected
+        var className = selected
             ? "lp-tags-menu__effect-card lp-tags-menu__effect-card--selected"
             : "lp-tags-menu__effect-card";
+        return disabled ? $"{className} is-disabled" : className;
     }
 
     private string ScaleButtonClass( MenuScale scale )

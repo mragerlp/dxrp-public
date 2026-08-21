@@ -91,7 +91,7 @@
             color $lp-tags-interaction-duration,
             opacity $lp-tags-interaction-duration;
 
-        &:hover:not(:disabled) {
+        &:hover:not(.is-disabled) {
             border-color: $lp-tags-color-border-strong;
             background-color: $lp-tags-color-raised;
         }
@@ -102,7 +102,7 @@
             border-width: 2px;
         }
 
-        &:disabled {
+        &.is-disabled {
             color: $lp-tags-color-disabled;
             cursor: default;
             opacity: 0.46;
@@ -186,7 +186,7 @@
     font-size: 16px;
     font-weight: 800;
 
-    &:hover:not(:disabled) {
+    &:hover:not(.is-disabled) {
         background-color: $lp-tags-color-danger-soft;
         border-color: $lp-tags-color-transparent;
     }
