@@ -778,6 +778,10 @@
 							{
 								<span class="target-online">Online roster player</span>
 									<span class="targetability @( selected.CanTarget ? "targetability-targetable" : "targetability-protected" )">@( selected.CanTarget ? "Targetable" : "Protected or unavailable" )</span>
+								@if ( selected.IsFrozen )
+								{
+									<span class="target-frozen">Frozen</span>
+								}
 							}
 							else
 							{
@@ -1186,7 +1190,7 @@
 		var rosterHash = 0;
 		foreach ( var p in _players )
 		{
-			rosterHash = HashCode.Combine( rosterHash, p.SteamId, p.Name, p.CanTarget, p.GroupName, p.Role );
+			rosterHash = HashCode.Combine( rosterHash, p.SteamId, p.Name, p.CanTarget, p.IsFrozen, p.GroupName, p.Role );
 		}
 
 		_rosterHash = rosterHash;
@@ -1232,41 +1236,36 @@
 		}
 	}
 
-	// Catalog actions grouped by the ROLE their colour communicates. Keys match StaffMenuActions.
-	// Destructive actions harm or remove; observe actions only look; self-toggles carry live state.
+	// Catalog severity is data; quick sanctions remain their own profile-only danger treatment.
+	// Self-toggle keys carry live state independently of severity.
 	// 16a -- the sanctions surfaced as cards on the profile itself. Order is escalation order.
 	private static readonly string[] QuickSanctionKeys = { "jail", "kick", "ban" };
-
-	private static readonly string[] DestructiveActionKeys =
-	{
-		"kick", "ban", "jail", "arrest", "forceselldoor"
-	};
-
-	private static readonly string[] ObserveActionKeys =
-	{
-		"spectate"
-	};
 
 	private static readonly string[] SelfToggleActionKeys =
 	{
 		"god", "cloak", "incognito", "noclip"
 	};
 
+	private static string SeverityClass( StaffActionSeverity severity ) => severity switch
+	{
+		StaffActionSeverity.Light => "action-severity-light",
+		StaffActionSeverity.Medium => "action-severity-medium",
+		StaffActionSeverity.Severe => "action-severity-severe",
+		_ => throw new ArgumentOutOfRangeException( nameof( severity ), severity, "Unknown staff action severity" )
+	};
+
 	/// <summary>
-	/// Role and live-state classes for one action card, returned as ONE string: the transpiler
+	/// Severity, display-tone, and live-state classes for one action card, returned as ONE string: the transpiler
 	/// cannot take two adjacent @() expressions in a single attribute.
 	/// </summary>
 	private string ActionStateClasses( StaffAction action, bool enabled )
 	{
 		var classes = enabled ? "" : "control-disabled";
+		classes += $" {SeverityClass( action.Severity )}";
 
-		if ( DestructiveActionKeys.Contains( action.Key ) )
+		if ( action.DisplayTone == StaffActionDisplayTone.Money )
 		{
-			classes += " action-destructive";
-		}
-		else if ( ObserveActionKeys.Contains( action.Key ) )
-		{
-			classes += " action-observe";
+			classes += " action-tone-money";
 		}
 
 		// Read from the host, never from a local click flag -- a click echo would desync from the

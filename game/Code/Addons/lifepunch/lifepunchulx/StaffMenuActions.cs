@@ -27,6 +27,21 @@ public enum StaffActionTarget
 	Global
 }
 
+/// <summary>Operator-impact classification carried by every catalog action.</summary>
+public enum StaffActionSeverity
+{
+	Light,
+	Medium,
+	Severe
+}
+
+/// <summary>Optional catalog-tile display override; severity remains authoritative.</summary>
+public enum StaffActionDisplayTone
+{
+	Severity,
+	Money
+}
+
 /// <summary>
 /// Which DXRP backend an action dispatches to. The menu prefers a direct <c>AdminSystem</c> host
 /// RPC where one exists, else routes through the registered chat <c>ICommand</c> via
@@ -85,9 +100,11 @@ public sealed record StaffAction(
 	StaffDispatchKind Dispatch,
 	string DispatchTarget,
 	StaffActionTarget TargetMode,
+	StaffActionSeverity Severity,
 	IReadOnlyList<StaffActionArg> Args,
 	string Icon = "bolt",
-	string Tooltip = "" );
+	string Tooltip = "",
+	StaffActionDisplayTone DisplayTone = StaffActionDisplayTone.Severity );
 
 /// <summary>
 /// The LifePunch staff command catalog + categories, mirroring the DXRP portal permission taxonomy
@@ -120,107 +137,121 @@ public static class StaffMenuActions
 	{
 		// ---- Moderation ----
 		new( "kick", "Kick", CategoryModeration, "player.kick",
-			StaffDispatchKind.AdminRpc, "kick", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.AdminRpc, "kick", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
 			new[] { Reason( required: false ) }, "logout", "Kick player" ),
 
 		new( "ban", "Ban", CategoryModeration, "player.ban",
-			StaffDispatchKind.ChatCommand, "ban", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "ban", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
 			new[] { Duration( required: true ), Reason( required: true ) }, "gavel", "Ban player" ),
 
 		new( "jail", "Jail", CategoryModeration, "player.jail",
-			StaffDispatchKind.ChatCommand, "jail", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "jail", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
 			new[] { Duration( required: true ), Reason( required: true ) }, "lock", "Jail player" ),
 
 		new( "gag", "Gag", CategoryModeration, "player.gag",
-			StaffDispatchKind.ChatCommand, "gag", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "gag", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
 			new[] { Duration( required: true ), Reason( required: true ) }, "mic_off", "Mute player's voice" ),
 
 		new( "warn", "Warn", CategoryModeration, "player.warn",
-			StaffDispatchKind.ChatCommand, "warn", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "warn", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
 			new[] { Reason( required: true ) }, "warning", "Warn player" ),
 
 		new( "spectate", "Spectate", CategoryModeration, "player.spectate",
-			StaffDispatchKind.ChatCommand, "spectate", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "spectate", StaffActionTarget.OtherPlayer, StaffActionSeverity.Light,
 			NoArgs, "visibility", "Spectate player" ),
 
 		new( "screenshot", "Screenshot", CategoryModeration, "player.screenshot",
-			StaffDispatchKind.AdminRpc, "screenshot", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.AdminRpc, "screenshot", StaffActionTarget.OtherPlayer, StaffActionSeverity.Light,
 			NoArgs, "photo_camera", "Capture player's screen" ),
 
 		// ---- Commands ----
 		new( "god", "God Mode", CategoryCommands, "command.god",
-			StaffDispatchKind.ChatCommand, "god", StaffActionTarget.SelfOnly, NoArgs, "shield", "Toggle god mode" ),
+			StaffDispatchKind.ChatCommand, "god", StaffActionTarget.SelfOnly, StaffActionSeverity.Severe,
+			NoArgs, "shield", "Toggle god mode" ),
 
 		new( "cloak", "Cloak", CategoryCommands, "command.cloak",
-			StaffDispatchKind.ChatCommand, "cloak", StaffActionTarget.SelfOnly, NoArgs, "visibility_off", "Go invisible" ),
+			StaffDispatchKind.ChatCommand, "cloak", StaffActionTarget.SelfOnly, StaffActionSeverity.Light,
+			NoArgs, "visibility_off", "Go invisible" ),
 
 		new( "incognito", "Incognito", CategoryCommands, "command.incognito",
-			StaffDispatchKind.ChatCommand, "incognito", StaffActionTarget.SelfOnly, NoArgs, "person_off", "Hide from player list" ),
+			StaffDispatchKind.ChatCommand, "incognito", StaffActionTarget.SelfOnly, StaffActionSeverity.Light,
+			NoArgs, "person_off", "Hide from player list" ),
 
 		new( "fakedisconnect", "Fake Disconnect", CategoryCommands, "command.fakedisconnect",
-			StaffDispatchKind.ChatCommand, "fakedisconnect", StaffActionTarget.SelfOnly, NoArgs, "wifi_off", "Fake a disconnect" ),
+			StaffDispatchKind.ChatCommand, "fakedisconnect", StaffActionTarget.SelfOnly, StaffActionSeverity.Light,
+			NoArgs, "wifi_off", "Fake a disconnect" ),
 
 		new( "freeze", "Freeze", CategoryCommands, "command.freeze",
-			StaffDispatchKind.ChatCommand, "freeze", StaffActionTarget.OtherPlayer, NoArgs, "ac_unit", "Freeze player in place" ),
+			StaffDispatchKind.ChatCommand, "freeze", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
+			NoArgs, "ac_unit", "Freeze player in place" ),
 
 		new( "sethealth", "Set Health", CategoryCommands, "command.sethealth",
-			StaffDispatchKind.ChatCommand, "sethealth", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "sethealth", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
 			new[] { new StaffActionArg( "amount", "Health", StaffArgKind.Number, true, "e.g. 100" ) }, "favorite", "Set player's health" ),
 
 		new( "setjob", "Set Job", CategoryCommands, "command.job.manage",
-			StaffDispatchKind.ChatCommand, "job", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "job", StaffActionTarget.OtherPlayer, StaffActionSeverity.Light,
 			new[] { new StaffActionArg( "job", "Job", StaffArgKind.Job, true, "Search or pick a job" ) },
 			"work", "Force-set the player's job (gamemode job list)" ),
 
 		new( "arrest", "Arrest", CategoryCommands, "command.arrest",
-			StaffDispatchKind.ChatCommand, "arrest", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "arrest", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
 			new[] { Duration( required: false ) }, "local_police", "Arrest player" ),
 
 		new( "unarrest", "Unarrest", CategoryCommands, "command.unarrest",
-			StaffDispatchKind.ChatCommand, "unarrest", StaffActionTarget.OtherPlayer, NoArgs, "no_accounts", "Unarrest player" ),
+			StaffDispatchKind.ChatCommand, "unarrest", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
+			NoArgs, "no_accounts", "Unarrest player" ),
 
 		// Staff currency grant, for refunds and event payouts. Gated on the portal's own
 		// economy.manage permission -- the tier the portal assigns to Owner and Super Admin --
 		// rather than on a rank name we invented here. The grid hides actions the caller lacks
 		// permission for, and the host re-checks regardless of what the client believes.
 		new( "givemoney", "Give Money", CategoryCommands, "economy.manage",
-			StaffDispatchKind.GiveMoney, "givemoney", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.GiveMoney, "givemoney", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
 			new[]
 			{
 				new StaffActionArg( "amount", "Amount", StaffArgKind.Number, true, "e.g. 5000" ),
 				new StaffActionArg( "destination", "Destination", StaffArgKind.Destination, true, "Cash or bank" ),
 				new StaffActionArg( "reason", "Reason", StaffArgKind.Text, true, "Refund for lost printer, event payout..." )
 			},
-			"payments", "Grant currency to this player (audited)" ),
+			"payments", "Grant currency to this player (audited)", StaffActionDisplayTone.Money ),
 
 		new( "forcerpname", "Force RP Name", CategoryCommands, "command.forcerpname",
-			StaffDispatchKind.ChatCommand, "forcerpname", StaffActionTarget.OtherPlayer,
+			StaffDispatchKind.ChatCommand, "forcerpname", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
 			new[] { new StaffActionArg( "name", "RP Name", StaffArgKind.Text, false, "Leave blank to clear" ) }, "badge", "Force player's RP name" ),
 
 		new( "canceldemote", "Cancel Demote", CategoryCommands, "command.canceldemote",
-			StaffDispatchKind.ChatCommand, "canceldemote", StaffActionTarget.OtherPlayer, NoArgs, "how_to_vote", "Cancel player's demotion" ),
+			StaffDispatchKind.ChatCommand, "canceldemote", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
+			NoArgs, "how_to_vote", "Cancel player's demotion" ),
 
 		new( "clearprops", "Clear Props", CategoryCommands, "command.clearprops",
-			StaffDispatchKind.ChatCommand, "clearprops", StaffActionTarget.OtherPlayer, NoArgs, "cleaning_services", "Clear player's props" ),
+			StaffDispatchKind.ChatCommand, "clearprops", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
+			NoArgs, "cleaning_services", "Clear player's props" ),
 
 		new( "forceselldoor", "Force Sell Door", CategoryCommands, "command.forceselldoor",
-			StaffDispatchKind.ChatCommand, "forceselldoor", StaffActionTarget.SelfOnly, NoArgs, "sensor_door", "Force-sell the door you're looking at" ),
+			StaffDispatchKind.ChatCommand, "forceselldoor", StaffActionTarget.SelfOnly, StaffActionSeverity.Medium,
+			NoArgs, "sensor_door", "Force-sell the door you're looking at" ),
 
 		// ---- Ability ----
 		new( "goto", "Teleport To", CategoryAbility, "ability.teleport",
-			StaffDispatchKind.ChatCommand, "goto", StaffActionTarget.OtherPlayer, NoArgs, "my_location", "Teleport to player" ),
+			StaffDispatchKind.ChatCommand, "goto", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
+			NoArgs, "my_location", "Teleport to player" ),
 
 		new( "bring", "Bring", CategoryAbility, "ability.teleport",
-			StaffDispatchKind.ChatCommand, "bring", StaffActionTarget.OtherPlayer, NoArgs, "pan_tool", "Bring player to you" ),
+			StaffDispatchKind.ChatCommand, "bring", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
+			NoArgs, "pan_tool", "Bring player to you" ),
 
 		new( "return", "Return", CategoryAbility, "ability.teleport",
-			StaffDispatchKind.ChatCommand, "return", StaffActionTarget.OtherPlayer, NoArgs, "undo", "Return player to their position" ),
+			StaffDispatchKind.ChatCommand, "return", StaffActionTarget.OtherPlayer, StaffActionSeverity.Light,
+			NoArgs, "undo", "Return player to their position" ),
 
 		new( "tpall", "Teleport All", CategoryAbility, "ability.teleportall",
-			StaffDispatchKind.ChatCommand, "tpall", StaffActionTarget.Global, NoArgs, "groups", "Teleport everyone to you" ),
+			StaffDispatchKind.ChatCommand, "tpall", StaffActionTarget.Global, StaffActionSeverity.Severe,
+			NoArgs, "groups", "Teleport everyone to you" ),
 
 		new( "noclip", "Noclip", CategoryAbility, "ability.noclip",
-			StaffDispatchKind.LocalToggle, "noclip", StaffActionTarget.SelfOnly, NoArgs, "flight", "Toggle noclip flight" )
+			StaffDispatchKind.LocalToggle, "noclip", StaffActionTarget.SelfOnly, StaffActionSeverity.Severe,
+			NoArgs, "flight", "Toggle noclip flight" )
 	};
 }
 

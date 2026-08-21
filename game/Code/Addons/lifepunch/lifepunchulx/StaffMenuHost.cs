@@ -26,12 +26,14 @@ namespace LifePunch.DXRP.Addons.StaffMenu;
 /// sorts the groups (highest rank first, "Players" last). <see cref="Role"/> is the player's real,
 /// sanitised rank name for the detail pane (distinct from <see cref="GroupName"/>, which buckets
 /// non-staff under "Players"); <see cref="RankColorHex"/> is the rank colour as "#RRGGBB";
-/// <see cref="PlayTimeMinutes"/> is DXRP playtime in minutes (display as <c>/ 60</c> hours).
+/// <see cref="IsFrozen"/> reads the canonical DXRP freeze status; <see cref="PlayTimeMinutes"/> is
+/// DXRP playtime in minutes (display as <c>/ 60</c> hours).
 /// </summary>
 public readonly record struct StaffMenuPlayer(
 	long SteamId,
 	string Name,
 	bool CanTarget,
+	bool IsFrozen,
 	string GroupName,
 	int GroupOrder,
 	string Role,
@@ -413,7 +415,7 @@ internal static class StaffMenuHost
 		Power( noclip.IsValid() && noclip.IsNoclipping, "Noclip", "ability.noclip" );
 
 		// Status ids are DXRP's own constants (Constants.FreezeStatus / PrisonerStatus / GaggedStatus).
-		if ( player.HasStatus( "freeze" ) )
+		if ( player.HasStatus( Constants.FreezeStatus ) )
 		{
 			flags.Add( new StaffStateFlag( "Frozen", false ) );
 		}
@@ -553,12 +555,12 @@ internal static class StaffMenuHost
 #if LIFEPUNCH_LOCAL
 		return new List<StaffMenuPlayer>
 		{
-			new( 5L, "Owner Olivia", false, "Owner", 100, "Owner", "#E74C3C", 10980 ),
-			new( 4L, "Super Sam", false, "Super Admin", 10, "Super Admin", "#3498DB", 5400 ),
-			new( 3L, "Admin Andy", false, "Admin", 5, "Admin", "#2ECC71", 2400 ),
-			new( 6L, "Mod Maddie", true, "Mod", 4, "Mod", "#9B59B6", 900 ),
-			new( 1L, "Regular Rick", true, NonStaffGroup, int.MinValue, "Member", "#FFFFFF", 300 ),
-			new( 2L, "Suspicious Sammy", true, NonStaffGroup, int.MinValue, "VIP", "#F1C40F", 120 )
+			new( 5L, "Owner Olivia", false, false, "Owner", 100, "Owner", "#E74C3C", 10980 ),
+			new( 4L, "Super Sam", false, false, "Super Admin", 10, "Super Admin", "#3498DB", 5400 ),
+			new( 3L, "Admin Andy", false, false, "Admin", 5, "Admin", "#2ECC71", 2400 ),
+			new( 6L, "Mod Maddie", true, false, "Mod", 4, "Mod", "#9B59B6", 900 ),
+			new( 1L, "Regular Rick", true, false, NonStaffGroup, int.MinValue, "Member", "#FFFFFF", 300 ),
+			new( 2L, "Suspicious Sammy", true, false, NonStaffGroup, int.MinValue, "VIP", "#F1C40F", 120 )
 		};
 #else
 		return GameUtils.Players
@@ -572,6 +574,7 @@ internal static class StaffMenuHost
 					player.SteamId,
 					player.DisplayName,
 					RankSystem.CanLocalTarget( player.SteamId ),
+					player.HasStatus( Constants.FreezeStatus ),
 					group,
 					order,
 					RealRole( player.SteamId ),

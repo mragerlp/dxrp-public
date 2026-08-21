@@ -20,9 +20,9 @@ $border: #343536;
 $text: #e4e6e8;
 $muted: #8d8f90;
 
-// Four accents, four fixed roles, each present at rest and small in area:
-//   blue = interactive / identity   green = status / positive
-//   red  = destructive / warning
+	// Four accents, four fixed roles, each present at rest and small in area:
+	//   blue = light / interactive   green = cash / positive
+	//   red  = severe / warning      amber = medium / caution
 // Selection and state carry the saturation, so no fourth accent is needed.
 $blue: #1689ff;
 $blue-highlight: #55aaff;
@@ -33,8 +33,8 @@ $blue-fill: #1d4b78;
 // sage reading washed out to near-white on the stat rows and stopped carrying meaning.
 $success: #199c3b;
 $danger: #c05f5f;
-// Fourth role. Observation / inspection only -- look-but-don't-touch actions.
-// Deliberately NOT used for privilege badges: one accent, one meaning.
+	// Medium action severity and observation / inspection tone.
+	// Deliberately NOT used for privilege badges.
 $amber: #d99a3f;
 // HUD-CANONICAL. DXRP paints the armour shield with $counter-terror-color
 // (Code/UI/styles.scss:23) in PlayerInfo/PartyMemberCard (.armor-icon, .armor-fill).
@@ -867,7 +867,8 @@ $tone-gold: #a16207;
 	}
 
 	.target-online,
-	.targetability {
+	.targetability,
+	.target-frozen {
 		padding: 4px 7px;
 		border: 1px solid $border;
 		border-radius: 5px;
@@ -883,6 +884,11 @@ $tone-gold: #a16207;
 	.targetability-protected {
 		border-color: rgba($danger, 0.36);
 		color: $danger;
+	}
+
+	.target-frozen {
+		border-color: rgba($blue, 0.36);
+		color: $blue-highlight;
 	}
 
 	.target-identity-actions {
@@ -1184,40 +1190,84 @@ $tone-gold: #a16207;
 		background-color: rgba($blue, 0.09);
 	}
 
-	// ---- Action roles -----------------------------------------------------------
-	// Colour states the CONSEQUENCE, so an operator reads intent before reading the label.
-	// Ordered after .action-btn:hover so the role wins the neutral blue on the same specificity.
+	// ---- Action severity --------------------------------------------------------
+	// Every catalog tile carries exactly one persistent tier. Display-tone overrides follow
+	// the tier blocks so they can change the tile's look without changing severity data.
 
-	// DESTRUCTIVE -- harms or removes. Red on hover and press only; at rest it stays neutral so
-	// the grid does not read as a wall of alarm.
-	.action-destructive:hover {
-		border-color: rgba($danger, 0.60);
-		background-color: rgba($danger, 0.10);
+	.action-severity-light {
+		border-color: rgba($blue, 0.48);
+		background-color: rgba($blue, 0.09);
 	}
 
-	.action-destructive:hover .material-icons {
-		color: $danger;
+	.action-severity-light .material-icons {
+		color: $blue;
 	}
 
-	.action-destructive:active {
-		border-color: $danger;
-		background-color: rgba($danger, 0.22);
+	.action-severity-light:hover {
+		border-color: rgba($blue, 0.68);
+		background-color: rgba($blue, 0.16);
 	}
 
-	// OBSERVE -- looks, never touches. Amber lives on the GLYPH; the surround stays neutral dark
-	// and only the border picks up a tint on hover.
-	.action-observe .material-icons {
-		color: $amber;
+	.action-severity-light:active {
+		border-color: $blue;
+		background-color: rgba($blue, 0.24);
 	}
 
-	.action-observe:hover {
-		border-color: rgba($amber, 0.55);
+	.action-severity-medium {
+		border-color: rgba($amber, 0.48);
 		background-color: rgba($amber, 0.09);
 	}
 
-	.action-observe:active {
+	.action-severity-medium .material-icons {
+		color: $amber;
+	}
+
+	.action-severity-medium:hover {
+		border-color: rgba($amber, 0.65);
+		background-color: rgba($amber, 0.16);
+	}
+
+	.action-severity-medium:active {
 		border-color: $amber;
-		background-color: rgba($amber, 0.18);
+		background-color: rgba($amber, 0.24);
+	}
+
+	.action-severity-severe {
+		border-color: rgba($danger, 0.50);
+		background-color: rgba($danger, 0.10);
+	}
+
+	.action-severity-severe .material-icons {
+		color: $danger;
+	}
+
+	.action-severity-severe:hover {
+		border-color: rgba($danger, 0.68);
+		background-color: rgba($danger, 0.18);
+	}
+
+	.action-severity-severe:active {
+		border-color: $danger;
+		background-color: rgba($danger, 0.26);
+	}
+
+	.action-tone-money {
+		border-color: rgba($success, 0.50);
+		background-color: rgba($success, 0.10);
+	}
+
+	.action-tone-money .material-icons {
+		color: $success;
+	}
+
+	.action-tone-money:hover {
+		border-color: rgba($success, 0.68);
+		background-color: rgba($success, 0.18);
+	}
+
+	.action-tone-money:active {
+		border-color: $success;
+		background-color: rgba($success, 0.26);
 	}
 
 	// TOGGLE ON -- a real runtime state, not a click echo. Held fully coloured for as long as
