@@ -1,0 +1,84 @@
+<!-- kv3 encoding:text:version{e21c7f3c-8a33-41c5-9977-a76d3a32aa0d} format:modeldoc30:version{8c2d7a91-9c42-4bf0-883a-5a3b1762d4f1} -->
+{
+	rootNode = 
+	{
+		_class = "RootNode"
+		children = 
+		[
+			{
+				_class = "MaterialGroupList"
+				children = 
+				[
+					{
+						_class = "DefaultMaterialGroup"
+						remaps = [  ]
+						use_global_default = true
+						global_default_material = "addons/lifepunch/deserteagle/textures/deserteagle_vmdl.vmat"
+					},
+				]
+			},
+			{
+				_class = "PhysicsShapeList"
+				children = 
+				[
+					{
+						_class = "PhysicsHullFromRender"
+						parent_bone = ""
+						surface_prop = "default"
+						collision_tags = "solid"
+						faceMergeAngle = 20.0
+						maxHullVertices = 32
+						hull_mode = "HullPerElement"
+					},
+				]
+			},
+			{
+				_class = "RenderMeshList"
+				children = 
+				[
+					{
+						_class = "RenderMeshFile"
+						filename = "addons/lifepunch/deserteagle/source/deserteagle.fbx"
+						import_translation = [ -256.87488, 0.0, -16.433187 ]
+						import_rotation = [ 0.0, -90.0, 0.0 ]
+						import_scale = 0.1317
+						align_origin_x_type = "None"
+						align_origin_y_type = "None"
+						align_origin_z_type = "None"
+						parent_bone = ""
+						import_filter = 
+						{
+							exclude_by_default = true
+							exception_list = 
+							[
+								"Object122",
+								"Object125",
+								"Object126",
+								"Object127",
+								"Object128",
+								"Object129",
+								"Object130",
+								"Object131",
+								"Object133",
+								"Object134",
+								"Object135",
+								"Object136",
+								"Object137",
+								"Object138",
+								"Object139",
+								"Object140",
+								"Object141",
+								"Object142",
+								"Object143",
+							]
+						}
+					},
+				]
+			},
+		]
+		model_archetype = ""
+		primary_associated_entity = ""
+		anim_graph_name = ""
+		base_model_name = ""
+	}
+}

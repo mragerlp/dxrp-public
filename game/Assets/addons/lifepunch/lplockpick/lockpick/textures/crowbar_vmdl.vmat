@@ -1,0 +1,40 @@
+// THIS FILE IS AUTO-GENERATED
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	//---- PBR ----
+	F_METALNESS_TEXTURE 1
+
+	//---- Ambient Occlusion ----
+	g_flAmbientOcclusionDirectDiffuse "0.000"
+	g_flAmbientOcclusionDirectSpecular "0.000"
+	TextureAmbientOcclusion "addons/lifepunch/lplockpick/lockpick/textures/crowbar_ambient_occlusion.png"
+
+	//---- Color ----
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 1.000000]"
+	TextureColor "addons/lifepunch/lplockpick/lockpick/textures/crowbar_basecolor.png"
+
+	//---- Fade ----
+	g_flFadeExponent "1.000"
+
+	//---- Fog ----
+	g_bFogEnabled "1"
+
+	//---- Metalness ----
+	TextureMetalness "addons/lifepunch/lplockpick/lockpick/textures/crowbar_metallic.png"
+
+	//---- Normal ----
+	TextureNormal "addons/lifepunch/lplockpick/lockpick/textures/crowbar_normal.png"
+
+	//---- Roughness ----
+	g_flRoughnessScaleFactor "1.000"
+	TextureRoughness "addons/lifepunch/lplockpick/lockpick/textures/crowbar_roughness.png"
+
+	//---- Texture Coordinates ----
+	g_vTexCoordOffset "[0.000 0.000]"
+	g_vTexCoordScale "[1.000 1.000]"
+	g_vTexCoordScrollSpeed "[0.000 0.000]"
+}
