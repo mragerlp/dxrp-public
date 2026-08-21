@@ -5,7 +5,7 @@
   "Ident": "rp",
   "Schema": 1,
   "IncludeSourceFiles": false,
-  "Resources": "ui/*\ngameplay/entities/jobs/mayor/gun_license/gun_license.png\naddons/lifepunch/playerhub/**\naddons/lifepunch/lpbitcoin/**\naddons/lifepunch/bitcoinmining/**\naddons/lifepunch/ak47/**\naddons/lifepunch/lifepunchulx/**\naddons/lifepunch/lptags/**",
+  "Resources": "ui/*\ngameplay/entities/jobs/mayor/gun_license/gun_license.png\naddons/lifepunch/playerhub/**\naddons/lifepunch/lpbitcoin/**\naddons/lifepunch/bitcoinmining/**\naddons/lifepunch/ak47/**\naddons/lifepunch/lifepunchulx/**\naddons/lifepunch/lptags/**\nmodels/**\ngameplay/**\n!**/_archive/**",
   "PackageReferences": [],
   "EditorReferences": null,
   "Mounts": null,
