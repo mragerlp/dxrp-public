@@ -1,0 +1,30 @@
+{
+  "schemaVersion": 1,
+  "model": {
+    "slug": "w_ak47",
+    "activeSource": "source/ak47.fbx",
+    "targetModel": "w_ak47.vmdl"
+  },
+  "materials": [
+    {
+      "name": "ak47_body",
+      "targetMaterial": "materials/ak47_body.vmat",
+      "channels": {
+        "baseColor": "textures/ak47_BaseColor.tga.png",
+        "normal": "textures/ak47_Normal.tga.png",
+        "metalness": "textures/ak47_Metalness.tga.png",
+        "roughness": "textures/ak47_Roughness.tga.png"
+      },
+      "notes": "Create this material in S&box from the imported PBR texture set. Do not hand-write .vmat until the exact S&box material format is confirmed."
+    }
+  ],
+  "status": {
+    "sourceImported": true,
+    "cleanedSourceOnly": true,
+    "modelResourceCreated": true,
+    "materialResourceCreated": true,
+    "worldPrefabCreated": true,
+    "viewModelPrefabCreated": true,
+    "viewModelUsesWorldModelFirstPass": true
+  }
+}

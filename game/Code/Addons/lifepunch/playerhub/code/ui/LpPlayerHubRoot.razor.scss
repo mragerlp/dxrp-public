@@ -1,0 +1,334 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Player Hub shell. Flex-only s&box SCSS.
+// -----------------------------------------------------------------------------
+
+@import "LpPlayerHubTokens.scss";
+
+.lp-playerhub {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	opacity: 0;
+	pointer-events: none;
+	transition: opacity 0.18s ease-out;
+}
+
+.lp-playerhub.is-open {
+	opacity: 1;
+	pointer-events: all;
+}
+
+.lp-playerhub .material-icons {
+	font-family: Material Icons;
+	font-weight: normal;
+	font-style: normal;
+	text-transform: none;
+	letter-spacing: normal;
+	white-space: nowrap;
+}
+
+.hub-shell {
+	position: relative;
+	flex-direction: column;
+	flex-shrink: 0;
+	width: 1160px;
+	height: 700px;
+	max-width: 94%;
+	max-height: 92%;
+	background-color: $bg;
+	border: 1px solid $border;
+	border-radius: $radius-card;
+	overflow: hidden;
+	font-family: Inter, Arial, sans-serif;
+}
+
+.hub-header {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	height: $header-h;
+	padding-left: 20px;
+	padding-right: 12px;
+	background-color: $surface;
+	border-bottom: 1px solid $border;
+	flex-shrink: 0;
+}
+
+.hub-brand {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 16px;
+	font-weight: 600;
+	letter-spacing: 1px;
+	color: $text-main;
+}
+
+.hub-header-right {
+	flex-direction: row;
+	align-items: center;
+	gap: 16px;
+}
+
+.hub-preview-tag {
+	flex-direction: row;
+	align-items: center;
+	height: 24px;
+	padding-left: 8px;
+	padding-right: 8px;
+	border: 1px solid $border;
+	border-radius: $radius;
+	font-size: 10px;
+	font-weight: 600;
+	letter-spacing: 1px;
+	color: $text-dim;
+	background-color: $surface-inset;
+}
+
+.hub-stat {
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+}
+
+.hub-stat-label {
+	font-size: 11px;
+	letter-spacing: 1px;
+	color: $text-dim;
+}
+
+.hub-stat-value {
+	font-size: 14px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.hub-lp-mark {
+	font-size: 14px;
+	font-weight: 700;
+	color: $lp-blue;
+}
+
+.hub-shell .lp-source-footer .lp-mark {
+	color: $lp-blue;
+}
+
+.hub-close {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: $hit;
+	height: $hit;
+	border-radius: $radius;
+	color: $text-dim;
+	opacity: 0.76;
+	transition: opacity 0.12s ease-out;
+}
+
+.hub-close:hover {
+	opacity: 1;
+	color: $text-main;
+	background-color: $accent-soft;
+}
+
+.hub-close:focus,
+.hub-close:active {
+	opacity: 1;
+	color: $text-main;
+	background-color: $accent-focus;
+}
+
+.hub-body {
+	flex-direction: row;
+	flex-grow: 1;
+	min-height: 0;
+}
+
+.hub-sidebar {
+	flex-direction: column;
+	width: $sidebar-w;
+	flex-shrink: 0;
+	padding: $gap-content;
+	gap: 20px;
+	background-color: $surface-inset;
+	border-right: 1px solid $border;
+}
+
+.hub-identity {
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+}
+
+.hub-avatar {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	flex-shrink: 0;
+	border-radius: 50%;
+	background-color: $card-header;
+	color: $text-dim;
+	font-size: 20px;
+}
+
+.hub-identity-copy {
+	flex-direction: column;
+}
+
+.hub-player-name {
+	font-size: 14px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.hub-player-rank {
+	font-size: 12px;
+	color: $text-dim;
+}
+
+.hub-nav {
+	flex-direction: column;
+	gap: $gap-control;
+}
+
+.hub-nav-item {
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+	height: $hit;
+	padding-left: 10px;
+	padding-right: 10px;
+	border-radius: $radius;
+	color: $text-dim;
+	opacity: 0.72;
+	transition: opacity 0.12s ease-out;
+}
+
+.hub-nav-item:hover {
+	opacity: 1;
+	background-color: $dim-soft;
+}
+
+.hub-nav-item:focus {
+	opacity: 1;
+	background-color: $accent-focus;
+}
+
+.hub-nav-item:active {
+	background-color: $accent-soft-strong;
+}
+
+.hub-nav-item.is-active {
+	opacity: 1;
+	background-color: $accent-soft;
+	color: $text-main;
+}
+
+.hub-nav-indicator {
+	width: 3px;
+	height: 20px;
+	flex-shrink: 0;
+	background-color: transparent;
+	border-radius: $radius;
+}
+
+.hub-nav-item.is-active .hub-nav-indicator {
+	background-color: $lp-blue;
+}
+
+.hub-nav-icon {
+	font-size: 18px;
+	flex-shrink: 0;
+}
+
+.hub-nav-label {
+	font-size: 14px;
+	flex-grow: 1;
+}
+
+.hub-nav-badge {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	min-width: 18px;
+	height: 18px;
+	padding-left: 5px;
+	padding-right: 5px;
+	border-radius: $radius;
+	background-color: $lp-blue;
+	color: $text-main;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.hub-sidebar-note {
+	flex-direction: column;
+	gap: 5px;
+	margin-top: auto;
+	padding: 10px;
+	border: 1px solid $border;
+	border-radius: $radius;
+	background-color: $surface;
+}
+
+.hub-sidebar-note-title {
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 1px;
+	color: $lp-blue;
+}
+
+.hub-sidebar-note-copy {
+	font-size: 11px;
+	line-height: 16px;
+	color: $text-dim;
+}
+
+.hub-content {
+	flex-direction: column;
+	flex-grow: 1;
+	min-height: 0;
+	min-width: 0;
+	padding: 16px;
+	gap: $gap-dense;
+}
+
+.hub-page-head {
+	flex-direction: row;
+	align-items: center;
+	min-height: 34px;
+	flex-shrink: 0;
+}
+
+.hub-title {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 20px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.hub-blurb {
+	margin-left: 12px;
+	padding-left: 12px;
+	border-left: 1px solid $border;
+	font-size: 11px;
+	color: $text-dim;
+}
+
+.hub-tabhost {
+	flex-direction: column;
+	flex-grow: 1;
+	min-height: 0;
+	min-width: 0;
+	overflow: hidden;
+	background-color: $surface;
+	border: 1px solid $border;
+	border-radius: $radius-card;
+}

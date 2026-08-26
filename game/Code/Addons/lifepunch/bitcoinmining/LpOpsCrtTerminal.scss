@@ -1,0 +1,486 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// Shared CRT terminal shell — sidebar + scrollback + prompt.
+// Theme modifiers: gray (bitcoin), hacker, vengeance, government, banker,
+// blackmarket, casino. Canon: addons/docs/branding/OPS_CRT_TERMINAL_THEMES.md
+// ─────────────────────────────────────────────────────────────────────────────
+
+.lp-ops-crt {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: "Courier New", monospace;
+	pointer-events: none;
+
+	.shell {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		min-height: 0;
+		pointer-events: all;
+	}
+
+	.crt-frame {
+		flex: 1 1 auto;
+		min-height: 0;
+		width: 100%;
+		display: flex;
+		flex-direction: column;
+		border-radius: 8px 8px 0 0;
+		overflow: hidden;
+	}
+
+	.crt-header {
+		display: flex;
+		justify-content: space-between;
+		align-items: center;
+		padding: 8px 12px;
+		font-size: 11px;
+		letter-spacing: 0.08em;
+		gap: 12px;
+	}
+
+	.crt-body {
+		flex: 1;
+		display: flex;
+		min-height: 0;
+	}
+
+	.sidebar {
+		width: 180px;
+		flex-shrink: 0;
+		padding: 10px;
+		font-size: 11px;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		min-height: 0;
+		overflow-y: scroll;
+	}
+
+	.sidebar-title {
+		font-weight: bold;
+		margin-bottom: 6px;
+	}
+
+	.cmd-ref {
+		opacity: 1;
+		cursor: pointer;
+		padding: 2px 0;
+		line-height: 1.35;
+	}
+
+	.sidebar-foot {
+		margin-top: auto;
+		padding-top: 8px;
+	}
+
+	.screen {
+		flex: 1 1 0;
+		display: flex;
+		flex-direction: column;
+		padding: 12px;
+		min-width: 0;
+		min-height: 0;
+		overflow: hidden;
+	}
+
+	.log {
+		flex: 1 1 0;
+		min-height: 0;
+		min-width: 0;
+		overflow-y: scroll;
+		overflow-x: hidden;
+		padding-right: 4px;
+	}
+
+	.log-stack {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		width: 100%;
+		flex-shrink: 0;
+	}
+
+	.log-line {
+		white-space: pre-wrap;
+
+		&.err {
+			color: #ff7a7a;
+		}
+	}
+
+	.prompt-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		margin-top: 8px;
+		padding-top: 8px;
+		flex-shrink: 0;
+		cursor: text;
+	}
+
+	.prompt {
+		flex-shrink: 0;
+	}
+
+	.cmd-input {
+		flex: 1 1 auto;
+		min-width: 0;
+		background-color: transparent;
+		border: none;
+		font-family: inherit;
+		font-size: inherit;
+		padding: 4px 0;
+		pointer-events: all;
+	}
+
+	.crt-status-row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: center;
+		gap: 14px;
+		flex: 1 1 auto;
+		min-width: 0;
+		font-size: 10px;
+		letter-spacing: 0.06em;
+		text-transform: uppercase;
+	}
+
+	// Bitcoin — basic gray CRT (civilian hashd rig terminal)
+	&--gray {
+		color: #d4d4d4;
+
+		.crt-frame {
+			background-color: #141414;
+			border: 3px solid #3a3a3a;
+			box-shadow: 0 0 24px rgba(255, 255, 255, 0.04);
+		}
+
+		.crt-header {
+			background-color: #1c1c1c;
+			border-bottom: 1px solid #333333;
+			color: #b8b8b8;
+		}
+
+		.close-btn {
+			border: 1px solid #4a4a4a;
+			color: #d4d4d4;
+		}
+
+		.sidebar {
+			border-right: 1px solid #2a2a2a;
+			background-color: #101010;
+			color: #8a8a8a;
+		}
+
+		.sidebar-title,
+		.sidebar-foot,
+		.prompt {
+			color: #c8c8c8;
+		}
+
+		.sidebar-foot {
+			border-top: 1px solid #2a2a2a;
+		}
+
+		.prompt-row {
+			border-top: 1px solid #2a2a2a;
+		}
+
+		.cmd-input {
+			color: #e8e8e8;
+		}
+
+		.log-line.err {
+			color: #e07070;
+		}
+	}
+
+	// Hacker standard — cornerman.exe (#00FF7F family)
+	&--hacker {
+		color: #7dff9a;
+
+		.crt-frame {
+			background-color: #0a120a;
+			border: 3px solid #2a3a2a;
+			box-shadow: 0 0 24px rgba(0, 255, 120, 0.08);
+		}
+
+		.crt-header {
+			background-color: #111a11;
+			border-bottom: 1px solid #2f4f2f;
+			color: #9fd6a8;
+		}
+
+		.close-btn {
+			border: 1px solid #3a5a3a;
+			color: #7dff9a;
+		}
+
+		.sidebar {
+			border-right: 1px solid #1f3a1f;
+			background-color: #081008;
+			color: #5fbf78;
+		}
+
+		.sidebar-title,
+		.sidebar-foot,
+		.prompt {
+			color: #9fd6a8;
+		}
+
+		.sidebar-foot {
+			border-top: 1px solid #1f3a1f;
+		}
+
+		.prompt-row {
+			border-top: 1px solid #1f3a1f;
+		}
+
+		.cmd-input {
+			color: #7dff9a;
+		}
+	}
+
+	// Advanced hacker — vengeance.exe (#E4002B)
+	&--vengeance {
+		color: #ff6b7a;
+
+		.crt-frame {
+			background-color: #120808;
+			border: 3px solid #4a1a1f;
+			box-shadow: 0 0 24px rgba(228, 0, 43, 0.12);
+		}
+
+		.crt-header {
+			background-color: #1a0c0e;
+			border-bottom: 1px solid #5c2028;
+			color: #ff8a96;
+		}
+
+		.close-btn {
+			border: 1px solid #6a2830;
+			color: #ff6b7a;
+		}
+
+		.sidebar {
+			border-right: 1px solid #3a1418;
+			background-color: #0c0608;
+			color: #d44a58;
+		}
+
+		.sidebar-title,
+		.sidebar-foot,
+		.prompt {
+			color: #ff8a96;
+		}
+
+		.sidebar-foot {
+			border-top: 1px solid #3a1418;
+		}
+
+		.prompt-row {
+			border-top: 1px solid #3a1418;
+		}
+
+		.cmd-input {
+			color: #ff6b7a;
+		}
+	}
+
+	// Government / police — lifepunch-ops.exe (#00D4FF)
+	&--government {
+		color: #66e8ff;
+
+		.crt-frame {
+			background-color: #061018;
+			border: 3px solid #1a3a4a;
+			box-shadow: 0 0 24px rgba(0, 212, 255, 0.1);
+		}
+
+		.crt-header {
+			background-color: #081420;
+			border-bottom: 1px solid #1f4a5c;
+			color: #99eeff;
+		}
+
+		.close-btn {
+			border: 1px solid #2a5a6a;
+			color: #66e8ff;
+		}
+
+		.sidebar {
+			border-right: 1px solid #143040;
+			background-color: #040c14;
+			color: #4ab8d4;
+		}
+
+		.sidebar-title,
+		.sidebar-foot,
+		.prompt {
+			color: #99eeff;
+		}
+
+		.sidebar-foot {
+			border-top: 1px solid #143040;
+		}
+
+		.prompt-row {
+			border-top: 1px solid #143040;
+		}
+
+		.cmd-input {
+			color: #66e8ff;
+		}
+	}
+
+	// Banker — #000080 navy accent
+	&--banker {
+		color: #8a9fd4;
+
+		.crt-frame {
+			background-color: #060818;
+			border: 3px solid #000080;
+			box-shadow: 0 0 24px rgba(0, 0, 128, 0.2);
+		}
+
+		.crt-header {
+			background-color: #080c1c;
+			border-bottom: 1px solid #000080;
+			color: #a8b8e8;
+		}
+
+		.close-btn {
+			border: 1px solid #000080;
+			color: #8a9fd4;
+		}
+
+		.sidebar {
+			border-right: 1px solid #0a1040;
+			background-color: #040610;
+			color: #5a6a9a;
+		}
+
+		.sidebar-title,
+		.sidebar-foot,
+		.prompt {
+			color: #a8b8e8;
+		}
+
+		.sidebar-foot {
+			border-top: 1px solid #0a1040;
+		}
+
+		.prompt-row {
+			border-top: 1px solid #0a1040;
+		}
+
+		.cmd-input {
+			color: #c0c8e8;
+		}
+	}
+
+	// Black market dealer — #000000 shell, light text
+	&--blackmarket {
+		color: #c8c8c8;
+
+		.crt-frame {
+			background-color: #000000;
+			border: 3px solid #1a1a1a;
+			box-shadow: 0 0 24px rgba(0, 0, 0, 0.6);
+		}
+
+		.crt-header {
+			background-color: #000000;
+			border-bottom: 1px solid #2a2a2a;
+			color: #e0e0e0;
+		}
+
+		.close-btn {
+			border: 1px solid #333333;
+			color: #c8c8c8;
+		}
+
+		.sidebar {
+			border-right: 1px solid #1a1a1a;
+			background-color: #000000;
+			color: #888888;
+		}
+
+		.sidebar-title,
+		.sidebar-foot,
+		.prompt {
+			color: #d8d8d8;
+		}
+
+		.sidebar-foot {
+			border-top: 1px solid #1a1a1a;
+		}
+
+		.prompt-row {
+			border-top: 1px solid #1a1a1a;
+		}
+
+		.cmd-input {
+			color: #f0f0f0;
+		}
+	}
+
+	// Casino manager — #FF00FF magenta
+	&--casino {
+		color: #ff66ff;
+
+		.crt-frame {
+			background-color: #100010;
+			border: 3px solid #4a004a;
+			box-shadow: 0 0 24px rgba(255, 0, 255, 0.12);
+		}
+
+		.crt-header {
+			background-color: #180018;
+			border-bottom: 1px solid #5a105a;
+			color: #ff99ff;
+		}
+
+		.close-btn {
+			border: 1px solid #6a208a;
+			color: #ff66ff;
+		}
+
+		.sidebar {
+			border-right: 1px solid #2a082a;
+			background-color: #0c000c;
+			color: #cc44cc;
+		}
+
+		.sidebar-title,
+		.sidebar-foot,
+		.prompt {
+			color: #ff99ff;
+		}
+
+		.sidebar-foot {
+			border-top: 1px solid #2a082a;
+		}
+
+		.prompt-row {
+			border-top: 1px solid #2a082a;
+		}
+
+		.cmd-input {
+			color: #ff66ff;
+		}
+	}
+}

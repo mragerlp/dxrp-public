@@ -1,0 +1,464 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+// -----------------------------------------------------------------------------
+
+@import "../LpPlayerHubTokens.scss";
+@import "../LpPlayerHubPrimitives.scss";
+
+.lp-playerhub-skills {
+	flex-direction: column;
+	flex-grow: 1;
+	min-height: 0;
+	min-width: 0;
+	gap: $gap-dense;
+	padding: $panel-pad;
+	overflow: hidden;
+	font-family: Inter, Arial, sans-serif;
+	color: $text-main;
+}
+
+.skills-summary {
+	flex-direction: row;
+	align-items: center;
+	min-height: 50px;
+	flex-shrink: 0;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+
+.skills-summary-metric {
+	flex-direction: row;
+	align-items: baseline;
+	gap: 8px;
+	padding-right: 14px;
+	margin-right: 14px;
+	border-right: 1px solid $border;
+}
+
+.skills-summary-label,
+.skills-list-label,
+.skills-detail-label,
+.skills-mastery-title {
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0.9px;
+	color: $text-dim;
+}
+
+.skills-summary-value {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 20px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.skills-summary-value.compact {
+	font-size: 15px;
+}
+
+.skills-mastery {
+	flex-direction: row;
+	align-items: center;
+	gap: 7px;
+	padding-right: 14px;
+	margin-right: 14px;
+	border-right: 1px solid $border;
+}
+
+.skills-mastery > .material-icons {
+	font-size: 20px;
+	color: $text-dim;
+}
+
+.skills-mastery > div {
+	flex-direction: column;
+	gap: 1px;
+}
+
+.skills-mastery-state {
+	font-size: 9px;
+	font-weight: 700;
+	color: $text-dim;
+}
+
+.skills-mastery.is-active > .material-icons,
+.skills-mastery.is-active .skills-mastery-state {
+	color: $lp-blue;
+}
+
+.skills-summary-note {
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	margin-left: auto;
+	font-size: 10px;
+	color: $text-dim;
+}
+
+.skills-summary-note > .material-icons {
+	font-size: 16px;
+	color: $lp-blue;
+}
+
+.skills-workspace {
+	flex-direction: row;
+	flex-grow: 1;
+	min-height: 0;
+	min-width: 0;
+	gap: $gap-dense;
+	align-items: stretch;
+	overflow: hidden;
+}
+
+.skills-track-list {
+	flex-direction: column;
+	width: 178px;
+	min-height: 0;
+	flex-shrink: 0;
+	gap: 6px;
+}
+
+.skills-list-label {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	min-height: 22px;
+}
+
+.skills-track {
+	flex-direction: row;
+	align-items: center;
+	gap: 7px;
+	min-height: 67px;
+	padding: 7px;
+	border: 1px solid $border;
+	border-radius: $radius;
+	background-color: $surface-inset;
+	color: $text-dim;
+	text-align: left;
+}
+
+.skills-track:hover {
+	background-color: $dim-soft;
+	color: $text-main;
+}
+
+.skills-track.is-active {
+	border-color: $lp-blue;
+	background-color: $accent-soft;
+	color: $text-main;
+}
+
+.skills-track-icon {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 28px;
+	height: 28px;
+	flex-shrink: 0;
+	font-size: 17px;
+	color: $lp-blue;
+}
+
+.skills-track-copy {
+	flex-direction: column;
+	flex-grow: 1;
+	min-width: 0;
+	gap: 2px;
+}
+
+.skills-track-label,
+.skills-skill-title,
+.skills-keystone-title {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 11px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.skills-track-description,
+.skills-skill-description,
+.skills-catalog-subtitle,
+.skills-detail-description,
+.skills-detail-footnote,
+.skills-keystone-effect {
+	font-size: 9px;
+	line-height: 12px;
+	color: $text-dim;
+}
+
+.skills-track-meta {
+	flex-direction: row;
+	justify-content: space-between;
+	gap: 5px;
+	font-size: 8px;
+	color: $text-dim;
+}
+
+.skills-catalog {
+	flex-grow: 1;
+	min-height: 0;
+	min-width: 0;
+}
+
+.skills-catalog-head > div:first-child {
+	flex-direction: column;
+	gap: 1px;
+}
+
+.skills-catalog-count {
+	font-size: 8px;
+	font-weight: 700;
+	letter-spacing: 0.7px;
+	color: $lp-blue;
+}
+
+.skills-skill-list {
+	flex-direction: column;
+	flex-grow: 1;
+	min-height: 0;
+}
+
+.skills-skill {
+	flex-direction: row;
+	align-items: center;
+	gap: 7px;
+	flex-grow: 1;
+	min-height: 58px;
+	padding: 6px 8px;
+	border-bottom: 1px solid $border;
+	background-color: $surface-inset;
+	color: $text-dim;
+	text-align: left;
+}
+
+.skills-skill:hover {
+	background-color: $dim-soft;
+}
+
+.skills-skill.is-selected {
+	background-color: $accent-soft;
+}
+
+.skills-skill.is-selected .skills-skill-icon {
+	color: $lp-blue;
+}
+
+.skills-skill-icon {
+	width: 22px;
+	flex-shrink: 0;
+	font-size: 16px;
+	color: $text-dim;
+}
+
+.skills-skill.is-unlocked .skills-skill-icon,
+.skills-skill.is-maxed .skills-skill-icon {
+	color: $good;
+}
+
+.skills-skill-copy {
+	flex-direction: column;
+	flex-grow: 1;
+	min-width: 0;
+	gap: 2px;
+}
+
+.skills-skill-progress {
+	flex-direction: column;
+	width: 150px;
+	flex-shrink: 0;
+	gap: 4px;
+}
+
+.skills-skill-rank {
+	font-size: 8px;
+	font-weight: 700;
+	letter-spacing: 0.7px;
+	color: $text-dim;
+}
+
+.skills-tier-track {
+	flex-direction: row;
+	gap: 4px;
+}
+
+.skills-tier {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 24px;
+	height: 20px;
+	border: 1px solid $border;
+	border-radius: $radius;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 8px;
+	color: $text-dim;
+}
+
+.skills-tier.is-earned {
+	border-color: $good;
+	background-color: $good-soft;
+	color: $good;
+}
+
+.skills-tier.is-next {
+	border-color: $lp-blue;
+	background-color: $accent-soft;
+	color: $lp-blue;
+}
+
+.skills-skill-state {
+	width: 57px;
+	flex-shrink: 0;
+	font-size: 8px;
+	font-weight: 700;
+	text-align: right;
+	color: $text-dim;
+}
+
+.skills-skill-state.is-available {
+	color: $lp-blue;
+}
+
+.skills-skill-state.is-unlocked,
+.skills-skill-state.is-maxed {
+	color: $good;
+}
+
+.skills-keystone {
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	min-height: 48px;
+	flex-shrink: 0;
+	padding: 7px 10px;
+	border-top: 1px solid $border;
+	background-color: $card-header;
+}
+
+.skills-keystone > .material-icons {
+	font-size: 18px;
+	color: $text-dim;
+}
+
+.skills-keystone-copy {
+	flex-direction: column;
+	flex-grow: 1;
+	min-width: 0;
+	gap: 1px;
+}
+
+.skills-keystone-progress {
+	flex-shrink: 0;
+	font-size: 8px;
+	font-weight: 700;
+	letter-spacing: 0.6px;
+	color: $text-dim;
+}
+
+.skills-keystone.is-active > .material-icons,
+.skills-keystone.is-active .skills-keystone-progress {
+	color: $lp-blue;
+}
+
+.skills-detail {
+	width: 222px;
+	min-height: 0;
+	flex-shrink: 0;
+	gap: 8px;
+	padding: 10px;
+}
+
+.skills-detail-hero {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+}
+
+.skills-detail-icon {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 36px;
+	height: 36px;
+	border-radius: $radius;
+	background-color: $accent-soft;
+	color: $lp-blue;
+}
+
+.skills-detail-state {
+	min-height: 20px;
+	padding: 4px 6px;
+	border: 1px solid $border;
+	border-radius: $radius;
+	font-size: 8px;
+	font-weight: 700;
+	letter-spacing: 0.7px;
+	color: $text-dim;
+}
+
+.skills-detail-state.is-available {
+	border-color: $lp-blue;
+	background-color: $accent-soft;
+	color: $lp-blue;
+}
+
+.skills-detail-state.is-unlocked,
+.skills-detail-state.is-maxed {
+	border-color: $good;
+	background-color: $good-soft;
+	color: $good;
+}
+
+.skills-detail-title {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 16px;
+	font-weight: 600;
+	color: $text-main;
+}
+
+.skills-detail-rank {
+	align-self: flex-start;
+	font-size: 9px;
+	font-weight: 700;
+	letter-spacing: 0.7px;
+	color: $lp-blue;
+}
+
+.skills-detail-block {
+	flex-direction: column;
+	gap: 3px;
+	padding-top: 7px;
+	border-top: 1px solid $border;
+}
+
+.skills-detail-row {
+	margin-left: -10px;
+	margin-right: -10px;
+}
+
+.skills-detail-value {
+	font-size: 10px;
+	line-height: 13px;
+	color: $text-main;
+}
+
+.skills-unlock {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 5px;
+	min-height: $hit;
+	margin-top: auto;
+	border: 1px solid $border;
+	border-radius: $radius;
+	background-color: $card-header;
+	color: $text-dim;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 9px;
+	opacity: 0.66;
+}
+
+.skills-unlock > .material-icons {
+	font-size: 15px;
+}

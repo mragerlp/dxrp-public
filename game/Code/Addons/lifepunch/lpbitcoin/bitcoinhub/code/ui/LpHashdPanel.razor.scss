@@ -1,0 +1,8180 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCH Bitcoin Miner for DXRP" (s&box ident: lifepunch.bitcoin · addon ident: bitcoinmining)
+// ─────────────────────────────────────────────────────────────────────────────
+
+$hashd-amber: #e87d3e;
+$hashd-amber-deep: #d06b2f;
+$hashd-amber-glow: #f0a500;
+$hashd-bg: #000000;
+// Transparent BTC mark — ui/hashd/btc.png (edited in Sbox UI Designer).
+// Darker industrial graphite for natural squared HASHD look (prep slice).
+$hashd-surface: #0c0f14;
+$hashd-card: #080b10;
+$hashd-border: #22262e;
+$hashd-muted: #8a909c;
+$hashd-text: #e6e8ee;
+$hashd-title: #f4f6fa;
+$hashd-green: #5fd38d;
+$hashd-red: #ff6b6b;
+
+// Squared industrial — no soft app rounding. 0 for hard plates, 2px max for micro-insets.
+$shell-radius: 0;
+$hashd-surface-radius: 2px;
+$hashd-inset-radius: 0;
+
+// Transfers tab = canonical surface/inset rhythm for all hub admin panes.
+// Squared + darker natural graphite (see top vars). Small 2px only on surface cards for subtle plate edge.
+$hashd-page-stack: 12px;
+$hashd-surface-pad: 14px;
+$hashd-surface-gap: 10px;
+$hashd-surface-border: rgba(255, 255, 255, 0.06);
+$hashd-surface-bg: rgba(0, 0, 0, 0.45);
+$hashd-inset-pad: 12px;
+$hashd-inset-pad-tight: 10px 12px;
+$hashd-inset-border: rgba(255, 255, 255, 0.04);
+$hashd-inset-bg: rgba(0, 0, 0, 0.55);
+
+// Promoted from bitcoinmining/ (Jun 2026) — imports must reach package-wide shared SCSS.
+@import "../../../../bitcoinmining/LpUiChrome.scss";
+@import "../../../../bitcoinmining/LpUiScale.scss";
+@import "../../../../LifePunchUiFooter.razor.scss";
+@import "../../../../LifePunchUiShell.scss";
+@import "../../../../bitcoinmining/LpUiMenuLayout.scss";
+
+.lp-bitcoin-ops {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 14px;
+	color: $hashd-text;
+	pointer-events: none;
+	z-index: 100;
+
+	.shell {
+		position: relative;
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		width: 1100px;
+		height: 700px;
+		max-width: 94%;
+		max-height: 92%;
+		min-height: 0;
+		background-color: $hashd-bg;
+		border: 1px solid $hashd-border;
+		border-radius: $shell-radius;
+		overflow: hidden;
+		// Grounded industrial panel — less floating app shadow, more rackmount plate.
+		box-shadow: 0 6px 18px rgba(0, 0, 0, 0.55);
+		pointer-events: all;
+	}
+
+	// Body + footer share one .shell outline (StaffMenu .window law) — no split border seam.
+	.shell-body {
+		flex: 1 1 0;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		background-color: $hashd-bg;
+		border: 0;
+		border-top-left-radius: $shell-radius;
+		border-top-right-radius: $shell-radius;
+	}
+
+	.lp-window-watermark {
+		flex: 0 0 32px;
+		flex-shrink: 0;
+		align-self: stretch;
+		width: 100%;
+		max-width: 100%;
+		height: 32px;
+		min-height: 32px;
+		max-height: 32px;
+		overflow: hidden;
+		border: 0;
+		background-color: #0c0a08;
+
+		&.lp-window-watermark--rounded {
+			border-radius: 0 0 $shell-radius $shell-radius;
+		}
+
+		// LifePunchUiFooter @inherits Panel — constrain the component wrapper to the slot width.
+		> Panel {
+			width: 100%;
+			max-width: 100%;
+			height: 32px;
+			min-height: 32px;
+			max-height: 32px;
+			flex-shrink: 0;
+			overflow: hidden;
+		}
+
+		.lp-source-footer {
+			width: 100%;
+			max-width: 100%;
+			height: 32px;
+			min-height: 32px;
+			max-height: 32px;
+			flex: none;
+			padding: 0 14px;
+			border-top: 0;
+			background-color: #0c0a08;
+
+			.lp-mark {
+				color: $hashd-amber;
+			}
+
+			.lp-url-copy {
+				color: rgba(255, 255, 255, 0.55);
+			}
+
+			.lp-url-copy:hover,
+			.lp-url-copy.copied {
+				color: $hashd-amber;
+			}
+		}
+
+		&.lp-window-watermark--rounded .lp-source-footer {
+			border-radius: 0 0 $shell-radius $shell-radius;
+		}
+	}
+
+	.hub-body {
+		flex: 1 1 0;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+		background-color: $hashd-bg;
+		border-top-left-radius: $shell-radius;
+		border-top-right-radius: $shell-radius;
+	}
+
+	.hub-main {
+		flex: 1 1 auto;
+		min-height: 0;
+		display: flex;
+		flex-direction: row;
+		overflow: hidden;
+		background-color: $hashd-bg;
+		border-top-left-radius: $shell-radius;
+		border-top-right-radius: $shell-radius;
+	}
+
+	// Shared card rhythm — match pane.transfers (transfer-column / address-card).
+	.lp-hashd-surface {
+		display: flex;
+		flex-direction: column;
+		gap: $hashd-surface-gap;
+		padding: $hashd-surface-pad;
+		border-radius: $hashd-surface-radius;
+		background-color: $hashd-surface-bg;
+		border: 1px solid $hashd-surface-border;
+	}
+
+	.lp-hashd-inset {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		padding: $hashd-inset-pad;
+		border-radius: $hashd-inset-radius;
+		background-color: $hashd-inset-bg;
+		border: 1px solid $hashd-inset-border;
+	}
+
+	.lp-hashd-section-head {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		line-height: 1.35;
+
+		> .material-icons {
+			color: $hashd-amber;
+			font-size: 18px;
+		}
+	}
+
+	.lp-hashd-copy {
+		margin: 0;
+		color: $hashd-muted;
+		font-size: 12px;
+		line-height: 1.5;
+		white-space: normal;
+	}
+
+	.lp-hashd-action-row {
+		margin-top: auto;
+		width: 100%;
+
+		.lp-ui-btn-primary,
+		.lp-ui-btn-ghost {
+			flex: 1 1 100%;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+			min-height: 38px;
+			padding: 10px 14px;
+			font-size: 11px;
+			font-weight: 900;
+			line-height: 1.2;
+			text-align: center;
+			white-space: nowrap;
+
+			> .material-icons {
+				font-size: 16px;
+			}
+		}
+	}
+
+	.pin-gate {
+		flex: 1 1 0;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		background-color: $hashd-bg;
+		overflow: hidden;
+	}
+
+	.pin-header {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 14px;
+		flex-shrink: 0;
+		padding: 16px 20px;
+		background-color: $hashd-surface;
+		border-bottom: 1px solid $hashd-border;
+		border-top-left-radius: $shell-radius;
+		border-top-right-radius: $shell-radius;
+	}
+
+	.pin-brand {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+		flex-grow: 1;
+		min-width: 0;
+
+		.brand-mark {
+			width: 42px;
+			height: 42px;
+			flex-shrink: 0;
+		}
+	}
+
+	.pin-brand-copy {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		min-width: 0;
+	}
+
+	.pin-title {
+		color: $hashd-title;
+		font-size: 16px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+	}
+
+	.pin-sub {
+		color: $hashd-muted;
+		font-size: 12px;
+	}
+
+	.pin-body {
+		flex: 1 1 auto;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 18px;
+		padding: 28px 24px 32px;
+	}
+
+	.pin-entry {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.pin-label {
+		color: $hashd-amber;
+		font-size: 13px;
+		font-weight: 700;
+		letter-spacing: 0.14em;
+		text-align: center;
+	}
+
+	.pin-dots {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+	}
+
+	.pin-dot {
+		width: 14px;
+		height: 14px;
+		border-radius: 0;
+		border: 2px solid rgba(240, 165, 0, 0.35);
+		background-color: transparent;
+
+		&.filled {
+			background-color: $hashd-amber;
+			border-color: $hashd-amber;
+			box-shadow: 0 0 10px rgba(240, 165, 0, 0.35);
+		}
+	}
+
+	.pin-error {
+		color: #ef6b5f;
+		font-size: 12px;
+		font-weight: 600;
+		text-align: center;
+		max-width: 320px;
+		line-height: 1.4;
+	}
+
+	.pin-pad {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		justify-content: center;
+		gap: 10px;
+		width: 100%;
+		max-width: 280px;
+	}
+
+	.pin-key {
+		width: 78px;
+		height: 52px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0; // squared pin keys for industrial gate
+		background-color: $hashd-card;
+		border: 1px solid $hashd-border;
+		color: $hashd-title;
+		font-size: 18px;
+		font-weight: 700;
+		cursor: pointer;
+
+		.material-icons {
+			font-size: 22px;
+		}
+
+		&:hover {
+			border-color: rgba(240, 165, 0, 0.35);
+			background-color: rgba(240, 165, 0, 0.08);
+		}
+
+		&.ok {
+			color: #12100c;
+			background-color: $hashd-amber;
+			border-color: $hashd-amber;
+
+			&:hover {
+				background-color: #f3ae0a;
+				border-color: #f3ae0a;
+			}
+		}
+
+		&.clr {
+			color: #aeb8cb;
+		}
+	}
+
+	.wallet-actions {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.wallet-card {
+		max-width: 520px;
+		border-radius: $hashd-surface-radius;
+		border-left: 4px solid $hashd-amber;
+	}
+
+	.cta-pill.wide {
+		flex: 1 1 220px;
+		min-width: 200px;
+	}
+
+	.sidebar {
+		width: 72px;
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding: 16px 10px 14px;
+		background-color: $hashd-surface;
+		border-right: 1px solid $hashd-border;
+		border-top-left-radius: $shell-radius;
+		overflow: hidden;
+	}
+
+	.sidebar-brand.hex-mark {
+		width: 46px;
+		height: 46px;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		margin-bottom: 22px;
+		border-radius: $hashd-surface-radius;
+		background-color: rgba(232, 125, 62, 0.14);
+		border: 1px solid rgba(232, 125, 62, 0.35);
+		box-shadow: 0 0 18px rgba(232, 125, 62, 0.12);
+
+		.brand-mark {
+			width: 30px;
+			height: 30px;
+		}
+	}
+
+	.brand-mark {
+		width: 100%;
+		height: 100%;
+		// Nested block is DEAD (s&box); keep url-free so a future revive cannot reintroduce CSS background deps.
+	}
+
+	.sidebar-nav {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 8px;
+		flex-grow: 1;
+	}
+
+	.sidebar-foot {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		padding-top: 10px;
+	}
+
+	.sidebar-btn {
+		width: 46px;
+		height: 46px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		position: relative;
+		border-radius: 0; // squared nav for natural industrial menu
+		background-color: transparent;
+		border: 1px solid transparent;
+		color: #6f7785;
+		cursor: pointer;
+
+		.material-icons {
+			font-size: 22px;
+		}
+
+		&:hover {
+			color: #d5dbe7;
+			background-color: rgba(255, 255, 255, 0.04);
+		}
+
+		&.active {
+			color: #fff;
+			background-color: $hashd-amber;
+			border-color: rgba(255, 255, 255, 0.08);
+			box-shadow: 0 0 16px rgba(232, 125, 62, 0.45);
+		}
+	}
+
+	.sidebar-alert-dot {
+		position: absolute;
+		top: 8px;
+		right: 8px;
+		width: 9px;
+		height: 9px;
+		border-radius: 0;
+		background-color: #f59e0b;
+		border: 2px solid #12141a;
+		box-shadow: 0 0 8px rgba(245, 158, 11, 0.55);
+		pointer-events: none;
+	}
+
+	.sidebar-avatar {
+		width: 38px;
+		height: 38px;
+		border-radius: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		background-color: #22262e;
+		border: 2px solid rgba(255, 255, 255, 0.08);
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 700;
+		overflow: hidden;
+
+		.sidebar-avatar-img {
+			width: 100%;
+			height: 100%;
+			border-radius: 0;
+		}
+
+		.sidebar-avatar-fallback {
+			display: flex;
+			align-items: center;
+			justify-content: center;
+			width: 100%;
+			height: 100%;
+		}
+	}
+
+	.workspace {
+		flex: 1 1 auto;
+		min-width: 0;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		background-color: $hashd-surface;
+		border-top-right-radius: $shell-radius;
+		overflow: hidden;
+	}
+
+	.hub-header {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px 16px;
+		flex-shrink: 0;
+		min-height: 68px;
+		padding: 14px 22px 12px;
+		border-bottom: 1px solid $hashd-border;
+		background-color: $hashd-surface;
+		border-top-right-radius: $shell-radius;
+	}
+
+	.hub-title {
+		flex: 1 1 180px;
+		min-width: 0;
+		margin-bottom: 0;
+		white-space: normal;
+		line-height: 1.25;
+	}
+
+	.header-widgets {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		justify-content: flex-end;
+		gap: 8px;
+		flex: 1 1 240px;
+		min-width: 0;
+	}
+
+	.header-chip {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 6px;
+		height: auto;
+		min-height: 36px;
+		padding: 8px 14px;
+		border-radius: 0;
+		background-color: $hashd-card;
+		border: 1px solid $hashd-border;
+		color: $hashd-text;
+		font-size: 12px;
+		font-weight: 600;
+		cursor: default;
+		white-space: normal;
+		line-height: 1.3;
+		text-align: center;
+
+		span {
+			min-width: 0;
+			white-space: nowrap;
+		}
+
+		.material-icons {
+			font-size: 16px;
+			color: $hashd-amber;
+		}
+
+		&.wallet-chip {
+			cursor: pointer;
+
+			&:hover {
+				border-color: rgba(232, 125, 62, 0.35);
+				background-color: rgba(232, 125, 62, 0.08);
+			}
+		}
+
+		&.cashout-all-chip {
+			cursor: pointer;
+			max-width: 220px;
+
+			span {
+				overflow: hidden;
+				text-overflow: ellipsis;
+			}
+
+			&:hover {
+				border-color: rgba(232, 125, 62, 0.35);
+				background-color: rgba(232, 125, 62, 0.08);
+			}
+
+			&.is-ready {
+				// De-greened: cash-out moves BTC, not cash — amber-native, not green (BTC Currency Standard v1).
+				border-color: rgba(232, 125, 62, 0.45);
+				background-color: rgba(232, 125, 62, 0.08);
+
+				.material-icons {
+					color: $hashd-amber;
+				}
+			}
+
+			&.is-error {
+				border-color: rgba(248, 113, 113, 0.55);
+				background-color: rgba(248, 113, 113, 0.12);
+				color: #fca5a5;
+
+				.material-icons {
+					color: #f87171;
+				}
+			}
+
+			&.is-success {
+				border-color: rgba(232, 125, 62, 0.55);
+				background-color: rgba(232, 125, 62, 0.12);
+				color: $hashd-amber-glow;
+
+				.material-icons {
+					color: $hashd-amber;
+				}
+			}
+
+			&.disabled {
+				opacity: 0.45;
+				cursor: default;
+			}
+		}
+
+		&.notif-chip {
+			position: relative;
+			width: 36px;
+			height: 36px;
+			min-height: 36px;
+			padding: 0;
+			flex-wrap: nowrap;
+			align-items: center;
+			justify-content: center;
+			flex-shrink: 0;
+			cursor: pointer;
+
+			.material-icons {
+				font-size: 20px;
+				line-height: 1;
+				width: 20px;
+				height: 20px;
+				margin: 0;
+				color: $hashd-amber;
+			}
+
+			.notif-dot {
+				position: absolute;
+				top: 7px;
+				right: 8px;
+				width: 7px;
+				height: 7px;
+				border-radius: 0;
+				background-color: $hashd-amber;
+				box-shadow: 0 0 8px rgba(240, 165, 0, 0.45);
+			}
+
+			&:hover {
+				border-color: rgba(232, 125, 62, 0.35);
+				background-color: rgba(232, 125, 62, 0.08);
+			}
+		}
+	}
+
+	.header-power-switch {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		height: 36px;
+		padding: 4px 12px 4px 6px;
+		border-radius: 0;
+		background-color: $hashd-card;
+		border: 1px solid $hashd-border;
+		cursor: pointer;
+		flex-shrink: 0;
+
+		&:hover {
+			border-color: rgba(232, 125, 62, 0.35);
+		}
+
+		&.on {
+			// Power = pure STATE (batch 4): green ONLY as the on-state track/outline; knob + label WHITE; no theme/currency color.
+			border-color: rgba(95, 211, 141, 0.45);
+			background-color: rgba(95, 211, 141, 0.08);
+
+			.power-switch-track {
+				background-color: rgba(95, 211, 141, 0.35);
+				border-color: rgba(95, 211, 141, 0.55);
+			}
+
+			.power-switch-knob {
+				left: 18px;
+				background-color: #ffffff;
+			}
+
+			.power-switch-label {
+				color: #ffffff;
+			}
+		}
+
+		&.off {
+			.power-switch-label {
+				color: $hashd-muted;
+			}
+		}
+	}
+
+	// Toggle switches are exempt from radius-flattening: the pill-and-circle is
+	// functional shape (state affordance), not chrome.
+	.power-switch-track {
+		position: relative;
+		width: 36px;
+		height: 20px;
+		border-radius: 10px;
+		background-color: rgba(0, 0, 0, 0.45);
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		flex-shrink: 0;
+	}
+
+	.power-switch-knob {
+		position: absolute;
+		top: 2px;
+		left: 2px;
+		width: 14px;
+		height: 14px;
+		border-radius: 7px;
+		background-color: #6b7280;
+		transition: left 0.12s ease, background-color 0.12s ease;
+	}
+
+	.power-switch-label {
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		color: $hashd-text;
+		white-space: nowrap;
+	}
+
+	.overview-intro-power-hint {
+		width: 100%;
+		font-size: 11px;
+		color: $hashd-amber-glow;
+		font-weight: 600;
+		text-align: right;
+		margin-top: 4px;
+	}
+
+	.notif-list {
+		display: flex;
+		flex-direction: column;
+		gap: 0;
+		width: 100%;
+		flex-shrink: 0;
+	}
+
+	.notif-row {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-start;
+		gap: 10px;
+		width: 100%;
+		padding: 10px 12px;
+		border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+		flex-shrink: 0;
+
+		> .material-icons {
+			flex-shrink: 0;
+			font-size: 18px;
+			color: $hashd-amber;
+			margin-top: 1px;
+		}
+	}
+
+	.notif-copy {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.notif-kind {
+		color: $hashd-title;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.03em;
+		text-transform: uppercase;
+	}
+
+	.notif-message {
+		color: $hashd-text;
+		font-size: 12px;
+		line-height: 1.35;
+		white-space: normal;
+	}
+
+	.notif-time {
+		color: $hashd-muted;
+		font-size: 10px;
+		line-height: 1.35;
+		min-height: 14px;
+		flex-shrink: 0;
+	}
+
+	.page-header {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 14px;
+		flex-shrink: 0;
+		min-height: 64px;
+		padding: 14px 20px;
+		border-bottom: 1px solid $hashd-border;
+	}
+
+	.greeting {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		flex-grow: 1;
+		min-width: 0;
+	}
+
+	.greeting-title {
+		color: $hashd-title;
+		font-size: 20px;
+		font-weight: 700;
+		line-height: 1.15;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.greeting-sub {
+		color: $hashd-muted;
+		font-size: 12px;
+		font-weight: 500;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.status-chip {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		flex-shrink: 0;
+		padding: 7px 14px;
+		border-radius: 0;
+		background-color: rgba(255, 255, 255, 0.03);
+		border: 1px solid $hashd-border;
+		color: #aeb8cb;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+
+		.dot {
+			width: 7px;
+			height: 7px;
+			border-radius: 0;
+			background-color: #6b7280;
+		}
+
+		&.live {
+			color: $hashd-amber;
+			background-color: rgba(240, 165, 0, 0.1);
+			border-color: rgba(240, 165, 0, 0.35);
+
+			.dot { background-color: $hashd-amber; }
+		}
+
+		&.off {
+			color: #ef6b5f;
+			border-color: rgba(239, 107, 95, 0.35);
+
+			.dot { background-color: #ef6b5f; }
+		}
+	}
+
+	.header-actions {
+		flex-shrink: 0;
+	}
+
+	.workspace-body {
+		position: relative;
+		flex: 1 1 auto;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		overflow: hidden;
+	}
+
+	.main-panel > .pane:not(.overview) {
+		flex: 1 1 0;
+		min-height: 0;
+		padding: 0;
+		overflow: hidden;
+		background-color: $hashd-surface;
+	}
+
+	.pane.wallet,
+	.pane.transfers,
+	.pane.racks,
+	.pane.upgrades,
+	.pane.logs-pane {
+		flex: 1 1 0;
+		min-height: 0;
+		min-width: 0;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+
+		> .lp-ui-panel,
+		> .wallet-panel,
+		> .transfers-panel,
+		> .racks-panel,
+		> .upgrades-panel,
+		> .logs-panel {
+			flex: 1 1 0;
+			min-height: 0;
+			min-width: 0;
+			width: 100%;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			border: 0;
+			border-radius: 0;
+			background-color: transparent;
+			padding: 16px 18px 18px;
+		}
+	}
+
+	.pane.settings-pane {
+		flex: 1 1 0;
+		min-height: 0;
+		min-width: 0;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+
+		> .lp-ui-panel,
+		> .settings-panel {
+			flex: 1 1 0;
+			min-height: 0;
+			min-width: 0;
+			width: 100%;
+			overflow: hidden;
+			display: flex;
+			flex-direction: column;
+			border: 0;
+			border-radius: 0;
+			background-color: transparent;
+			padding: 16px 18px 18px;
+			gap: 12px;
+		}
+
+		.settings-scroll {
+			flex: 1 1 0;
+			min-height: 0;
+			display: flex;
+			flex-direction: column;
+			gap: 14px;
+			overflow-x: hidden;
+			overflow-y: scroll;
+			padding-bottom: 20px;
+		}
+	}
+
+	.main-panel {
+		flex: 1 1 auto;
+		min-width: 0;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		padding: 0;
+		overflow: hidden;
+	}
+
+	.overview {
+		flex: 1 1 auto;
+		min-height: 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		padding: 16px 18px 18px;
+		overflow: hidden;
+		background-color: $hashd-surface;
+	}
+
+	.overview .lp-ui-split {
+		flex: 1 1 auto;
+		min-height: 0;
+		flex-wrap: nowrap;
+		align-content: stretch;
+		align-items: stretch;
+		gap: 14px;
+	}
+
+	.overview .lp-ui-split > .lp-ui-panel {
+		flex: 1 1 0;
+		min-width: 0;
+		min-height: 0;
+		overflow: hidden;
+		display: flex;
+		flex-direction: column;
+		padding: 16px 18px;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid $hashd-surface-border;
+		background-color: $hashd-surface-bg;
+
+		> .lp-ui-panel-title {
+			flex-shrink: 0;
+			margin-bottom: 12px;
+		}
+
+		> .overview-miners-scroll {
+			flex: 1 1 0;
+			min-height: 0;
+			flex-direction: column;
+			gap: 10px;
+			overflow: hidden;
+			padding-bottom: 8px;
+		}
+	}
+
+	.overview-miner-card {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		width: 100%;
+		padding: 12px 14px;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid $hashd-surface-border;
+		background-color: $hashd-surface-bg;
+	}
+
+	.overview-miner-head {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 10px;
+		width: 100%;
+	}
+
+	.overview-miner-title {
+		flex: 1 1 auto;
+		min-width: 0;
+		color: $hashd-title;
+		font-size: 14px;
+		font-weight: 700;
+		line-height: 1.35;
+		white-space: normal;
+	}
+
+	.overview-miner-status {
+		flex: 0 0 auto;
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		gap: 6px;
+		color: $hashd-muted;
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+		white-space: nowrap;
+
+		&.on {
+			color: $hashd-amber;
+		}
+	}
+
+	.overview-miner-stats {
+		color: $hashd-muted;
+		font-size: 11px;
+		line-height: 1.45;
+		white-space: normal;
+	}
+
+	.overview-miner-copy {
+		align-self: flex-start;
+		max-width: 100%;
+	}
+
+	.overview .lp-ui-split > .lp-ui-panel.overview-status-panel {
+		overflow: hidden;
+
+		> .overview-status-stack {
+			flex: 1 1 auto;
+			min-height: 0;
+			display: flex;
+			flex-direction: column;
+		}
+	}
+
+	.overview-status-stack {
+		flex: 1 1 auto;
+		min-height: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-start;
+	}
+
+	.overview-status-body {
+		flex: 0 0 auto;
+		min-height: 0;
+		overflow: visible;
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding-bottom: 0;
+	}
+
+	.overview-status-footer {
+		flex: 0 0 auto;
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		justify-content: flex-end;
+		min-height: 0;
+		margin-top: auto;
+		padding-top: 8px;
+		padding-bottom: 0;
+		border-top: 1px solid rgba(255, 255, 255, 0.1);
+	}
+
+	.overview-status-info {
+		flex-shrink: 0;
+		margin-bottom: 0;
+		padding: 0;
+		gap: 6px;
+		background-color: transparent;
+		border: 0;
+		border-radius: 0;
+	}
+
+	.overview-status-info .lp-ui-info-row {
+		flex-shrink: 0;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		width: 100%;
+		margin-bottom: 0;
+		gap: 12px;
+		min-height: 24px;
+	}
+
+	.overview-status-info .lp-ui-info-label {
+		flex: 1 1 auto;
+		width: auto;
+		font-size: 13px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		line-height: 1.3;
+	}
+
+	.overview-status-info .lp-ui-info-value {
+		flex: 0 0 auto;
+		width: auto;
+		justify-content: flex-end;
+		text-align: right;
+		font-size: 15px;
+		font-weight: 600;
+		line-height: 1.3;
+	}
+
+	.overview-status-upgrades-row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: stretch;
+		justify-content: flex-start;
+		gap: 0;
+		width: 100%;
+		flex-shrink: 0;
+		margin-top: 2px;
+		padding-top: 6px;
+		padding-bottom: 10px;
+	}
+
+	.overview-status-upgrades-grid {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: stretch;
+		gap: 12px;
+		flex: 1 1 auto;
+		min-width: 0;
+		width: 100%;
+	}
+
+	.overview-status-upgrade-surface {
+		display: flex;
+		flex-direction: column;
+		gap: 1px;
+		flex: 1 1 0;
+		min-width: 0;
+	}
+
+	.overview-status-upgrade-surface-head {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 4px;
+		margin-bottom: 3px;
+		color: #e87d3e;
+		font-size: 8px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		line-height: 1.15;
+
+		.material-icons {
+			font-size: 11px;
+			flex-shrink: 0;
+		}
+	}
+
+	.overview-status-upgrade-track {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: baseline;
+		justify-content: space-between;
+		gap: 6px;
+		min-height: 12px;
+	}
+
+	.overview-status-upgrade-track-name {
+		flex: 1 1 auto;
+		min-width: 0;
+		color: rgba(255, 255, 255, 0.58);
+		font-size: 8px;
+		font-weight: 600;
+		line-height: 1.2;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	.overview-status-upgrade-track-tier {
+		flex: 0 0 auto;
+		color: rgba(255, 255, 255, 0.82);
+		font-size: 8px;
+		font-weight: 700;
+		line-height: 1.2;
+		white-space: nowrap;
+	}
+
+	.overview-status-upgrade-btn {
+		flex: 0 0 auto;
+		min-height: 32px;
+		padding-top: 7px;
+		padding-right: 14px;
+		padding-bottom: 7px;
+		padding-left: 14px;
+		font-size: 10px;
+		font-weight: 800;
+		white-space: nowrap;
+	}
+
+	.overview-status-actions {
+		flex-shrink: 0;
+		flex: 1 1 auto;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: stretch;
+		margin-top: 0;
+		gap: 5px;
+		width: 100%;
+		min-height: 0;
+
+		.overview-status-action {
+			flex: 1 1 0;
+			min-width: 0;
+			min-height: 46px;
+			display: flex;
+			flex-direction: column;
+			align-items: center;
+			justify-content: center;
+			gap: 3px;
+			padding-top: 6px;
+			padding-right: 4px;
+			padding-bottom: 6px;
+			padding-left: 4px;
+			font-size: 9px;
+			font-weight: 800;
+			letter-spacing: 0.02em;
+			line-height: 1.1;
+			white-space: nowrap;
+			text-align: center;
+			text-transform: none;
+
+			.material-icons {
+				font-size: 18px;
+				line-height: 1;
+			}
+		}
+	}
+
+	.pane.racks .racks-panel,
+	.pane.upgrades .upgrades-panel,
+	.pane.logs-pane .logs-panel {
+		.lp-ui-panel-title,
+		.lp-ui-intro,
+		.upgrades-toolbar,
+		.upgrades-intro {
+			flex-shrink: 0;
+		}
+
+		.racks-scroll,
+		.upgrades-scroll,
+		.overview-miners-scroll {
+			flex: 1 1 0;
+			min-height: 0;
+			width: 100%;
+			flex-direction: column;
+			overflow: hidden;
+		}
+
+		.logs-scroll {
+			flex: 1 1 0;
+			min-height: 0;
+			width: 100%;
+			flex-direction: column;
+			overflow-x: hidden;
+			overflow-y: scroll;
+		}
+
+		.racks-scroll,
+		.upgrades-scroll {
+			padding-bottom: 24px;
+		}
+
+		.logs-scroll {
+			padding-bottom: 12px;
+		}
+	}
+
+	.rack-grid {
+		display: flex;
+		flex-direction: column;
+		gap: 12px;
+		width: 100%;
+		flex-shrink: 0;
+	}
+
+	.rack-card {
+		display: flex;
+		flex-direction: column;
+		flex-shrink: 0;
+		gap: $hashd-surface-gap;
+		width: 100%;
+		padding: $hashd-surface-pad;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid $hashd-surface-border;
+		background-color: $hashd-surface-bg;
+	}
+
+	.rack-card-head {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		flex-shrink: 0;
+		align-items: flex-start;
+		justify-content: space-between;
+		gap: 8px 12px;
+	}
+
+	.rack-card-head-main {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		flex: 1 1 160px;
+		min-width: 0;
+	}
+
+	.rack-card-title {
+		color: $hashd-title;
+		font-size: 15px;
+		font-weight: 700;
+		line-height: 1.35;
+		white-space: normal;
+	}
+
+	.rack-slot-id-copy {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 4px 6px;
+		align-self: flex-start;
+		padding: 4px 8px;
+		border-radius: 6px;
+		border: 1px solid rgba(255, 255, 255, 0.08);
+		background-color: rgba(0, 0, 0, 0.35);
+		color: $hashd-muted;
+		font-family: "Roboto Mono", monospace;
+		font-size: 10px;
+		font-weight: 600;
+		line-height: 1.3;
+		cursor: pointer;
+
+		> .material-icons {
+			font-size: 12px;
+			color: $hashd-amber;
+		}
+	}
+
+	.rack-slot-id-token {
+		color: $hashd-title;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+	}
+
+	.rack-slot-id-hint {
+		color: $hashd-amber;
+		font-family: Poppins, Arial, sans-serif;
+		font-size: 9px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.rack-card-badges {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		flex-shrink: 0;
+		gap: 6px;
+	}
+
+	.rack-badge {
+		padding: 4px 10px;
+		border-radius: 0;
+		background-color: rgba(255, 255, 255, 0.06);
+		border: 1px solid $hashd-border;
+		color: #aeb8cb;
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		white-space: normal;
+
+		&.on {
+			color: #12100c;
+			background-color: $hashd-amber;
+			border-color: $hashd-amber;
+		}
+
+		&.dim {
+			color: $hashd-muted;
+		}
+	}
+
+	.rack-card-stats {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		width: 100%;
+		flex-shrink: 0;
+	}
+
+	.rack-stat-line {
+		display: flex;
+		flex-direction: row;
+		flex-shrink: 0;
+		width: 100%;
+		color: $hashd-muted;
+		font-size: 12px;
+		line-height: 1.5;
+		white-space: normal;
+	}
+
+	.rack-card-actions {
+		display: flex;
+		flex-direction: row;
+		flex-shrink: 0;
+		width: 100%;
+		margin-top: 2px;
+
+		.rack-upgrade-btn {
+			flex: 0 0 auto;
+			width: 100%;
+			min-height: 0;
+			height: auto;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			padding: 10px 14px;
+			font-size: 11px;
+			font-weight: 900;
+			line-height: 1.2;
+			letter-spacing: 0.03em;
+			text-align: center;
+			white-space: nowrap;
+		}
+	}
+
+	.upgrades-toolbar {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: center;
+		gap: 10px 12px;
+		margin-bottom: 8px;
+		width: 100%;
+	}
+
+	.upgrades-back-btn {
+		flex: 0 0 auto;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 4px;
+		min-height: 36px;
+		padding: 8px 12px;
+		font-size: 11px;
+
+		.material-icons {
+			font-size: 16px;
+		}
+	}
+
+	.upgrades-title {
+		flex: 1 1 180px;
+		min-width: 0;
+		margin-bottom: 0;
+	}
+
+	.upgrades-intro {
+		margin-bottom: 10px;
+		text-align: left;
+		font-size: 12px;
+		line-height: 1.45;
+		width: 100%;
+		max-width: 100%;
+		white-space: normal;
+	}
+
+	.upgrade-tracks {
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		width: 100%;
+		flex-shrink: 0;
+		padding-bottom: 8px;
+	}
+
+	.upgrade-track {
+		display: flex;
+		flex-direction: column;
+		gap: $hashd-surface-gap;
+		width: 100%;
+		padding: $hashd-surface-pad;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid $hashd-surface-border;
+		background-color: $hashd-surface-bg;
+	}
+
+	.upgrade-track-head {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+
+		.material-icons {
+			color: $hashd-amber;
+			font-size: 18px;
+		}
+	}
+
+	.upgrade-tier-row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 14px;
+		width: 100%;
+		padding: $hashd-inset-pad-tight;
+		border-radius: $hashd-inset-radius;
+		border: 1px solid $hashd-inset-border;
+		background-color: $hashd-inset-bg;
+
+		&.maxed {
+			border-color: rgba(95, 211, 141, 0.35);
+			background-color: rgba(95, 211, 141, 0.08);
+		}
+
+		&.next {
+			border-color: rgba(232, 125, 62, 0.45);
+			background-color: rgba(232, 125, 62, 0.1);
+		}
+	}
+
+	.upgrade-tier-main {
+		flex: 1 1 160px;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.upgrade-tier-label {
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 700;
+		line-height: 1.3;
+	}
+
+	.upgrade-tier-detail {
+		color: $hashd-muted;
+		font-size: 11px;
+		line-height: 1.35;
+	}
+
+	.upgrade-tier-side {
+		flex: 0 0 auto;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 6px;
+	}
+
+	.upgrade-tier-badge {
+		color: $hashd-text;
+		font-size: 11px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		padding: 6px 10px;
+		border-radius: 6px;
+		background-color: rgba(95, 211, 141, 0.15);
+		border: 1px solid rgba(95, 211, 141, 0.35);
+		white-space: nowrap;
+	}
+
+	.upgrade-tier-buy {
+		flex: 0 0 auto;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		min-width: 156px;
+		min-height: 38px;
+		padding: 10px 20px;
+		font-size: 11px;
+		font-weight: 900;
+		line-height: 1.2;
+		letter-spacing: 0.03em;
+		text-align: center;
+		white-space: nowrap;
+	}
+
+	.pane.wallet {
+		> .lp-ui-panel,
+		> .wallet-panel {
+			overflow-y: hidden;
+		}
+	}
+
+	.pane.wallet .lp-ui-intro,
+	.pane.transfers .lp-ui-intro,
+	.pane.racks .lp-ui-intro,
+	.pane.upgrades .lp-ui-intro,
+	.pane.settings-pane .lp-ui-intro {
+		margin-bottom: $hashd-page-stack;
+	}
+
+	.pane.wallet .lp-ui-info {
+		margin-bottom: $hashd-page-stack;
+		padding: $hashd-inset-pad;
+		border-radius: $hashd-inset-radius;
+		background-color: $hashd-inset-bg;
+		border: 1px solid $hashd-inset-border;
+		gap: 8px;
+	}
+
+	.transfer-columns {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: $hashd-page-stack;
+		align-items: stretch;
+	}
+
+	.transfer-column {
+		flex: 1 1 280px;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: $hashd-surface-gap;
+		padding: $hashd-surface-pad;
+		border-radius: $hashd-surface-radius;
+		background-color: $hashd-surface-bg;
+		border: 1px solid $hashd-surface-border;
+	}
+
+	.transfer-column-head {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+
+		> .material-icons {
+			color: $hashd-amber;
+			font-size: 18px;
+		}
+	}
+
+	.transfer-column-copy {
+		margin: 0;
+		color: $hashd-muted;
+		font-size: 12px;
+		line-height: 1.5;
+		white-space: normal;
+	}
+
+	.transfer-column-stats {
+		margin: 0;
+	}
+
+	.transfer-btn-row {
+		margin-top: auto;
+		width: 100%;
+
+		.transfer-copy-btn {
+			flex: 1 1 100%;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			gap: 6px;
+			min-height: 38px;
+			padding: 10px 14px;
+
+			> .material-icons {
+				font-size: 16px;
+			}
+
+			&.is-copied {
+				color: $hashd-amber;
+			}
+		}
+	}
+
+	.transfer-column .transfer-address-card {
+		margin-bottom: 0;
+	}
+
+	.transfer-command-card {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: $hashd-inset-pad-tight;
+		border-radius: $hashd-inset-radius;
+		background-color: $hashd-inset-bg;
+		border: 1px solid $hashd-inset-border;
+	}
+
+	.transfer-command-label {
+		color: $hashd-muted;
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	.transfer-command-text {
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 700;
+		font-family: monospace;
+		white-space: normal;
+	}
+
+	.transfer-address-card {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		padding: $hashd-inset-pad;
+		margin-bottom: 0;
+		border-radius: $hashd-inset-radius;
+		background-color: $hashd-inset-bg;
+		border: 1px solid $hashd-inset-border;
+	}
+
+	.transfer-address-label {
+		color: $hashd-muted;
+		font-size: 10px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	.transfer-address-value {
+		color: $hashd-title;
+		font-size: 14px;
+		font-weight: 700;
+		font-family: monospace;
+		white-space: normal;
+	}
+
+	.wallet-send-search {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		width: 100%;
+		max-width: 360px;
+		margin-top: 6px;
+		padding: 10px 14px;
+		border-radius: 0;
+		border: 1px solid $hashd-border;
+		background-color: rgba(255, 255, 255, 0.03);
+		color: $hashd-muted;
+		font-size: 12px;
+
+		&.disabled {
+			opacity: 0.55;
+			cursor: default;
+		}
+
+		.material-icons {
+			font-size: 18px;
+			color: $hashd-amber;
+		}
+	}
+
+	.overview .lp-ui-list-row {
+		cursor: default;
+
+		&:hover {
+			border-color: $hashd-border;
+			background-color: rgba(255, 255, 255, 0.03);
+		}
+	}
+
+	.rack-stats {
+		white-space: normal;
+	}
+
+	// Wallet cashout stacks on narrow workspace widths.
+	.wallet-cashout-bar {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		align-items: stretch;
+		gap: $hashd-surface-gap;
+		margin-top: 0;
+		padding: $hashd-surface-pad;
+		border-radius: $hashd-surface-radius;
+		background-color: $hashd-surface-bg;
+		border: 1px solid $hashd-surface-border;
+
+		> .material-icons {
+			flex-shrink: 0;
+			align-self: center;
+			font-size: 18px;
+			color: $hashd-amber;
+		}
+
+		.wallet-cashout-input {
+			flex: 1 1 160px;
+			min-width: 0;
+			height: 38px;
+			padding: 0 10px;
+			border-radius: 6px;
+			background-color: rgba(0, 0, 0, 0.35);
+			border: 1px solid rgba(255, 255, 255, 0.08);
+			color: $hashd-title;
+			font-size: 13px;
+		}
+	}
+
+	.wallet-cashout-btn,
+	.wallet-cashout-all {
+		flex: 0 0 auto;
+		flex-grow: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		min-height: 38px;
+		height: 38px;
+		padding: 0 14px;
+		border-radius: 6px;
+		text-align: center;
+		line-height: 1.15;
+		white-space: nowrap;
+		font-size: 11px;
+		font-weight: 900;
+	}
+
+	.wallet-cashout-btn {
+		flex: 1 1 160px;
+		min-width: 0;
+	}
+
+	.wallet-cashout-row {
+		display: flex;
+		flex-direction: row;
+		margin-top: $hashd-page-stack;
+
+		.wallet-cashout-all {
+			width: 100%;
+		}
+	}
+
+	.wallet-cashout-error {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		margin-top: 10px;
+		padding: 12px 16px;
+		border-radius: 0;
+		background-color: rgba(239, 107, 95, 0.1);
+		border: 1px solid rgba(239, 107, 95, 0.45);
+		color: #ef6b5f;
+		opacity: 0;
+		transform: scale(0.94);
+		transition: opacity 0.22s ease-out, transform 0.22s ease-out;
+
+		&.visible {
+			opacity: 1;
+			transform: scale(1);
+		}
+
+		.material-icons {
+			flex-shrink: 0;
+			font-size: 22px;
+			color: #ef6b5f;
+		}
+
+		span {
+			font-size: 13px;
+			font-weight: 600;
+			line-height: 1.3;
+			text-align: center;
+		}
+	}
+
+	.wallet-cashout-success {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		margin-top: 10px;
+		padding: 12px 16px;
+		border-radius: 0;
+		background-color: rgba(0, 200, 83, 0.1);
+		border: 1px solid rgba(0, 200, 83, 0.42);
+		color: #00c853;
+		opacity: 0;
+		transform: scale(0.94);
+		transition: opacity 0.22s ease-out, transform 0.22s ease-out;
+
+		&.visible {
+			opacity: 1;
+			transform: scale(1);
+		}
+
+		.material-icons {
+			flex-shrink: 0;
+			font-size: 24px;
+			color: #00c853;
+		}
+
+		span {
+			font-size: 13px;
+			font-weight: 600;
+			letter-spacing: 0.2px;
+			line-height: 1.3;
+			text-align: center;
+		}
+	}
+
+	.rack-shell-row {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.rack-shell-actions {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 8px;
+		padding: 0 4px 4px;
+
+		.lp-ui-btn-ghost {
+			flex: 1 1 auto;
+			min-width: 88px;
+			padding: 10px 12px;
+			font-size: 11px;
+		}
+	}
+
+	.pane {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		flex: 1 1 auto;
+		min-height: 0;
+	}
+
+	.pane-head {
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		flex-shrink: 0;
+	}
+
+	.pane-title {
+		color: $hashd-title;
+		font-size: 18px;
+		font-weight: 700;
+	}
+
+	.pane-sub {
+		color: $hashd-muted;
+		font-size: 12px;
+	}
+
+	.dash-row {
+		display: flex;
+		flex-direction: row;
+		gap: 14px;
+		flex-wrap: wrap;
+	}
+
+	.dash-card {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		padding: 18px 20px;
+		border-radius: 0;
+		background-color: $hashd-card;
+		border: 1px solid $hashd-border;
+	}
+
+	.balance-card {
+		flex: 1 1 58%;
+		min-width: 280px;
+	}
+
+	.rate-card {
+		flex: 1 1 34%;
+		min-width: 220px;
+	}
+
+	.miners-card {
+		flex-shrink: 0;
+	}
+
+	.card-head {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		gap: 10px;
+	}
+
+	.card-label {
+		color: $hashd-muted;
+		font-size: 12px;
+		font-weight: 600;
+		letter-spacing: 0.03em;
+	}
+
+	.tag-pill {
+		padding: 4px 10px;
+		border-radius: 0;
+		background-color: rgba(255, 255, 255, 0.05);
+		border: 1px solid $hashd-border;
+		color: #aeb8cb;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+
+		&.live {
+			color: #12100c;
+			background-color: $hashd-amber;
+			border-color: $hashd-amber;
+		}
+	}
+
+	.balance-value {
+		color: $hashd-title;
+		font-size: 30px;
+		font-weight: 700;
+		line-height: 1.05;
+		letter-spacing: -0.02em;
+	}
+
+	.balance-sub {
+		color: #aeb8cb;
+		font-size: 12px;
+	}
+
+	.rate-value {
+		color: $hashd-amber;
+		font-size: 28px;
+		font-weight: 700;
+		line-height: 1.05;
+	}
+
+	.rate-unit {
+		color: #aeb8cb;
+		font-size: 12px;
+	}
+
+	.chart-area {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-end;
+		gap: 5px;
+		height: 88px;
+		margin-top: 8px;
+		padding-top: 10px;
+		border-top: 1px solid rgba(255, 255, 255, 0.05);
+	}
+
+		.chart-bar {
+		flex: 1 1 0;
+		min-width: 6px;
+		border-radius: 6px 6px 2px 2px;
+		background-color: rgba(240, 165, 0, 0.18);
+		border: 1px solid rgba(240, 165, 0, 0.22);
+	}
+
+	.sparkline {
+		display: flex;
+		flex-direction: row;
+		align-items: flex-end;
+		gap: 4px;
+		height: 52px;
+		margin-top: auto;
+		padding-top: 8px;
+	}
+
+	.spark-bar {
+		flex: 1 1 0;
+		min-width: 4px;
+		border-radius: 4px;
+		background-color: rgba(240, 165, 0, 0.55);
+	}
+
+	.text-link {
+		padding: 0;
+		background-color: transparent;
+		border: none;
+		color: $hashd-amber;
+		font-size: 12px;
+		font-weight: 700;
+		cursor: pointer;
+
+		&:hover {
+			color: #f5b733;
+		}
+	}
+
+	.miners-empty {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		padding: 14px 4px 6px;
+		color: $hashd-muted;
+		font-size: 13px;
+		line-height: 1.45;
+
+		.material-icons {
+			color: $hashd-amber;
+			font-size: 28px;
+			flex-shrink: 0;
+		}
+	}
+
+	.miner-list {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.miner-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+		padding: 10px 12px;
+		border-radius: 0;
+		background-color: rgba(255, 255, 255, 0.02);
+		border: 1px solid rgba(255, 255, 255, 0.04);
+	}
+
+	.miner-thumb {
+		width: 40px;
+		height: 40px;
+		flex-shrink: 0;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: 0;
+		background-color: rgba(240, 165, 0, 0.1);
+
+		.material-icons {
+			color: $hashd-amber;
+			font-size: 22px;
+		}
+	}
+
+	.miner-copy {
+		flex-grow: 1;
+		min-width: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+	}
+
+	.miner-name {
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 700;
+	}
+
+	.miner-meta {
+		color: $hashd-muted;
+		font-size: 11px;
+	}
+
+	.status-pill {
+		flex-shrink: 0;
+		padding: 5px 10px;
+		border-radius: 0;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.04em;
+		text-transform: uppercase;
+
+		&.active {
+			color: #12100c;
+			background-color: $hashd-amber;
+		}
+
+		&.idle {
+			color: #aeb8cb;
+			background-color: rgba(255, 255, 255, 0.06);
+			border: 1px solid $hashd-border;
+		}
+	}
+
+	.hint-card {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		padding: 12px 14px;
+		border-radius: 0;
+		background-color: rgba(240, 165, 0, 0.06);
+		border: 1px solid rgba(240, 165, 0, 0.18);
+		color: #c7d0df;
+		font-size: 12px;
+		line-height: 1.45;
+		margin-top: auto;
+		flex-shrink: 0;
+
+		.material-icons {
+			color: $hashd-amber;
+			font-size: 20px;
+			flex-shrink: 0;
+		}
+
+		span {
+			flex: 1 1 auto;
+			min-width: 0;
+		}
+	}
+
+	.status-rail {
+		width: 220px;
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 16px;
+		padding: 18px 16px;
+		background-color: $hashd-surface;
+		border-left: 1px solid $hashd-border;
+	}
+
+	.rail-visual {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		padding: 22px 12px;
+		border-radius: 0;
+		background-color: $hashd-card;
+		border: 1px solid $hashd-border;
+
+		.material-icons {
+			color: $hashd-amber;
+			font-size: 48px;
+		}
+	}
+
+	.rail-visual-label {
+		color: $hashd-muted;
+		font-size: 11px;
+		font-weight: 600;
+		letter-spacing: 0.05em;
+		text-transform: uppercase;
+	}
+
+	.gauge-list {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		flex-grow: 1;
+	}
+
+	.gauge {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+	}
+
+	.gauge-top {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		gap: 8px;
+	}
+
+	.gauge-label {
+		color: $hashd-muted;
+		font-size: 11px;
+		font-weight: 600;
+	}
+
+	.gauge-value {
+		color: $hashd-title;
+		font-size: 12px;
+		font-weight: 700;
+	}
+
+	.gauge-track {
+		height: 8px;
+		border-radius: 0;
+		background-color: rgba(255, 255, 255, 0.06);
+		overflow: hidden;
+	}
+
+	.gauge-fill {
+		height: 100%;
+		border-radius: 0;
+		background-color: rgba(255, 255, 255, 0.18);
+		min-width: 4px;
+
+		&.live {
+			background-color: $hashd-amber;
+			box-shadow: 0 0 12px rgba(240, 165, 0, 0.35);
+		}
+	}
+
+	.cta-pill {
+		width: 100%;
+		padding: 12px 16px;
+		border-radius: 0;
+		background-color: $hashd-amber;
+		border: 1px solid $hashd-amber;
+		color: #12100c;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: pointer;
+		flex-shrink: 0;
+
+		&:hover {
+			background-color: #f3ae0a;
+		}
+
+		&.disabled,
+		&.disabled:hover {
+			opacity: 0.45;
+			cursor: default;
+			background-color: rgba(232, 125, 62, 0.35);
+			border-color: rgba(232, 125, 62, 0.35);
+		}
+	}
+
+	.rack-list {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+	}
+
+	.empty-card {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 10px;
+		padding: 36px 24px;
+		border-radius: 0;
+		background-color: $hashd-card;
+		border: 1px solid rgba(255, 255, 255, 0.12);
+		color: $hashd-muted;
+		text-align: center;
+		font-size: 13px;
+		line-height: 1.45;
+
+		.material-icons {
+			color: $hashd-amber;
+			font-size: 40px;
+		}
+	}
+
+	.ghost {
+		padding: 8px 12px;
+		border-radius: 0;
+		background-color: rgba(255, 255, 255, 0.04);
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		color: #d5dbe7;
+		font-size: 12px;
+		font-weight: 600;
+		cursor: pointer;
+
+		&:hover {
+			background-color: rgba(255, 255, 255, 0.08);
+			border-color: rgba(255, 255, 255, 0.16);
+		}
+
+		&.disabled,
+		&.disabled:hover {
+			opacity: 0.45;
+			cursor: default;
+		}
+
+		&.small {
+			padding: 7px 12px;
+			font-size: 11px;
+		}
+
+		&.accent {
+			color: #12100c;
+			border-color: $hashd-amber;
+			background-color: $hashd-amber;
+
+			&:hover {
+				background-color: #f3ae0a;
+			}
+		}
+	}
+
+	.settings-pane {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+	}
+
+	.settings-sections {
+		display: flex;
+		flex-direction: column;
+		gap: 14px;
+		flex-shrink: 0;
+		padding: 0 0 14px;
+	}
+
+	.settings-section {
+		display: flex;
+		flex-direction: column;
+		gap: $hashd-surface-gap;
+		padding: 0;
+		border-top: 0;
+		flex-shrink: 0;
+	}
+
+	.settings-section.lp-hashd-surface {
+		padding: 16px 18px 18px;
+	}
+
+	.settings-label {
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		line-height: 1.35;
+		white-space: normal;
+	}
+
+	.settings-hint {
+		color: $hashd-muted;
+		font-size: 12px;
+		line-height: 1.5;
+		white-space: normal;
+	}
+
+	.pin-change-entry {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: $hashd-surface-gap;
+		margin-top: 0;
+		padding: $hashd-surface-pad;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid rgba($hashd-amber, 0.35);
+		background-color: rgba($hashd-amber, 0.06);
+	}
+
+	.pin-pad--compact {
+		max-width: 252px;
+		gap: 8px;
+
+		.pin-key {
+			width: 68px;
+			height: 46px;
+			font-size: 16px;
+		}
+	}
+
+	.settings-meta {
+		display: flex;
+		flex-direction: column;
+		gap: 6px;
+		margin-top: 0;
+		padding: $hashd-inset-pad;
+		border-radius: $hashd-inset-radius;
+		background-color: $hashd-inset-bg;
+		border: 1px solid $hashd-inset-border;
+	}
+
+	.settings-meta-row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		font-size: 12px;
+		line-height: 1.35;
+	}
+
+	.settings-meta-label {
+		color: $hashd-muted;
+		font-weight: 600;
+	}
+
+	.settings-meta-value {
+		color: $hashd-title;
+		font-weight: 700;
+		text-align: right;
+	}
+
+	.settings-actions {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 10px;
+		margin-top: 8px;
+		width: 100%;
+		padding: 0 2px;
+
+		.lp-ui-btn-primary,
+		.lp-ui-btn-ghost {
+			flex: 1 1 0;
+			display: flex;
+			flex-direction: row;
+			align-items: center;
+			justify-content: center;
+			min-width: 0;
+			max-width: 100%;
+			min-height: 40px;
+			padding: 10px 16px;
+			font-size: 11px;
+			font-weight: 900;
+			line-height: 1.2;
+			text-align: center;
+			white-space: nowrap;
+		}
+	}
+
+	.panel-size-row {
+		display: flex;
+		flex-direction: row;
+		gap: 8px;
+		margin-top: 4px;
+	}
+
+	.panel-size-opt {
+		display: flex;
+		flex-direction: row;
+		flex-grow: 1;
+		align-items: center;
+		justify-content: center;
+		height: 34px;
+		padding: 0 10px;
+		border-radius: 0;
+		border: 1px solid rgba(255, 255, 255, 0.1);
+		background-color: rgba(255, 255, 255, 0.04);
+		color: #9aa6ba;
+		font-size: 12px;
+		font-weight: 700;
+		line-height: 1;
+		cursor: pointer;
+
+		&:hover {
+			color: $hashd-text;
+			border-color: rgba(255, 255, 255, 0.16);
+		}
+
+		&.active {
+			color: #12100c;
+			border-color: $hashd-amber;
+			background-color: $hashd-amber;
+		}
+	}
+
+	.about-title {
+		color: $hashd-amber;
+		font-size: 20px;
+		font-weight: 700;
+	}
+
+	.about-line {
+		color: #c7d0df;
+		font-size: 13px;
+		line-height: 1.5;
+	}
+
+	.about-legal {
+		color: $hashd-muted;
+		font-size: 11px;
+		margin-top: auto;
+		padding-top: 12px;
+	}
+
+	.overview-intro {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		flex-shrink: 0;
+		padding: 10px 14px;
+		text-align: left;
+		line-height: 1.45;
+		font-size: 12px;
+		color: $hashd-text;
+	}
+
+	.overview-intro-copy-text {
+		width: 100%;
+		text-align: left;
+		line-height: 1.45;
+		white-space: normal;
+	}
+
+	.overview-intro-terminal {
+		display: flex;
+		flex-direction: column;
+		align-items: stretch;
+		gap: 0;
+		padding-top: 10px;
+		border-top: 1px solid rgba(232, 125, 62, 0.28);
+	}
+
+	.overview-intro-terminal-row {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: stretch;
+		justify-content: stretch;
+		gap: 0;
+		width: 100%;
+		min-height: 46px;
+		border-radius: 0;
+		overflow: hidden;
+		background-color: rgba(0, 0, 0, 0.24);
+		border: 1px solid rgba(232, 125, 62, 0.22);
+	}
+
+	.overview-intro-terminal-status {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		flex: 1 1 50%;
+		min-width: 0;
+		padding: 10px 14px;
+		border-right: 1px solid rgba(232, 125, 62, 0.22);
+	}
+
+	.overview-intro-terminal-label {
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+		line-height: 1.35;
+		white-space: normal;
+	}
+
+	.overview-intro-terminal-actions {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: nowrap;
+		align-items: center;
+		justify-content: center;
+		flex: 1 1 50%;
+		min-width: 0;
+		padding: 6px 10px;
+	}
+
+	.overview-intro-terminal-actions .lp-ui-btn-primary,
+	.overview-intro-terminal-actions .lp-ui-btn-ghost {
+		flex: 1 1 auto;
+		width: 100%;
+		max-width: 100%;
+		min-height: 34px;
+		justify-content: center;
+		text-align: center;
+		padding: 8px 12px;
+		font-size: 11px;
+		white-space: nowrap;
+	}
+
+	.overview-intro-terminal-disabled {
+		opacity: 0.45;
+		cursor: default;
+	}
+
+	.overview-intro-link-ready {
+		border-color: rgba(95, 211, 141, 0.55);
+		background-color: rgba(95, 211, 141, 0.18);
+		color: #b8f5d0;
+	}
+
+	.lp-ui-status-dot.warn {
+		background-color: $hashd-amber;
+	}
+
+	.lp-ui-perk.warn::before {
+		content: "!";
+		color: $hashd-amber;
+	}
+
+	.lp-ui-perk.ok::before {
+		color: $hashd-green;
+	}
+
+	// s&box drops compound `.sidebar-btn.active` — use a standalone sel class like Staff Menu `.tab-sel`.
+	.sidebar-btn.sidebar-btn-sel {
+		color: #fff;
+		background-color: $hashd-amber;
+		border-color: rgba(255, 255, 255, 0.08);
+		box-shadow: 0 0 16px rgba(232, 125, 62, 0.45);
+	}
+
+	// Global `.lp-ui-btn-primary` flex-shrink squashes long price labels inside upgrade rows.
+	.upgrade-tier-row .upgrade-tier-buy {
+		flex: 0 0 auto;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		min-width: 156px;
+		width: auto;
+		min-height: 38px;
+		padding: 10px 20px;
+		font-size: 11px;
+		font-weight: 900;
+		line-height: 1.2;
+		letter-spacing: 0.03em;
+		text-align: center;
+		white-space: nowrap;
+	}
+
+	.upgrade-tier-row .upgrade-tier-main {
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	.lp-ui-empty-callout {
+		flex: 1 1 auto;
+		min-height: 168px;
+		margin: 0;
+		padding: 22px 18px 20px;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid rgba($hashd-amber, 0.45);
+		background-color: rgba($hashd-amber, 0.08);
+		box-shadow: none;
+		gap: 6px;
+	}
+
+	.lp-ui-empty-callout-badge {
+		padding: 4px 10px;
+		border-radius: 0;
+		border: 1px solid rgba($hashd-amber-glow, 0.45);
+		background-color: rgba($hashd-amber, 0.18);
+		color: $hashd-amber-glow;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		line-height: 1.2;
+	}
+
+	.lp-ui-empty-callout-icon {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 56px;
+		height: 56px;
+		margin-top: 2px;
+		border-radius: 0;
+		border: 1px solid rgba($hashd-amber, 0.4);
+		background-color: rgba($hashd-amber, 0.14);
+		box-shadow: 0 0 18px rgba($hashd-amber, 0.22);
+
+		.material-icons {
+			font-size: 30px;
+			color: $hashd-amber-glow;
+		}
+	}
+
+	.lp-ui-empty-callout-title {
+		color: $hashd-title;
+		font-size: 17px;
+		font-weight: 700;
+		line-height: 1.25;
+		letter-spacing: 0.01em;
+	}
+
+	.lp-ui-empty-callout-body {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: 4px;
+		max-width: 300px;
+	}
+
+	.lp-ui-empty-callout-step {
+		color: $hashd-text;
+		font-size: 13px;
+		line-height: 1.45;
+		text-align: center;
+	}
+
+	.lp-ui-empty-callout-cmd {
+		margin-top: 2px;
+		padding: 4px 14px;
+		border-radius: 6px;
+		border: 1px solid rgba($hashd-amber, 0.45);
+		background-color: rgba($hashd-amber, 0.2);
+		color: $hashd-amber-glow;
+		font-size: 14px;
+		font-weight: 700;
+		line-height: 1.2;
+		letter-spacing: 0.04em;
+		text-align: center;
+	}
+
+	.racks-empty-callout {
+		justify-content: center;
+	}
+}
+
+// GROK_COLD_BOOT_ID_20260714_RESKIN_T2
+// Flat — root + shell frame (s&box drops nested `.lp-bitcoin-ops { … }` — centering + hub chrome here).
+.lp-bitcoin-ops {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 14px;
+	color: #eceef3;
+	pointer-events: none;
+	z-index: 100;
+}
+
+// Flat — single shell outline (StaffMenu .window); footer radius explicit for s&box clip.
+.lp-bitcoin-ops .shell {
+	position: relative;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	width: 1100px;
+	height: 700px;
+	max-width: 94%;
+	max-height: 92%;
+	min-height: 0;
+	background-color: #000000;
+	border: 1px solid #374151;
+	border-radius: $shell-radius;
+	overflow: hidden;
+	box-shadow: 0 28px 64px rgba(0, 0, 0, 0.72);
+	pointer-events: all;
+}
+
+.lp-bitcoin-ops .shell-body {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background-color: #000000;
+	border: 0;
+	border-top-left-radius: $shell-radius;
+	border-top-right-radius: $shell-radius;
+}
+
+// Flat — PIN gate (nested .pin-* rules are dropped by s&box — full layout here).
+.lp-bitcoin-ops .pin-gate {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	background-color: #000000;
+	overflow: hidden;
+	border-top-left-radius: $shell-radius;
+	border-top-right-radius: $shell-radius;
+}
+
+.lp-bitcoin-ops .pin-header {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 14px;
+	flex-shrink: 0;
+	padding-top: 16px;
+	padding-right: 20px;
+	padding-bottom: 16px;
+	padding-left: 20px;
+	background-color: $hashd-surface;
+	border-bottom: 1px solid #374151;
+	border-top-left-radius: $shell-radius;
+	border-top-right-radius: $shell-radius;
+}
+
+.lp-bitcoin-ops .pin-brand {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 12px;
+	flex-grow: 1;
+	min-width: 0;
+}
+
+.lp-bitcoin-ops .pin-brand .brand-mark {
+	width: 42px;
+	height: 42px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pin-brand-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 2px;
+	min-width: 0;
+}
+
+.lp-bitcoin-ops .pin-title {
+	color: #f8f9fc;
+	font-size: 16px;
+	font-weight: 700;
+	letter-spacing: 0.06em;
+}
+
+.lp-bitcoin-ops .pin-sub {
+	color: #9ca3af;
+	font-size: 12px;
+}
+
+.lp-bitcoin-ops .pin-body {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 18px;
+	padding-top: 28px;
+	padding-right: 24px;
+	padding-bottom: 32px;
+	padding-left: 24px;
+}
+
+.lp-bitcoin-ops .pin-entry {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pin-label {
+	color: #f0a500;
+	font-size: 13px;
+	font-weight: 700;
+	letter-spacing: 0.14em;
+	text-align: center;
+}
+
+.lp-bitcoin-ops .pin-dots {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 12px;
+}
+
+.lp-bitcoin-ops .pin-dot {
+	width: 14px;
+	height: 14px;
+	border-radius: 0;
+	border: 2px solid rgba(240, 165, 0, 0.35);
+	background-color: transparent;
+}
+
+.lp-bitcoin-ops .pin-dot.filled {
+	background-color: #f0a500;
+	border-color: #f0a500;
+}
+
+.lp-bitcoin-ops .pin-error {
+	color: #ef6b5f;
+	font-size: 12px;
+	font-weight: 600;
+	text-align: center;
+	max-width: 320px;
+	line-height: 1.4;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pin-pad {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+	width: 100%;
+	max-width: 280px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pin-key {
+	width: 78px;
+	height: 52px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	border-radius: 14px;
+	background-color: $hashd-card;
+	border: 1px solid #374151;
+	color: #f8f9fc;
+	font-size: 18px;
+	font-weight: 700;
+	cursor: pointer;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pin-key .material-icons {
+	font-size: 22px;
+}
+
+.lp-bitcoin-ops .pin-key.ok {
+	color: #12100c;
+	background-color: #f0a500;
+	border-color: #f0a500;
+}
+
+.lp-bitcoin-ops .pin-key:hover {
+	border-color: rgba(240, 165, 0, 0.35);
+	background-color: rgba(240, 165, 0, 0.08);
+}
+
+.lp-bitcoin-ops .pin-key.ok:hover {
+	color: #12100c;
+	border-color: #f3ae0a;
+	background-color: #f3ae0a;
+}
+
+.lp-bitcoin-ops .pin-key.clr {
+	color: #aeb8cb;
+}
+
+.lp-bitcoin-ops .lp-window-watermark .lp-url-copy {
+	color: rgba(255, 255, 255, 0.55);
+}
+
+.lp-bitcoin-ops .lp-window-watermark .lp-url-copy:hover,
+.lp-bitcoin-ops .lp-window-watermark .lp-url-copy.copied {
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .lp-window-watermark {
+	flex: 0 0 32px;
+	flex-shrink: 0;
+	align-self: stretch;
+	width: 100%;
+	max-width: 100%;
+	height: 32px;
+	min-height: 32px;
+	max-height: 32px;
+	overflow: hidden;
+	border: 0;
+	background-color: #0c0a08;
+}
+
+.lp-bitcoin-ops .lp-window-watermark > Panel {
+	width: 100%;
+	max-width: 100%;
+	height: 32px;
+	min-height: 32px;
+	max-height: 32px;
+	flex-shrink: 0;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .lp-window-watermark .lp-source-footer {
+	width: 100%;
+	max-width: 100%;
+	height: 32px;
+	min-height: 32px;
+	max-height: 32px;
+	flex: none;
+	padding: 0 14px;
+	border-top: 0;
+	background-color: #0c0a08;
+}
+
+.lp-bitcoin-ops .lp-window-watermark.lp-window-watermark--rounded {
+	border-radius: 0 0 $shell-radius $shell-radius;
+}
+
+.lp-bitcoin-ops .lp-window-watermark.lp-window-watermark--rounded .lp-source-footer {
+	border-radius: 0 0 $shell-radius $shell-radius;
+}
+
+.lp-bitcoin-ops .hub-body {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background-color: #000000;
+	border-top-left-radius: $shell-radius;
+	border-top-right-radius: $shell-radius;
+}
+
+.lp-bitcoin-ops .hub-main {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: row;
+	overflow: hidden;
+	background-color: #000000;
+	border-top-left-radius: $shell-radius;
+	border-top-right-radius: $shell-radius;
+}
+
+.lp-bitcoin-ops .sidebar {
+	width: 72px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-top: 16px;
+	padding-right: 10px;
+	padding-bottom: 14px;
+	padding-left: 10px;
+	background-color: $hashd-surface;
+	border-right: 1px solid #374151;
+	border-top-left-radius: $shell-radius;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .sidebar-brand.hex-mark {
+	width: 46px;
+	height: 46px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	margin-bottom: 22px;
+	border-radius: 14px;
+	background-color: rgba(232, 125, 62, 0.14);
+	border: 1px solid rgba(232, 125, 62, 0.35);
+}
+
+.lp-bitcoin-ops .brand-mark {
+	width: 30px;
+	height: 30px;
+	flex-shrink: 0;
+	// R2: mark is a Razor <img> — never CSS url() (SBOX_CONTEXT dependency defect).
+}
+
+.lp-bitcoin-ops .sidebar-brand.hex-mark .brand-mark {
+	width: 30px;
+	height: 30px;
+}
+
+.lp-bitcoin-ops .sidebar-nav {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	flex-grow: 1;
+}
+
+.lp-bitcoin-ops .sidebar-foot {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	padding-top: 10px;
+}
+
+.lp-bitcoin-ops .sidebar-btn {
+	width: 46px;
+	height: 46px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	position: relative;
+	border-radius: 14px;
+	background-color: transparent;
+	border: 1px solid transparent;
+	color: #6f7785;
+	cursor: pointer;
+}
+
+.lp-bitcoin-ops .sidebar-alert-dot {
+	position: absolute;
+	top: 8px;
+	right: 8px;
+	width: 9px;
+	height: 9px;
+	border-radius: 0;
+	background-color: #f59e0b;
+	border: 2px solid #12141a;
+	box-shadow: 0 0 8px rgba(245, 158, 11, 0.55);
+	pointer-events: none;
+}
+
+.lp-bitcoin-ops .sidebar-btn .material-icons {
+	font-size: 22px;
+}
+
+.lp-bitcoin-ops .sidebar-btn.sidebar-btn-sel {
+	color: #ffffff;
+	background-color: #e87d3e;
+	border-color: rgba(255, 255, 255, 0.08);
+	box-shadow: 0 0 16px rgba(232, 125, 62, 0.45);
+}
+
+.lp-bitcoin-ops .sidebar-avatar {
+	width: 38px;
+	height: 38px;
+	border-radius: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	background-color: #22262e;
+	border: 2px solid rgba(255, 255, 255, 0.08);
+	color: #f8f9fc;
+	font-size: 13px;
+	font-weight: 700;
+	overflow: hidden;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .sidebar-avatar .sidebar-avatar-img {
+	width: 100%;
+	height: 100%;
+	border-radius: 0;
+}
+
+.lp-bitcoin-ops .workspace {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	background-color: $hashd-surface;
+	border-top-right-radius: $shell-radius;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .hub-header {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px 16px;
+	flex-shrink: 0;
+	min-height: 68px;
+	padding-top: 12px;
+	padding-right: 22px;
+	padding-bottom: 12px;
+	padding-left: 22px;
+	border-bottom: 1px solid #374151;
+	background-color: $hashd-surface;
+	border-top-right-radius: $shell-radius;
+}
+
+.lp-bitcoin-ops .hub-header .hub-title {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 12px;
+	flex: 1 1 auto;
+	min-width: 0;
+	margin-bottom: 0;
+	color: #e87d3e;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 22px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .hub-header .hub-title .material-icons {
+	flex-shrink: 0;
+	font-size: 26px;
+	margin-top: 0;
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .hub-header .hub-title span {
+	flex: 0 1 auto;
+	min-width: 0;
+}
+
+.lp-bitcoin-ops .pane {
+	display: flex;
+	flex-direction: column;
+	gap: 14px;
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .workspace-body {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .main-panel {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 0;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .pane.overview {
+	flex: 1 1 auto;
+	min-height: 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-top: 14px;
+	padding-right: 16px;
+	padding-bottom: 16px;
+	padding-left: 16px;
+	overflow: hidden;
+	background-color: $hashd-surface;
+}
+
+.lp-bitcoin-ops .pane.wallet,
+.lp-bitcoin-ops .pane.transfers,
+.lp-bitcoin-ops .pane.racks,
+.lp-bitcoin-ops .pane.upgrades,
+.lp-bitcoin-ops .pane.logs-pane,
+.lp-bitcoin-ops .pane.settings-pane {
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-height: 0;
+	height: 100%;
+	min-width: 0;
+	overflow: hidden;
+	display: flex;
+	flex-direction: column;
+}
+
+// Flat — settings tab: four sections fit without scroll; sections size to content (owner law).
+.lp-bitcoin-ops .pane.settings-pane > .settings-panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	gap: 0;
+	padding-top: 12px;
+	padding-right: 14px;
+	padding-bottom: 10px;
+	padding-left: 14px;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .settings-body {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	width: 100%;
+	padding-bottom: 0;
+}
+
+.lp-bitcoin-ops .pane.settings-pane .lp-ui-panel-title {
+	flex-shrink: 0;
+	margin-bottom: 0;
+}
+
+.lp-bitcoin-ops .pane.settings-pane > .settings-panel > .lp-ui-panel-title {
+	margin-bottom: 8px;
+}
+
+// Settings tab is a left-aligned grouped list (iOS-style): each row has its label +
+// hint on the left and a control on the right — a switch for true toggles, a compact
+// button for momentary actions.
+.lp-bitcoin-ops .settings-list {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	padding-top: 2px;
+	padding-bottom: 2px;
+}
+
+.lp-bitcoin-ops .settings-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	padding-top: 12px;
+	padding-bottom: 12px;
+	border-bottom: 1px solid rgba(255, 255, 255, 0.07);
+}
+
+.lp-bitcoin-ops .settings-list > .settings-row:last-child {
+	border-bottom: 0;
+}
+
+.lp-bitcoin-ops .settings-row-main {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	gap: 3px;
+	min-width: 0;
+	flex: 1 1 auto;
+}
+
+.lp-bitcoin-ops .settings-row-label {
+	color: #f8f9fc;
+	font-size: 13px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+}
+
+.lp-bitcoin-ops .settings-row-hint {
+	color: #9ca3af;
+	font-size: 11px;
+	line-height: 1.4;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .settings-row-control {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .settings-switch {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	padding: 0;
+	border: 0;
+	background-color: transparent;
+	cursor: pointer;
+	flex-shrink: 0;
+
+	&.is-disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+}
+
+// Momentary actions read as real, tappable buttons: visible border + filled inset, a clear
+// hover, a pressed state, and a green "confirmed" flash for in-button confirmations.
+.lp-bitcoin-ops .settings-row-action {
+	flex-shrink: 0;
+	min-height: 34px;
+	min-width: 92px;
+	padding-top: 7px;
+	padding-right: 18px;
+	padding-bottom: 7px;
+	padding-left: 18px;
+	border-radius: 0;
+	border: 1px solid rgba(255, 255, 255, 0.28);
+	background-color: rgba(255, 255, 255, 0.10);
+	color: $hashd-text;
+	font-size: 12px;
+	font-weight: 800;
+	letter-spacing: 0.03em;
+	line-height: 1.2;
+	text-align: center;
+	align-items: center;
+	justify-content: center;
+	white-space: nowrap;
+	cursor: pointer;
+	transition: border-color 0.12s ease, background-color 0.12s ease, color 0.12s ease, transform 0.08s ease;
+
+	&:hover {
+		border-color: rgba(232, 125, 62, 0.6);
+		color: $hashd-amber;
+		background-color: rgba(232, 125, 62, 0.16);
+	}
+
+	&:active {
+		transform: scale(0.95);
+		background-color: rgba(232, 125, 62, 0.24);
+		border-color: rgba(232, 125, 62, 0.8);
+	}
+
+	&.is-disabled {
+		opacity: 0.4;
+		cursor: default;
+	}
+
+	&.confirmed {
+		color: #5fd38d;
+		border-color: rgba(95, 211, 141, 0.7);
+		background-color: rgba(95, 211, 141, 0.18);
+		animation: lp-settings-confirm-pop 0.32s ease;
+	}
+}
+
+@keyframes lp-settings-confirm-pop {
+	0% {
+		transform: scale(0.86);
+		opacity: 0.35;
+	}
+	55% {
+		transform: scale(1.07);
+		opacity: 1;
+	}
+	100% {
+		transform: scale(1);
+		opacity: 1;
+	}
+}
+
+// Getting-started + credits block fills the space freed by the iOS-switch list.
+.lp-bitcoin-ops .settings-footnote {
+	flex: 0 0 auto;
+	gap: 6px;
+	margin-top: 12px;
+}
+
+.lp-bitcoin-ops .settings-footnote-title {
+	color: #f8f9fc;
+	font-size: 11px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+}
+
+.lp-bitcoin-ops .settings-footnote-text {
+	color: #9ca3af;
+	font-size: 11px;
+	line-height: 1.45;
+	white-space: normal;
+}
+
+// Quiet status chips — they annotate the row, they do NOT compete with the switch.
+.lp-bitcoin-ops .settings-pill {
+	padding-top: 3px;
+	padding-right: 8px;
+	padding-bottom: 3px;
+	padding-left: 8px;
+	border-radius: 0;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	background-color: transparent;
+	color: #9ca3af;
+	font-size: 9px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .settings-pill.on,
+.lp-bitcoin-ops .settings-pill.warn {
+	color: #e0a06a;
+	background-color: rgba(232, 125, 62, 0.08);
+	border-color: rgba(232, 125, 62, 0.4);
+}
+
+.lp-bitcoin-ops .settings-pill.off {
+	color: #9ca3af;
+}
+
+.lp-bitcoin-ops .lp-hashd-surface {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding: 14px;
+	border-radius: 10px;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lp-bitcoin-ops .pane.wallet .lp-ui-info {
+	margin-bottom: 12px;
+	padding: 12px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .rack-card {
+	padding: 14px;
+	border-radius: 10px;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+// Flat — rack slot copy chip (overview + servers).
+.lp-bitcoin-ops .rack-slot-id-copy {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 4px 6px;
+	padding: 4px 8px;
+	border-radius: 6px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: rgba(0, 0, 0, 0.35);
+	cursor: pointer;
+}
+
+.lp-bitcoin-ops .rack-slot-id-token {
+	color: #f8f9fc;
+	font-family: "Roboto Mono", monospace;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.02em;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .rack-slot-id-hint {
+	color: #e87d3e;
+	font-size: 9px;
+	font-weight: 700;
+	text-transform: uppercase;
+	white-space: nowrap;
+}
+
+// Flat — rack card Upgrade must not flex-grow (s&box drops nested btn rules).
+.lp-bitcoin-ops .rack-card-actions .rack-upgrade-btn {
+	flex: 0 0 auto;
+	width: 100%;
+	min-height: 0;
+	height: auto;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	padding: 10px 14px;
+	font-size: 11px;
+	font-weight: 900;
+	line-height: 1.2;
+	letter-spacing: 0.03em;
+	text-align: center;
+	white-space: nowrap;
+}
+
+// Flat — overview intro: terminal link strip (green = ready; amber reserved for HASHD accents elsewhere).
+.lp-bitcoin-ops .overview-intro-header {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex-shrink: 0;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .overview-intro-terminal-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	justify-content: stretch;
+	gap: 10px;
+	width: 100%;
+	min-height: 56px;
+	padding-top: 10px;
+	padding-right: 12px;
+	padding-bottom: 10px;
+	padding-left: 12px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: rgba(0, 0, 0, 0.28);
+	overflow: visible;
+}
+
+.lp-bitcoin-ops .overview-intro-terminal-meta {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-start;
+	justify-content: center;
+	gap: 4px;
+	flex: 1 1 55%;
+	min-width: 0;
+}
+
+.lp-bitcoin-ops .overview-intro-terminal-heading {
+	color: $hashd-muted;
+	font-size: 10px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .overview-intro-terminal-status {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 8px;
+	flex: 0 0 auto;
+	width: 100%;
+	min-width: 0;
+	padding-top: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+	padding-left: 0;
+	border: 0;
+	background-color: transparent;
+}
+
+.lp-bitcoin-ops .overview-intro-terminal-label {
+	color: #f8f9fc;
+	font-size: 11px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	line-height: 1.25;
+	white-space: normal;
+	text-align: left;
+}
+
+.lp-bitcoin-ops .overview-intro-terminal-actions {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	justify-content: stretch;
+	flex: 1 1 45%;
+	min-width: 0;
+	width: auto;
+	padding: 0;
+	border: 0;
+	background-color: transparent;
+}
+
+.lp-bitcoin-ops .overview-intro-terminal-actions .lp-ui-btn-primary,
+.lp-bitcoin-ops .overview-intro-terminal-actions .lp-ui-btn-ghost {
+	flex: 1 1 auto;
+	width: 100%;
+	max-width: 100%;
+	min-height: 38px;
+	height: auto;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	text-align: center;
+	padding-top: 8px;
+	padding-right: 10px;
+	padding-bottom: 8px;
+	padding-left: 10px;
+	font-size: 10px;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .overview-intro-unlink-btn {
+	border-radius: 6px;
+	border: 1px solid rgba(239, 68, 68, 0.55);
+	background-color: rgba(239, 68, 68, 0.18);
+	color: #fca5a5;
+	font-weight: 800;
+	cursor: pointer;
+	box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+}
+
+// Same hover contract as link-ready — red palette; overrides lp-ui-btn-ghost white hover.
+.lp-bitcoin-ops .overview-intro-terminal-actions .lp-ui-btn-ghost.overview-intro-unlink-btn {
+	border: 1px solid rgba(239, 68, 68, 0.55);
+	background-color: rgba(239, 68, 68, 0.18);
+	color: #fca5a5;
+	box-shadow: 0 0 12px rgba(239, 68, 68, 0.25);
+
+	&:hover {
+		border-color: rgba(239, 68, 68, 0.75);
+		background-color: rgba(239, 68, 68, 0.32);
+		color: #ffe8e8;
+		box-shadow: 0 0 14px rgba(239, 68, 68, 0.38);
+	}
+}
+
+.lp-bitcoin-ops .overview-intro-terminal-disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+// Unlink hover stays in its red lane — without this flat rule the base ghost hover
+// (hashd orange accent) painted it orange. Defined flat + late so it wins.
+.lp-bitcoin-ops .overview-intro-unlink-btn:hover {
+	border-color: rgba(239, 68, 68, 0.75);
+	background-color: rgba(239, 68, 68, 0.32);
+	color: #ffe8e8;
+}
+
+// Flat tinted ghost — same anatomy as .overview-intro-unlink-btn (red lane), green lane.
+.lp-bitcoin-ops .overview-intro-link-ready {
+	border: 1px solid rgba(95, 211, 141, 0.55);
+	border-color: rgba(95, 211, 141, 0.55);
+	background-color: rgba(95, 211, 141, 0.18);
+	color: #b8f5d0;
+
+	&:hover {
+		border-color: rgba(95, 211, 141, 0.75);
+		background-color: rgba(95, 211, 141, 0.32);
+		color: #e6fff0;
+	}
+}
+
+// lp-ui-accent-hashd paints .lp-ui-btn-primary orange — keep link CTA green on hover too.
+.lp-bitcoin-ops .overview-intro-terminal-actions .lp-ui-btn-primary.overview-intro-link-ready {
+	border: 1px solid rgba(95, 211, 141, 0.55);
+	background-color: rgba(95, 211, 141, 0.18);
+	color: #b8f5d0;
+	box-shadow: 0 0 12px rgba(95, 211, 141, 0.25);
+
+	&:hover {
+		border-color: rgba(95, 211, 141, 0.75);
+		background-color: rgba(95, 211, 141, 0.32);
+		color: #e8fff0;
+		box-shadow: 0 0 14px rgba(95, 211, 141, 0.38);
+	}
+}
+
+.lp-bitcoin-ops .overview .lp-ui-split {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	gap: 14px;
+}
+
+.lp-bitcoin-ops .overview .lp-ui-split > .lp-ui-panel.overview-status-panel > .overview-status-stack {
+	flex: 1 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.lp-bitcoin-ops .overview-status-stack {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 auto;
+	min-height: 0;
+	justify-content: flex-start;
+}
+
+.lp-bitcoin-ops .overview-status-body {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex: 0 0 auto;
+	padding-bottom: 0;
+}
+
+.lp-bitcoin-ops .overview-status-actions.lp-ui-btn-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	gap: 5px;
+	width: 100%;
+	flex: 1 1 auto;
+	min-height: 0;
+	margin-top: 0;
+}
+
+.lp-bitcoin-ops .overview-status-actions .overview-status-action {
+	flex: 1 1 0;
+	min-width: 0;
+	min-height: 46px;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 3px;
+	padding-top: 6px;
+	padding-right: 4px;
+	padding-bottom: 6px;
+	padding-left: 4px;
+	font-size: 9px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	line-height: 1.1;
+	white-space: nowrap;
+	text-align: center;
+	text-transform: none;
+}
+
+.lp-bitcoin-ops .overview-status-actions .overview-status-action.lp-ui-btn-primary,
+.lp-bitcoin-ops .overview-status-actions .overview-status-action.lp-ui-btn-ghost {
+	flex: 1 1 0;
+	min-width: 0;
+	padding-top: 6px;
+	padding-right: 4px;
+	padding-bottom: 6px;
+	padding-left: 4px;
+	font-size: 9px;
+	line-height: 1.1;
+}
+
+.lp-bitcoin-ops .overview-status-actions .overview-status-action .material-icons {
+	font-size: 18px;
+	line-height: 1;
+}
+
+.lp-bitcoin-ops .overview .lp-ui-split > .lp-ui-panel {
+	flex: 1 1 0;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	padding-top: 12px;
+	padding-right: 14px;
+	padding-bottom: 12px;
+	padding-left: 14px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: rgba(0, 0, 0, 0.28);
+}
+
+.lp-bitcoin-ops .overview .lp-ui-split > .lp-ui-panel > .lp-ui-panel-title {
+	flex-shrink: 0;
+	margin-bottom: 8px;
+}
+
+.lp-bitcoin-ops .overview-miners-scroll,
+.lp-bitcoin-ops .racks-scroll,
+.lp-bitcoin-ops .upgrades-scroll {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: hidden;
+}
+
+.lp-bitcoin-ops .logs-scroll {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	width: 100%;
+	overflow-x: hidden;
+	overflow-y: scroll;
+	// Top-anchored feed — same recipe as the terminal CRT log (LpUiMenuLayout
+	// .terminal-log-scroll), which is the proven top-aligned scroll stack. Without
+	// it the notif rows floated to the bottom with a dead zone above.
+	justify-content: flex-start;
+	align-items: stretch;
+	align-content: flex-start;
+}
+
+// Feed containment. The older .pane.logs-pane > … rules use compound .class.class
+// selectors, which s&box applies unreliably — without this flat rule .logs-feed sizes
+// to its content, the panel clips it, and .logs-scroll never gets a height to scroll in.
+.lp-bitcoin-ops .logs-feed {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	width: 100%;
+	position: relative;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .racks-scroll,
+.lp-bitcoin-ops .upgrades-scroll,
+.lp-bitcoin-ops .logs-scroll {
+	padding-bottom: 24px;
+}
+
+.lp-bitcoin-ops .overview-miners-scroll {
+	gap: 10px;
+	padding-bottom: 0;
+	overflow-y: hidden;
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.lp-bitcoin-ops .overview-miners-empty {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding-top: 24px;
+	padding-right: 16px;
+	padding-bottom: 24px;
+	padding-left: 16px;
+	color: #8b95a8;
+	font-size: 11px;
+	line-height: 1.45;
+	text-align: center;
+}
+
+.lp-bitcoin-ops .overview-miner-card {
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 8px;
+	flex: 1 1 0;
+	min-height: 0;
+	width: 100%;
+	padding-top: 12px;
+	padding-right: 14px;
+	padding-bottom: 12px;
+	padding-left: 14px;
+	border-radius: 0;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: rgba(0, 0, 0, 0.28);
+}
+
+.lp-bitcoin-ops .overview-miner-card.nearby {
+	border-color: rgba(232, 125, 62, 0.22);
+	background-color: rgba(232, 125, 62, 0.06);
+}
+
+.lp-bitcoin-ops .overview-miner-card.empty {
+	border-color: rgba(255, 255, 255, 0.05);
+	background-color: rgba(0, 0, 0, 0.16);
+}
+
+.lp-bitcoin-ops .overview-miner-stats.empty {
+	color: #8b95a8;
+	font-size: 10px;
+	line-height: 1.35;
+}
+
+.lp-bitcoin-ops .overview-miner-stats.empty.market-hint,
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-value.empty.market-hint {
+	color: #c8d0de;
+	font-size: 11px;
+	line-height: 1.4;
+	text-align: center;
+}
+
+.lp-bitcoin-ops .overview-miner-head {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .overview-miner-title {
+	flex: 1 1 auto;
+	min-width: 0;
+	color: #f8f9fc;
+	font-size: 13px;
+	font-weight: 700;
+	line-height: 1.3;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .overview-miner-status {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 5px;
+	color: #9ca3af;
+	font-size: 10px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .overview-miner-status.on {
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .overview-miner-status.nearby {
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .lp-ui-status-dot.nearby {
+	background-color: #e87d3e;
+}
+
+.lp-bitcoin-ops .hashd-prompt-accent {
+	color: #e87d3e;
+	font-weight: 700;
+}
+
+.lp-bitcoin-ops .overview-miner-stats {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	color: #9ca3af;
+	font-size: 11px;
+	line-height: 1.35;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .overview-miner-copy {
+	align-self: flex-start;
+	max-width: 100%;
+	flex-shrink: 0;
+	padding-top: 5px;
+	padding-right: 8px;
+	padding-bottom: 5px;
+	padding-left: 8px;
+}
+
+.lp-bitcoin-ops .overview-miner-copy .rack-slot-id-token {
+	font-size: 10px;
+}
+
+.lp-bitcoin-ops .overview-miner-copy .rack-slot-id-hint {
+	font-size: 9px;
+}
+
+.lp-bitcoin-ops .overview-miner-copy .material-icons {
+	font-size: 14px;
+}
+
+// Flat — hub status: uniform padding with miners column.
+.lp-bitcoin-ops .overview .lp-ui-split > .lp-ui-panel.overview-status-panel {
+	overflow: hidden;
+	padding-top: 16px;
+	padding-right: 18px;
+	padding-bottom: 14px;
+	padding-left: 18px;
+}
+
+.lp-bitcoin-ops .overview-status-head {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	margin-bottom: 10px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .overview-status-title {
+	flex: 1 1 auto;
+	min-width: 0;
+	margin-bottom: 0;
+}
+
+.lp-bitcoin-ops .overview-status-upgrades-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	justify-content: flex-start;
+	gap: 0;
+	width: 100%;
+	flex-shrink: 0;
+	margin-top: 2px;
+	padding-top: 6px;
+	padding-bottom: 10px;
+}
+
+.lp-bitcoin-ops .overview-status-upgrades-grid {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	gap: 12px;
+	flex: 1 1 auto;
+	min-width: 0;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .overview-status-upgrade-surface {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	flex: 1 1 0;
+	min-width: 0;
+}
+
+.lp-bitcoin-ops .overview-status-upgrade-surface-head {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4px;
+	margin-bottom: 3px;
+	color: #e87d3e;
+	font-size: 8px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.05em;
+	line-height: 1.15;
+}
+
+.lp-bitcoin-ops .overview-status-upgrade-surface-head .material-icons {
+	font-size: 11px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .overview-status-upgrade-track {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: baseline;
+	justify-content: space-between;
+	gap: 6px;
+	min-height: 12px;
+}
+
+.lp-bitcoin-ops .overview-status-upgrade-track-name {
+	flex: 1 1 auto;
+	min-width: 0;
+	color: rgba(255, 255, 255, 0.58);
+	font-size: 8px;
+	font-weight: 600;
+	line-height: 1.2;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+}
+
+.lp-bitcoin-ops .overview-status-upgrade-track-tier {
+	flex: 0 0 auto;
+	color: rgba(255, 255, 255, 0.82);
+	font-size: 8px;
+	font-weight: 700;
+	line-height: 1.2;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .overview-status-upgrade-btn {
+	flex: 0 0 auto;
+	min-height: 32px;
+	padding-top: 7px;
+	padding-right: 14px;
+	padding-bottom: 7px;
+	padding-left: 14px;
+	font-size: 10px;
+	font-weight: 800;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .overview-status-info {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .overview-status-info .lp-ui-info-row,
+.lp-bitcoin-ops .pane.wallet .lp-ui-info .lp-ui-info-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+	min-height: 24px;
+}
+
+.lp-bitcoin-ops .overview-status-info .lp-ui-info-label,
+.lp-bitcoin-ops .pane.wallet .lp-ui-info .lp-ui-info-label {
+	flex: 1 1 auto;
+	min-width: 0;
+	font-size: 13px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.3;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .overview-status-info .lp-ui-info-value,
+.lp-bitcoin-ops .pane.wallet .lp-ui-info .lp-ui-info-value {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+	text-align: right;
+	font-size: 15px;
+	font-weight: 600;
+	line-height: 1.3;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .overview-status-footer {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-end;
+	min-height: 0;
+	margin-top: auto;
+	padding-top: 8px;
+	padding-bottom: 0;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lp-bitcoin-ops .notif-list {
+	// Terminal log-stack law: the stack keeps natural height at the top of the scroll.
+	flex: 0 0 auto;
+	align-self: flex-start;
+	width: 100%;
+	padding-bottom: 12px;
+}
+
+.lp-bitcoin-ops .notif-row {
+	// Natural height, never flex-compressed — the scroll list law (see .job-option).
+	flex-shrink: 0;
+	min-height: 56px;
+}
+
+// Scroll slack so the last alert clears the pane bottom (tail-spacer law).
+.lp-bitcoin-ops .notif-list-tail {
+	flex-shrink: 0;
+	height: 12px;
+	width: 100%;
+}
+
+// Flat — upgrades pane padding (nested .upgrade-* rules often do not compile in s&box).
+.lp-bitcoin-ops .lp-hashd-inset {
+	display: flex;
+	flex-direction: column;
+	padding-top: 14px;
+	padding-right: 16px;
+	padding-bottom: 14px;
+	padding-left: 16px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .pane.upgrades .lp-ui-intro.upgrades-intro {
+	flex-shrink: 0;
+	padding-top: 16px;
+	padding-right: 18px;
+	padding-bottom: 16px;
+	padding-left: 18px;
+	text-align: left;
+	font-size: 12px;
+	line-height: 1.5;
+}
+
+.lp-bitcoin-ops .upgrade-track {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	padding-top: 16px;
+	padding-right: 16px;
+	padding-bottom: 16px;
+	padding-left: 16px;
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: rgba(0, 0, 0, 0.28);
+}
+
+.lp-bitcoin-ops .upgrade-track-head {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	padding-top: 0;
+	padding-right: 4px;
+	padding-bottom: 8px;
+	padding-left: 4px;
+}
+
+.lp-bitcoin-ops .upgrade-tier-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 14px;
+	width: 100%;
+	padding-top: 14px;
+	padding-right: 16px;
+	padding-bottom: 14px;
+	padding-left: 16px;
+	border-radius: 0;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background-color: rgba(0, 0, 0, 0.35);
+}
+
+.lp-bitcoin-ops .upgrade-tier-row.next {
+	border: 1px solid rgba(232, 125, 62, 0.45);
+	background-color: rgba(232, 125, 62, 0.1);
+}
+
+.lp-bitcoin-ops .upgrade-tier-row.maxed {
+	border: 1px solid rgba(95, 211, 141, 0.35);
+	background-color: rgba(95, 211, 141, 0.08);
+}
+
+.lp-bitcoin-ops .upgrade-tier-main {
+	flex: 1 1 160px;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+}
+
+.lp-bitcoin-ops .upgrade-tier-side {
+	flex: 0 0 auto;
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 6px;
+}
+
+// Flat — s&box may drop nested upgrade buy rules; flex-center label inside orange button.
+.lp-bitcoin-ops .upgrade-tier-row .upgrade-tier-buy {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	flex: 0 0 auto;
+	min-width: 156px;
+	min-height: 38px;
+	padding: 10px 20px;
+	font-size: 11px;
+	font-weight: 900;
+	line-height: 1.2;
+	letter-spacing: 0.03em;
+	text-align: center;
+	white-space: nowrap;
+}
+
+// Flat — overview/racks panel surfaces.
+.lp-bitcoin-ops .overview .lp-ui-split > .lp-ui-panel {
+	border-radius: 10px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: rgba(0, 0, 0, 0.28);
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .overview .lp-ui-split > .lp-ui-panel > .lp-ui-panel-title {
+	flex-shrink: 0;
+	margin-bottom: 12px;
+}
+
+// Flat — empty callout: rounded amber frame (matches hub card radius).
+.lp-bitcoin-ops .lp-ui-panel > .lp-ui-empty-callout {
+	flex: 1 1 auto;
+	min-height: 168px;
+	margin: 0;
+	padding-top: 22px;
+	padding-right: 18px;
+	padding-bottom: 20px;
+	padding-left: 18px;
+	border-radius: 10px;
+	border: 1px solid rgba(232, 125, 62, 0.45);
+	background-color: rgba(232, 125, 62, 0.08);
+	box-shadow: none;
+}
+
+.lp-bitcoin-ops .pane.racks > .racks-panel > .lp-ui-panel-title {
+	flex-shrink: 0;
+	margin-bottom: 8px;
+}
+
+// Flat — hub tab bodies + header chrome (nested rules dropped by s&box).
+.lp-bitcoin-ops .material-icons {
+	font-family: Material Icons;
+	font-weight: normal;
+	font-style: normal;
+	text-transform: none;
+	letter-spacing: normal;
+}
+
+.lp-bitcoin-ops .main-panel > .pane:not(.overview) {
+	flex: 1 1 0;
+	min-height: 0;
+	padding: 0;
+	overflow: hidden;
+	background-color: $hashd-surface;
+}
+
+.lp-bitcoin-ops .pane.wallet > .wallet-panel,
+.lp-bitcoin-ops .pane.transfers > .transfers-panel,
+.lp-bitcoin-ops .pane.racks > .racks-panel,
+.lp-bitcoin-ops .pane.upgrades > .upgrades-panel,
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel,
+.lp-bitcoin-ops .pane.settings-pane > .settings-panel {
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	width: 100%;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	padding-top: 16px;
+	padding-right: 18px;
+	padding-bottom: 18px;
+	padding-left: 18px;
+	border: 0;
+	border-radius: 0;
+	background-color: transparent;
+}
+
+.lp-bitcoin-ops .pane.overview > .lp-ui-panel-title,
+.lp-bitcoin-ops .pane.wallet .lp-ui-panel-title,
+.lp-bitcoin-ops .pane.transfers .lp-ui-panel-title,
+.lp-bitcoin-ops .pane.racks .lp-ui-panel-title,
+.lp-bitcoin-ops .pane.upgrades .lp-ui-panel-title,
+.lp-bitcoin-ops .pane.logs-pane .lp-ui-panel-title,
+.lp-bitcoin-ops .pane.settings-pane .lp-ui-panel-title {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 10px;
+	flex-shrink: 0;
+	margin-bottom: 0;
+	white-space: normal;
+	line-height: 1.25;
+}
+
+.lp-bitcoin-ops .pane.transfers > .transfers-panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	gap: 10px;
+	padding-bottom: 12px;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .pane.transfers > .transfers-panel > .lp-ui-panel-title {
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.lp-bitcoin-ops .pane.transfers .lp-ui-intro,
+.lp-bitcoin-ops .pane.transfers .transfers-intro {
+	flex-shrink: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	padding-top: 7px;
+	padding-right: 12px;
+	padding-bottom: 7px;
+	padding-left: 12px;
+	font-size: 11px;
+	line-height: 1.35;
+	text-align: left;
+}
+
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	overflow: hidden;
+	gap: 12px;
+}
+
+.lp-bitcoin-ops .pane.wallet > .wallet-panel > .lp-ui-panel-title {
+	margin-bottom: 14px;
+}
+
+.lp-bitcoin-ops .pane.transfers > .transfers-panel > .lp-ui-panel-title,
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel > .lp-ui-panel-title {
+	margin-bottom: 0;
+	padding-bottom: 0;
+}
+
+.lp-bitcoin-ops .pane.logs-pane .lp-ui-intro,
+.lp-bitcoin-ops .pane.logs-pane .logs-intro {
+	flex-shrink: 0;
+	margin-top: 0;
+	margin-bottom: 0;
+	padding-top: 10px;
+	padding-right: 12px;
+	padding-bottom: 10px;
+	padding-left: 12px;
+	font-size: 11px;
+	line-height: 1.45;
+	text-align: left;
+}
+
+.lp-bitcoin-ops .pane.transfers .transfer-columns {
+	margin-top: 0;
+	flex: 0 0 auto;
+	min-height: 0;
+	overflow: visible;
+}
+
+.lp-bitcoin-ops .transfers-rate-strip {
+	flex: 1 1 auto;
+	min-height: 0;
+	margin-top: 8px;
+	width: 100%;
+	max-width: 100%;
+	display: flex;
+	flex-direction: column;
+	justify-content: space-between;
+	gap: 10px;
+	padding-top: 12px;
+	padding-right: 12px;
+	padding-bottom: 12px;
+	padding-left: 12px;
+	border-radius: 0;
+	border: 1px solid rgba(255, 255, 255, 0.06);
+	background-color: rgba(0, 0, 0, 0.35);
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .transfers-rate-head {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 6px;
+}
+
+.lp-bitcoin-ops .transfers-rate-tip {
+	flex: 1 1 0;
+	min-width: 0;
+	padding-top: 0;
+	padding-right: 4px;
+	padding-bottom: 0;
+	padding-left: 4px;
+	color: #9ca3af;
+	font-size: 8px;
+	font-weight: 600;
+	line-height: 1.3;
+	text-align: center;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .transfers-rate-title {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4px;
+	flex: 0 0 auto;
+	color: #f8f9fc;
+	font-size: 9px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.lp-bitcoin-ops .transfers-rate-title > .material-icons {
+	font-size: 12px;
+	color: #9ca3af;
+}
+
+.lp-bitcoin-ops .transfers-rate-badge {
+	flex: 0 0 auto;
+	padding-top: 1px;
+	padding-right: 6px;
+	padding-bottom: 1px;
+	padding-left: 6px;
+	border-radius: 0;
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	background-color: rgba(0, 0, 0, 0.25);
+	color: #f8f9fc;
+	font-size: 8px;
+	font-weight: 800;
+	line-height: 1.15;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .transfers-rate-grid {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	gap: 6px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .transfers-rate-cell {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 4px;
+	padding-top: 9px;
+	padding-right: 8px;
+	padding-bottom: 9px;
+	padding-left: 8px;
+	border-radius: 6px;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .transfers-rate-cell-btc {
+	color: #9ca3af;
+	font-size: 8px;
+	font-weight: 800;
+	line-height: 1.15;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .transfers-rate-cell-usd {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: flex-end;
+	gap: 3px;
+	color: #e87d3e;
+	font-size: 10px;
+	font-weight: 800;
+	line-height: 1.15;
+	text-align: right;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .transfers-rate-wallet {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+	min-height: 0;
+	padding-top: 10px;
+	padding-right: 8px;
+	padding-bottom: 10px;
+	padding-left: 8px;
+	border-radius: 6px;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .transfers-rate-wallet-label {
+	color: #9ca3af;
+	font-size: 9px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+}
+
+.lp-bitcoin-ops .transfers-rate-wallet-value {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: flex-end;
+	color: #f8f9fc;
+	font-size: 10px;
+	font-weight: 800;
+	text-align: right;
+	line-height: 1.2;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .transfers-rate-wallet-value.accent {
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel > .logs-feed {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	width: 100%;
+	position: relative;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel > .logs-feed > .logs-scroll {
+	flex: 1 1 0;
+	min-height: 0;
+}
+
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel > .logs-empty {
+	position: absolute;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	left: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding-top: 20px;
+	padding-bottom: 20px;
+	pointer-events: none;
+}
+
+.lp-bitcoin-ops .pane.wallet .lp-ui-intro,
+.lp-bitcoin-ops .pane.racks .lp-ui-intro,
+.lp-bitcoin-ops .pane.racks .racks-intro,
+.lp-bitcoin-ops .pane.upgrades .lp-ui-intro {
+	flex-shrink: 0;
+	margin-bottom: 12px;
+	text-align: left;
+}
+
+.lp-bitcoin-ops .pane.wallet .lp-ui-info {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex-shrink: 0;
+	margin-bottom: 12px;
+	padding-top: 12px;
+	padding-right: 12px;
+	padding-bottom: 12px;
+	padding-left: 12px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .pane.wallet > .wallet-panel {
+	display: flex;
+	flex-direction: column;
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-height: 0;
+	height: 100%;
+	overflow: hidden;
+	padding-bottom: 18px;
+	justify-content: flex-start;
+}
+
+.lp-bitcoin-ops .pane.wallet > .wallet-panel > .lp-ui-panel-title,
+.lp-bitcoin-ops .pane.wallet > .wallet-panel > .lp-ui-intro {
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pane.wallet > .wallet-panel > .lp-ui-info {
+	flex-grow: 0;
+	flex-shrink: 0;
+	margin-bottom: 12px;
+}
+
+.lp-bitcoin-ops .pane.wallet > .wallet-panel > .wallet-cashout-stack {
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	width: 100%;
+	margin-top: 0;
+	padding-top: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+	padding-left: 0;
+}
+
+.lp-bitcoin-ops .wallet-cashout-stack > .wallet-cashout-card {
+	// Hug the tiles + button — flex-grow:1 stretched the bordered card to the whole
+	// remaining pane height, leaving a huge empty box under Cash Out All.
+	flex-grow: 0;
+	flex-shrink: 1;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	justify-content: flex-start;
+	gap: 8px;
+	width: 100%;
+	padding-top: 10px;
+	padding-right: 10px;
+	padding-bottom: 10px;
+	padding-left: 10px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	overflow: visible;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tiles {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	gap: 6px;
+	width: 100%;
+	flex-grow: 0;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	justify-content: flex-start;
+	gap: 5px;
+	padding-top: 6px;
+	padding-right: 6px;
+	padding-bottom: 6px;
+	padding-left: 6px;
+	border-radius: 6px;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-label {
+	color: #9ca3af;
+	font-size: 8px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.15;
+	text-align: center;
+	white-space: nowrap;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-body {
+	flex-grow: 0;
+	flex-shrink: 0;
+	min-height: 44px;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	padding-top: 4px;
+	padding-right: 6px;
+	padding-bottom: 4px;
+	padding-left: 6px;
+	border-radius: 5px;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-input {
+	justify-content: flex-start;
+	align-items: center;
+	gap: 6px;
+	padding-top: 4px;
+	padding-right: 8px;
+	padding-bottom: 4px;
+	padding-left: 11px;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	cursor: text;
+}
+
+.lp-bitcoin-ops .wallet-cashout-input-icon {
+	flex-shrink: 0;
+	flex-grow: 0;
+	font-size: 13px;
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .wallet-cashout-input-field {
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: flex-start;
+	min-height: 28px;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .wallet-cashout-input {
+	flex-grow: 1;
+	flex-shrink: 1;
+	min-width: 0;
+	width: 100%;
+	height: 28px;
+	min-height: 28px;
+	padding-top: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+	padding-left: 4px;
+	border-radius: 0;
+	background-color: transparent;
+	border: 0;
+	color: #f8f9fc;
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1.2;
+	text-align: left;
+	caret-color: #e87d3e;
+}
+
+.lp-bitcoin-ops .wallet-cashout-input-hint {
+	flex-shrink: 0;
+	width: 100%;
+	margin-left: -100%;
+	padding-top: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+	padding-left: 4px;
+	color: rgba(156, 163, 175, 0.72);
+	font-size: 10px;
+	font-weight: 700;
+	line-height: 1.2;
+	text-align: left;
+	white-space: nowrap;
+	pointer-events: none;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-value {
+	color: #f8f9fc;
+	font-size: 10px;
+	font-weight: 800;
+	line-height: 1.2;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-body-btn {
+	padding-top: 0;
+	padding-right: 0;
+	padding-bottom: 0;
+	padding-left: 0;
+	background-color: transparent;
+	border: 0;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn {
+	flex: 1 1 auto;
+	min-height: 36px;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	padding-top: 4px;
+	padding-right: 4px;
+	padding-bottom: 4px;
+	padding-left: 4px;
+	border-radius: 5px;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.1);
+	color: #f8f9fc;
+	font-size: 8px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.03em;
+	line-height: 1.15;
+	text-align: center;
+	white-space: normal;
+	cursor: pointer;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn.disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn.is-ready {
+	background-color: rgba(232, 125, 62, 0.88);
+	border-color: rgba(232, 125, 62, 0.95);
+	color: #fff;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn.is-error {
+	color: #fff;
+	border-color: #ef6b5f;
+	background-color: rgba(239, 107, 95, 0.9);
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn.is-success {
+	color: #fff;
+	border-color: #00c853;
+	background-color: rgba(0, 200, 83, 0.9);
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn:hover {
+	border-color: rgba(255, 255, 255, 0.18);
+	background-color: rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn.disabled:hover {
+	border-color: rgba(255, 255, 255, 0.1);
+	background-color: rgba(0, 0, 0, 0.28);
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn.is-ready:hover {
+	background-color: rgba(232, 125, 62, 0.95);
+	border-color: #e87d3e;
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn.is-error:hover {
+	border-color: #ef6b5f;
+	background-color: rgba(239, 107, 95, 0.9);
+}
+
+.lp-bitcoin-ops .wallet-cashout-tile-btn.is-success:hover {
+	border-color: #00c853;
+	background-color: rgba(0, 200, 83, 0.9);
+}
+
+.lp-bitcoin-ops .wallet-cashout-all {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	flex-grow: 1;
+	flex-shrink: 0;
+	width: 100%;
+	min-height: 52px;
+	height: auto;
+	margin-top: 0;
+	padding-top: 12px;
+	padding-right: 10px;
+	padding-bottom: 12px;
+	padding-left: 10px;
+	border-radius: 6px;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	background-color: rgba(0, 0, 0, 0.28);
+	color: #9ca3af;
+	cursor: pointer;
+}
+
+.lp-bitcoin-ops .wallet-cashout-all > .material-icons {
+	flex-shrink: 0;
+	font-size: 18px;
+	color: #9ca3af;
+}
+
+.lp-bitcoin-ops .wallet-cashout-all-label {
+	color: #9ca3af;
+	font-size: 10px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.15;
+	white-space: nowrap;
+	text-align: center;
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.disabled {
+	opacity: 0.55;
+	cursor: default;
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-ready {
+	color: #fff;
+	border-color: rgba(232, 125, 62, 0.95);
+	background-color: rgba(232, 125, 62, 0.88);
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-ready > .material-icons {
+	color: #fff;
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-ready .wallet-cashout-all-label {
+	color: #fff;
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-error {
+	color: #fff;
+	border-color: #ef6b5f;
+	background-color: rgba(239, 107, 95, 0.9);
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-error > .material-icons {
+	color: #fff;
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-success {
+	color: #fff;
+	border-color: #00c853;
+	background-color: rgba(0, 200, 83, 0.9);
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-success > .material-icons {
+	color: #fff;
+}
+
+.lp-bitcoin-ops .wallet-cashout-all:hover {
+	border-color: rgba(255, 255, 255, 0.18);
+	background-color: rgba(255, 255, 255, 0.04);
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.disabled:hover {
+	border-color: rgba(255, 255, 255, 0.12);
+	background-color: rgba(0, 0, 0, 0.28);
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-ready:hover {
+	border-color: rgba(232, 125, 62, 0.95);
+	background-color: rgba(232, 125, 62, 0.95);
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-error:hover {
+	border-color: #ef6b5f;
+	background-color: rgba(239, 107, 95, 0.9);
+}
+
+.lp-bitcoin-ops .wallet-cashout-all.is-success:hover {
+	border-color: #00c853;
+	background-color: rgba(0, 200, 83, 0.9);
+}
+
+.lp-bitcoin-ops .header-widgets {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	flex: 1 1 240px;
+	min-width: 0;
+}
+
+.lp-bitcoin-ops .header-chip,
+.lp-bitcoin-ops .header-power-switch {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+	cursor: pointer;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip {
+	max-width: 220px;
+	min-height: 36px;
+	padding-top: 8px;
+	padding-right: 14px;
+	padding-bottom: 8px;
+	padding-left: 14px;
+	border-radius: 0;
+	background-color: $hashd-card;
+	border: 1px solid $hashd-border;
+	color: $hashd-text;
+	font-size: 12px;
+	font-weight: 600;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip span {
+	min-width: 0;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip .material-icons {
+	font-size: 16px;
+	color: $hashd-amber;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-ready {
+	border-color: rgba(95, 211, 141, 0.45);
+	background-color: rgba(95, 211, 141, 0.08);
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-ready .material-icons {
+	color: #5fd38d;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-error {
+	border-color: rgba(248, 113, 113, 0.55);
+	background-color: rgba(248, 113, 113, 0.12);
+	color: #fca5a5;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-error .material-icons {
+	color: #f87171;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-success {
+	border-color: rgba(95, 211, 141, 0.55);
+	background-color: rgba(95, 211, 141, 0.12);
+	color: #b8f5d0;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-success .material-icons {
+	color: #5fd38d;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.disabled {
+	opacity: 0.45;
+	cursor: default;
+}
+
+.lp-bitcoin-ops .header-power-switch {
+	height: 36px;
+	padding-top: 4px;
+	padding-right: 12px;
+	padding-bottom: 4px;
+	padding-left: 6px;
+	border-radius: 0;
+	background-color: $hashd-card;
+	border: 1px solid $hashd-border;
+}
+
+// Pill stays uniform with the wallet/date chips in both states — the on/off colour
+// lives ONLY inside the switch (track + knob), like an iOS toggle.
+.lp-bitcoin-ops .header-power-switch.on,
+.lp-bitcoin-ops .header-power-switch.off {
+	background-color: $hashd-card;
+	border-color: $hashd-border;
+}
+
+// Toggle switches are exempt from radius-flattening: the pill-and-circle is
+// functional shape (state affordance), not chrome.
+.lp-bitcoin-ops .power-switch-track {
+	position: relative;
+	width: 38px;
+	height: 22px;
+	border-radius: 11px;
+	background-color: rgba(0, 0, 0, 0.45);
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .header-power-switch.on .power-switch-track,
+.lp-bitcoin-ops .settings-switch.on .power-switch-track {
+	background-color: rgba(95, 211, 141, 0.35);
+	border-color: rgba(95, 211, 141, 0.55);
+}
+
+.lp-bitcoin-ops .header-power-switch.off .power-switch-track,
+.lp-bitcoin-ops .settings-switch.off .power-switch-track {
+	background-color: rgba(239, 107, 95, 0.28);
+	border-color: rgba(239, 107, 95, 0.5);
+}
+
+// iOS-style: the knob is always white, nearly fills the track (2px inset), only the
+// track carries the green/red state colour. Header default geometry (36x20 track).
+.lp-bitcoin-ops .power-switch-knob {
+	position: absolute;
+	top: 2px;
+	left: 2px;
+	width: 16px;
+	height: 16px;
+	border-radius: 8px;
+	background-color: #ffffff;
+}
+
+.lp-bitcoin-ops .header-power-switch.on .power-switch-knob {
+	left: 18px;
+}
+
+.lp-bitcoin-ops .header-power-switch.off .power-switch-knob {
+	left: 2px;
+}
+
+// Settings switches sit a touch larger than the compact header toggle (46x26 track).
+.lp-bitcoin-ops .settings-switch .power-switch-track {
+	width: 46px;
+	height: 26px;
+	border-radius: 13px;
+}
+
+.lp-bitcoin-ops .settings-switch .power-switch-knob {
+	width: 20px;
+	height: 20px;
+	top: 2px;
+	left: 2px;
+	border-radius: 10px;
+}
+
+.lp-bitcoin-ops .settings-switch.on .power-switch-knob {
+	left: 22px;
+}
+
+.lp-bitcoin-ops .settings-switch.off .power-switch-knob {
+	left: 2px;
+}
+
+.lp-bitcoin-ops .power-switch-label {
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	text-transform: uppercase;
+	line-height: 1.2;
+	white-space: nowrap;
+	color: $hashd-text;
+}
+
+.lp-bitcoin-ops .lp-ui-status-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 0;
+	background-color: #6b7280;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .lp-ui-status-dot.on {
+	background-color: #5fd38d;
+}
+
+.lp-bitcoin-ops .lp-ui-status-dot.off {
+	background-color: #ef6b5f;
+}
+
+.lp-bitcoin-ops .lp-ui-status-dot.warn {
+	background-color: #e87d3e;
+}
+
+.lp-bitcoin-ops .transfer-columns {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	gap: 14px;
+	align-items: stretch;
+	width: 100%;
+	flex: 0 0 auto;
+	min-height: 0;
+	margin-bottom: 0;
+	overflow: visible;
+}
+
+.lp-bitcoin-ops .transfer-column {
+	flex: 1 1 0;
+	min-width: 0;
+	min-height: 0;
+	align-self: stretch;
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+	padding-top: 14px;
+	padding-right: 14px;
+	padding-bottom: 14px;
+	padding-left: 14px;
+	border-radius: 10px;
+	background-color: rgba(0, 0, 0, 0.28);
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	overflow: visible;
+}
+
+.lp-bitcoin-ops .transfer-column-body {
+	flex: 0 1 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .transfer-mirror-stack {
+	flex: 0 0 auto;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .transfer-subsection {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	width: 100%;
+	padding-top: 12px;
+	padding-right: 12px;
+	padding-bottom: 12px;
+	padding-left: 12px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .transfer-subsection-stat {
+	flex: 0 0 auto;
+	min-height: 0;
+}
+
+.lp-bitcoin-ops .transfer-subsection-detail {
+	flex: 0 0 auto;
+	min-height: 0;
+}
+
+.lp-bitcoin-ops .transfer-subsection-command {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	gap: 12px;
+}
+
+.lp-bitcoin-ops .transfer-subsection-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .transfer-command-line {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .transfer-subsection-label {
+	flex: 0 0 auto;
+	color: #9ca3af;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.2;
+}
+
+.lp-bitcoin-ops .transfer-subsection-value {
+	flex: 0 0 auto;
+	min-width: 0;
+	color: #f8f9fc;
+	font-size: 13px;
+	font-weight: 800;
+	text-align: right;
+	line-height: 1.4;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .transfer-subsection-value-mono {
+	font-size: 14px;
+	font-family: monospace;
+}
+
+.lp-bitcoin-ops .transfer-subsection-value.accent {
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .transfer-command-card-stack {
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	flex-shrink: 0;
+	padding-top: 8px;
+	padding-right: 10px;
+	padding-bottom: 8px;
+	padding-left: 10px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .transfer-command-line {
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .transfer-column-head {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+	color: #f8f9fc;
+	font-size: 13px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.lp-bitcoin-ops .transfer-column-head > .material-icons {
+	flex-shrink: 0;
+	color: #e87d3e;
+	font-size: 18px;
+}
+
+.lp-bitcoin-ops .transfer-column-copy {
+	flex-shrink: 0;
+	margin: 0;
+	min-height: 0;
+	color: #9ca3af;
+	font-size: 11px;
+	line-height: 1.45;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .transfer-column-stats {
+	flex-shrink: 0;
+	margin: 0;
+}
+
+.lp-bitcoin-ops .transfer-column .lp-ui-info.transfer-column-stats {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	padding-top: 10px;
+	padding-right: 12px;
+	padding-bottom: 10px;
+	padding-left: 12px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .transfer-column .lp-ui-info-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 8px;
+}
+
+.lp-bitcoin-ops .transfer-column .lp-ui-info-label {
+	color: #9ca3af;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+}
+
+.lp-bitcoin-ops .transfer-column .lp-ui-info-value {
+	color: #f8f9fc;
+	font-size: 11px;
+	font-weight: 800;
+	text-align: right;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .transfer-column .lp-ui-info-value.accent {
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .transfer-address-card {
+	display: flex;
+	flex-direction: column;
+	gap: 6px;
+	flex-shrink: 0;
+	padding-top: 10px;
+	padding-right: 12px;
+	padding-bottom: 10px;
+	padding-left: 12px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .transfer-address-label {
+	color: #9ca3af;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+}
+
+.lp-bitcoin-ops .transfer-address-value {
+	color: #f8f9fc;
+	font-size: 13px;
+	font-weight: 700;
+	font-family: monospace;
+	line-height: 1.35;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .transfer-command-card {
+	display: flex;
+	flex-direction: column;
+	gap: 4px;
+	flex-shrink: 0;
+	padding-top: 8px;
+	padding-right: 10px;
+	padding-bottom: 8px;
+	padding-left: 10px;
+	border-radius: 0;
+	background-color: rgba(0, 0, 0, 0.35);
+	border: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.lp-bitcoin-ops .transfer-command-label {
+	flex-shrink: 0;
+	color: #9ca3af;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.06em;
+	line-height: 1.2;
+}
+
+.lp-bitcoin-ops .transfer-command-text {
+	flex-shrink: 0;
+	color: #f8f9fc;
+	font-size: 12px;
+	font-weight: 700;
+	font-family: monospace;
+	line-height: 1.35;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .transfer-btn-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	width: 100%;
+	margin-top: auto;
+	flex-shrink: 0;
+	padding-top: 10px;
+}
+
+.lp-bitcoin-ops .transfer-copy-btn {
+	flex: 1 1 100%;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	min-height: 36px;
+	padding-top: 9px;
+	padding-right: 12px;
+	padding-bottom: 9px;
+	padding-left: 12px;
+	font-size: 11px;
+	font-weight: 700;
+}
+
+.lp-bitcoin-ops .transfer-copy-btn > .material-icons {
+	font-size: 16px;
+}
+
+.lp-bitcoin-ops .transfer-copy-btn.is-copied {
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .upgrades-toolbar {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 12px;
+	flex-shrink: 0;
+	margin-bottom: 12px;
+}
+
+.lp-bitcoin-ops .upgrade-tracks {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .upgrade-track {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.lp-bitcoin-ops .upgrade-tier-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .rack-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 12px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .rack-card {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .rack-card-head {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 10px;
+	width: 100%;
+}
+
+// Servers tab — 3 fixed rack slots (2 GPU + 1 Advanced), no scroll, uniform compact cards.
+.lp-bitcoin-ops .pane.racks > .racks-panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	min-height: 0;
+	gap: 8px;
+	padding-bottom: 10px;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .pane.racks .racks-scroll {
+	overflow: hidden;
+	overflow-y: hidden;
+	padding-bottom: 0;
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+}
+
+.lp-bitcoin-ops .pane.racks .lp-ui-intro,
+.lp-bitcoin-ops .pane.racks .racks-intro {
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	margin-bottom: 4px;
+	padding-top: 8px;
+	padding-right: 10px;
+	padding-bottom: 8px;
+	padding-left: 10px;
+	font-size: 11px;
+	line-height: 1.35;
+	text-align: left;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-grid {
+	flex: 1 1 0;
+	min-height: 0;
+	gap: 12px;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card {
+	flex: 1 1 0;
+	min-height: 0;
+	gap: 12px;
+	padding-top: 16px;
+	padding-right: 16px;
+	padding-bottom: 16px;
+	padding-left: 16px;
+	justify-content: flex-start;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-body {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tiles {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: stretch;
+	gap: 10px;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tiles.empty {
+	align-items: stretch;
+	justify-content: center;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile {
+	flex: 1 1 0;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 6px;
+	padding-top: 14px;
+	padding-right: 10px;
+	padding-bottom: 14px;
+	padding-left: 10px;
+	border-radius: 0;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: rgba(0, 0, 0, 0.22);
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-wide {
+	flex: 1 1 100%;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding-top: 16px;
+	padding-right: 14px;
+	padding-bottom: 16px;
+	padding-left: 14px;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-label {
+	color: #9ca3af;
+	font-size: 9px;
+	font-weight: 800;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	line-height: 1.15;
+	text-align: center;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-value {
+	color: #f8f9fc;
+	font-size: 12px;
+	font-weight: 800;
+	line-height: 1.25;
+	text-align: center;
+	white-space: nowrap;
+	overflow: hidden;
+	text-overflow: ellipsis;
+	max-width: 100%;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-value.accent {
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-value.on {
+	color: #5fd38d;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-value.empty {
+	font-size: 11px;
+	font-weight: 600;
+	line-height: 1.45;
+	white-space: normal;
+	color: #8b95a8;
+	text-align: center;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-sub {
+	color: #9ca3af;
+	font-size: 9px;
+	line-height: 1.3;
+	text-align: center;
+	white-space: normal;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card.empty {
+	flex: 1 1 0;
+	min-height: 0;
+	border-color: rgba(255, 255, 255, 0.05);
+	background-color: rgba(0, 0, 0, 0.16);
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-head {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 10px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-head-main {
+	flex: 1 1 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 0;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-title {
+	font-size: 14px;
+	line-height: 1.25;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-badges {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-slot-id-copy {
+	flex: 0 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: nowrap;
+	align-items: center;
+	gap: 4px;
+	padding-top: 4px;
+	padding-right: 8px;
+	padding-bottom: 4px;
+	padding-left: 8px;
+	border-radius: 6px;
+	border: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: rgba(0, 0, 0, 0.35);
+	cursor: pointer;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-slot-id-copy > .material-icons {
+	flex-shrink: 0;
+	font-size: 12px;
+	color: #e87d3e;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-badge {
+	flex: 0 0 auto;
+	padding-top: 3px;
+	padding-right: 8px;
+	padding-bottom: 3px;
+	padding-left: 8px;
+	font-size: 9px;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-stats {
+	gap: 2px;
+	flex: 1 1 0;
+	min-height: 0;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-line {
+	font-size: 10px;
+	line-height: 1.25;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-line.empty {
+	font-size: 10px;
+	line-height: 1.3;
+	color: #8b95a8;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-actions {
+	margin-top: 0;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-actions .rack-upgrade-btn {
+	min-height: 34px;
+	width: 100%;
+	padding-top: 8px;
+	padding-right: 12px;
+	padding-bottom: 8px;
+	padding-left: 12px;
+	font-size: 11px;
+	letter-spacing: 0.02em;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card-actions .rack-upgrade-btn.disabled {
+	opacity: 0.55;
+}
+
+// Servers — three slot cards stretch to fill pane (overview miners-scroll unchanged).
+.lp-bitcoin-ops .pane.racks .racks-scroll > .rack-grid {
+	flex: 1 1 0;
+	min-height: 0;
+	height: 100%;
+	display: flex;
+	flex-direction: column;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card {
+	display: flex;
+	flex-direction: column;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card:not(.empty) .rack-card-body {
+	flex: 1 1 0;
+	min-height: 0;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card:not(.empty) .rack-stat-tiles {
+	flex: 1 1 0;
+	min-height: 0;
+	align-items: stretch;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card:not(.empty) .rack-stat-tile {
+	min-height: 0;
+	padding-top: 16px;
+	padding-bottom: 16px;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card:not(.empty) .rack-card-actions {
+	margin-top: auto;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-card.empty .rack-stat-tiles.empty {
+	flex: 1 1 0;
+	min-height: 0;
+	justify-content: center;
+}
+
+// Servers home grid — reuse the low-clutter launcher boxes; dim empty (unlinked) slots.
+.lp-bitcoin-ops .servers-home-grid {
+	margin-top: 8px;
+}
+
+.lp-bitcoin-ops .server-home-box.empty {
+	opacity: 0.78;
+}
+
+.lp-bitcoin-ops .server-home-box.empty .upgrade-home-box-icon,
+.lp-bitcoin-ops .server-home-box.empty .upgrade-home-box-sub,
+.lp-bitcoin-ops .server-home-box.empty .upgrade-home-box-chevron {
+	color: $hashd-muted;
+}
+
+// ── 3.5 purchase surface: the track cards TRANSACT on the Upgrades page ──
+// (solo-I / pair / solo-MAX states; chip anchors to the card's Purchase button).
+.lp-bitcoin-ops .upgrade-purchase-section {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	justify-content: center;
+	gap: 10px;
+	flex-shrink: 0;
+	padding: 4px 0 12px 0;
+}
+
+.lp-bitcoin-ops .server-track-card.purchase {
+	min-width: 300px;
+}
+
+.lp-bitcoin-ops .server-track-panel.solo {
+	padding: 2px 0;
+}
+
+// Purchase seat — the chip's anchor (position context for its absolute above).
+.lp-bitcoin-ops .server-track-purchase-seat {
+	position: relative;
+	display: flex;
+	justify-content: center;
+	margin-top: 4px;
+}
+
+.lp-bitcoin-ops .server-track-purchase-btn {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	height: 34px;
+	min-width: 170px;
+	padding: 0 18px;
+	// Blocker-c fix: never wrap the label ("PURCHAS/E") or orphan the ₿ price.
+	white-space: nowrap;
+
+	span {
+		white-space: nowrap;
+		flex-shrink: 0;
+	}
+
+	// Solid-fill button: label color wins — Law 13 governs money VALUES on
+	// surfaces, not button labels.
+	.lp-money-btc {
+		color: inherit;
+		font-weight: 900;
+	}
+}
+
+// Row rework (3.5): centered circuit DISPLAY + right-slot action button.
+// Pips sit in a fixed-width column (not flex-grow) so the I–V row aligns identically across
+// every track row — the growing lead absorbs name-width variance, the right transact column is
+// pinned, and the stepper's x stays constant. (upgrade-page polish 3b, 2026-07-12)
+.lp-bitcoin-ops .lp-stepper.centered {
+	// Center the pips in the available space between description and price block (live punch #3).
+	flex: 1 1 auto;
+	justify-content: center;
+}
+
+.lp-bitcoin-ops .upgrade-row-btn {
+	flex: 0 0 auto;
+	height: 30px;
+	padding: 0 14px;
+	font-size: 11px;
+	font-weight: 900;
+	letter-spacing: 0.05em;
+	white-space: nowrap;
+}
+
+// Transact-view circuit context — the card's centered linkage (blocker-a).
+.lp-bitcoin-ops .lp-stepper.centered.context {
+	flex: 0 0 auto;
+	justify-content: center;
+	padding: 4px 0 2px 0;
+}
+
+// Rack-detail stat plate (3.5 revert — standard dark plate, grey slab dead).
+.lp-bitcoin-ops .server-stat-plate {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	gap: 7px;
+	margin-top: 12px;
+	padding: 12px 14px;
+	border-radius: 2px;
+	border: 1px solid $hashd-border;
+	background-color: $hashd-inset-bg;
+}
+
+.lp-bitcoin-ops .server-stat-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+}
+
+.lp-bitcoin-ops .server-stat-label {
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: $hashd-muted;
+}
+
+.lp-bitcoin-ops .server-stat-value {
+	font-size: 13px;
+	font-weight: 600;
+	color: $hashd-text;
+	text-align: right;
+}
+
+.lp-bitcoin-ops .server-buffer-value {
+	display: flex;
+	flex-direction: row;
+	align-items: baseline;
+	justify-content: flex-end;
+	gap: 4px;
+}
+
+// ── Entity Detail Contract: TIER PROGRESS (hero of the detail's lower half) ──
+// One line per registry track, circuit display-only; PLANNED = all-grey truth.
+.lp-bitcoin-ops .entity-tier-progress {
+	display: flex;
+	flex-direction: column;
+	flex-shrink: 0;
+	gap: 6px;
+	margin-top: 12px;
+	padding-top: 12px;
+	border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.lp-bitcoin-ops .entity-track-line {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+	min-height: 40px;
+	flex-shrink: 0;
+
+	.material-icons {
+		font-size: 15px;
+		color: $hashd-amber;
+		flex-shrink: 0;
+	}
+
+	&.planned {
+		.material-icons {
+			color: $hashd-muted;
+		}
+	}
+}
+
+.lp-bitcoin-ops .entity-track-name {
+	flex: 0 0 auto;
+	min-width: 140px;
+	font-size: 11px;
+	font-weight: 700;
+	text-transform: uppercase;
+	letter-spacing: 0.04em;
+	color: $hashd-text;
+	white-space: nowrap;
+
+	.entity-track-line.planned & {
+		color: $hashd-muted;
+	}
+}
+
+.lp-bitcoin-ops .entity-track-planned {
+	flex: 0 0 auto;
+	font-size: 10px;
+	font-weight: 900;
+	letter-spacing: 0.05em;
+	color: $hashd-muted;
+	white-space: nowrap;
+}
+
+// Law-13 chip states on the detail header badges.
+.lp-bitcoin-ops .rack-badge.green {
+	color: $hashd-green;
+	border-color: rgba(95, 211, 141, 0.4);
+}
+
+.lp-bitcoin-ops .rack-badge.gold {
+	color: $hashd-amber-glow;
+	border-color: rgba(240, 165, 0, 0.4);
+}
+
+.lp-bitcoin-ops .rack-badge.red {
+	color: $hashd-red;
+	border-color: rgba(228, 75, 42, 0.4);
+}
+
+// ── Servers-eats-Upgrades (3.5 consolidation): the Entity Detail Contract ──
+// Header ident = title + click-to-copy token, one element, copy flash.
+.lp-bitcoin-ops .entity-detail-ident {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	padding: 4px 10px;
+	border-radius: $hashd-surface-radius;
+	border: 1px solid transparent;
+	background-color: transparent;
+	cursor: pointer;
+
+	.material-icons { font-size: 18px; color: $hashd-amber; }
+
+	&:hover { border-color: $hashd-border; }
+}
+
+.lp-bitcoin-ops .entity-detail-title {
+	font-size: 15px;
+	font-weight: 900;
+	color: $hashd-text;
+}
+
+.lp-bitcoin-ops .entity-detail-token {
+	font-size: 11px;
+	font-weight: 700;
+	color: $hashd-muted;
+}
+
+.lp-bitcoin-ops .entity-detail-copyicon { font-size: 13px; }
+
+.lp-bitcoin-ops .entity-detail-copyflash {
+	font-size: 10px;
+	font-weight: 900;
+	letter-spacing: 0.05em;
+	color: $hashd-green;
+}
+
+// Chip row — Law-13 chips (identity moved to the ident; STATUS row retired).
+.lp-bitcoin-ops .entity-chip-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+// Batch 4 C: rack-level invested token, pushed to the header row's right edge; amount orange, label white.
+.lp-bitcoin-ops .entity-invested-token {
+	margin-left: auto;
+	font-size: 12px;
+	font-weight: 900;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .entity-chip {
+	padding: 2px 9px;
+	border-radius: 2px;
+	border: 1px solid $hashd-border;
+	font-size: 10px;
+	font-weight: 900;
+	letter-spacing: 0.05em;
+	color: $hashd-muted;
+
+	&.green { color: $hashd-green; border-color: rgba(95, 211, 141, 0.4); }
+	&.gold { color: $hashd-amber-glow; border-color: rgba(240, 165, 0, 0.4); }
+	&.red { color: $hashd-red; border-color: rgba(228, 75, 42, 0.4); }
+}
+
+// Transact track-row law: [icon] name/why · centered tree · price/delta · UPGRADE.
+.lp-bitcoin-ops .entity-tier-progress.transact {
+	gap: 4px;
+	// #4: cards scroll via the parent .racks-scroll (flex:1 1 0 + overflow-y:scroll) — no nested scroll here.
+	flex-shrink: 0;
+}
+
+// #6b modal backdrop: full-body scrim while a confirm popup is open; the open row rises above it.
+.lp-bitcoin-ops .confirm-scrim {
+	position: absolute;
+	left: 0;
+	top: 0;
+	right: 0;
+	bottom: 0;
+	background-color: rgba(6, 8, 12, 0.5);
+	z-index: 30;
+	pointer-events: all;
+	cursor: default;
+}
+
+.lp-bitcoin-ops .entity-track-row.confirm-open {
+	position: relative;
+	z-index: 40;
+}
+
+.lp-bitcoin-ops .entity-track-row {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 12px;
+	min-height: 52px;
+	flex-shrink: 0;
+	padding: 6px 10px;
+	border-radius: $hashd-surface-radius;
+	border: 1px solid $hashd-border;
+	background-color: $hashd-inset-bg;
+
+	&.planned { opacity: 0.7; }
+}
+
+.lp-bitcoin-ops .entity-track-lead {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+	flex: 1 1 auto;
+	min-width: 0;
+
+	.material-icons {
+		font-size: 18px;
+		flex-shrink: 0;
+
+		&.lit { color: $hashd-amber; }
+		&.unlit { color: $hashd-muted; }
+	}
+}
+
+.lp-bitcoin-ops .entity-track-copy {
+	display: flex;
+	flex-direction: column;
+	gap: 1px;
+	min-width: 0;
+}
+
+.lp-bitcoin-ops .entity-track-why {
+	font-size: 10px;
+	color: $hashd-muted;
+}
+
+.lp-bitcoin-ops .entity-track-transact {
+	display: flex;
+	flex-direction: column;
+	align-items: flex-end;
+	gap: 1px;
+	flex: 0 0 auto;
+	flex-shrink: 0;
+	white-space: nowrap;
+	// Pinned right column so the fixed-width pip stepper lands at a constant x across rows (3b).
+	// Sized to seat the ฿ + ($cash) + payback hint (3a keeps cash here) — playthrough-tunable.
+	min-width: 120px;
+}
+
+.lp-bitcoin-ops .entity-track-price {
+	// Separate the BTC and cash tokens so the two currency identities never touch (live punch #1).
+	// Must be flex (the inline variant is unsupported and silently dropped, killing the gap). The
+	// parent track-transact column right-aligns this to content width, so flex reads the same here.
+	display: flex;
+	align-items: baseline;
+	gap: 8px;
+	font-size: 13px;
+	font-weight: 900;
+
+	.lp-money-parens { color: $hashd-text; }
+}
+
+.lp-bitcoin-ops .entity-track-delta {
+	font-size: 10px;
+	color: $hashd-amber-glow;
+	white-space: nowrap;
+}
+
+// The UPGRADE button + its anchor-aware chip (the one new mechanic).
+.lp-bitcoin-ops .entity-track-action {
+	position: relative;
+	flex: 0 0 auto;
+	flex-shrink: 0;
+	// #2: centre the UPGRADE button in its column, with fixed-gap breathing room from the price block.
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	margin-left: 16px;
+}
+
+// .lp-ui-btn-primary ships `flex: 1 1 140px; min-width: 0` for the wrapping button ROW,
+// where shrinking is wanted. In a track row that let the button collapse below its own
+// label — the box measured 56 units against a 151-unit price, so "UPGRADE" painted
+// outside its box and over the price. Pin it to its content instead.
+// Reworked (3c, 2026-07-12): flatter, sentence-case "Upgrade", bold-not-black, 2px interactive
+// radius, height matched to the 30px pip cells — LIFEPUNCH_UI_STANDARD button grammar.
+.lp-bitcoin-ops .entity-track-upgrade {
+	height: 30px;
+	padding: 0 14px;
+	font-size: 12px;
+	font-weight: 700;
+	border-radius: 2px;
+	white-space: nowrap;
+	flex-grow: 0;
+	flex-shrink: 0;
+	flex-basis: auto;
+}
+
+// Row-anchored chip: flips above/below the button so it is never clipped at a
+// scroll edge. flip-down anchors below (top rows), flip-up above (lower rows).
+.lp-bitcoin-ops .lp-stepper-chip.row-anchored {
+	position: absolute;
+	right: 0;
+	left: auto;
+	// Briefer BTC-only popup (3a refined) + larger offset so it clears / doesn't crowd the row (2026-07-12).
+	min-width: 240px;
+	z-index: 20;
+
+	// More clearance so the Tier confirm doesn't overlap the row below (live punch #2).
+	&.flip-down { top: 56px; bottom: auto; }
+	&.flip-up { bottom: 56px; top: auto; }
+}
+
+.lp-bitcoin-ops .entity-track-planned.maxed {
+	color: $hashd-amber-glow;
+}
+
+.lp-bitcoin-ops .entity-detail-foot {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	margin-top: 8px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .server-track-card {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 8px;
+	min-width: 260px;
+	padding: 10px 14px;
+	border-radius: $hashd-surface-radius;
+	border: 1px solid $hashd-border;
+	background-color: $hashd-inset-bg;
+}
+
+// Header: icon + TRACK NAME stacked, centered (acceptance-sketch shape).
+.lp-bitcoin-ops .server-track-card-head {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 2px;
+
+	.material-icons {
+		font-size: 18px;
+		color: $hashd-amber;
+	}
+
+	span {
+		font-size: 11px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+		color: $hashd-text;
+	}
+}
+
+// Two-panel comparison: current (dominant) → arrow → next (cost leads).
+.lp-bitcoin-ops .server-track-compare {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 10px;
+}
+
+.lp-bitcoin-ops .server-track-arrow {
+	font-size: 18px;
+	color: $hashd-muted;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .server-track-panel {
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	gap: 3px;
+
+	&.next {
+		opacity: 0.92;
+	}
+
+	// MAX ruling: the pair collapses to one centered panel.
+	&.maxed {
+		align-items: center;
+	}
+}
+
+.lp-bitcoin-ops .server-track-tier-bubble {
+	min-width: 28px;
+	height: 28px;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	padding: 0 7px;
+	border-radius: 50%;
+	border: 1px solid $hashd-border;
+	font-size: 11px;
+	font-weight: 900;
+	color: $hashd-muted;
+
+	&.lit {
+		border-color: $hashd-amber;
+		background-color: rgba(232, 125, 62, 0.85);
+		color: #0a0d12;
+	}
+
+	&.next {
+		border-color: $hashd-muted;
+		color: $hashd-text;
+	}
+
+	// Square terminal-node treatment, matching the stepper MAX cell.
+	&.max {
+		border-radius: 2px;
+		border-color: $hashd-amber-glow;
+		background-color: rgba(232, 125, 62, 0.85);
+		color: #0a0d12;
+	}
+}
+
+// Semantic money colors (Law 13): gold = BTC · green = DXRP cash · red = denial.
+// Color binds to the VALUE only — delimiters/parens are typography, neutral.
+.lp-bitcoin-ops .lp-money-btc {
+	color: $hashd-amber-glow;
+}
+
+// LAW 17: amount text is white by default on LP surfaces; the SIGN (฿/$) carries the currency color.
+.lp-bitcoin-ops .lp-money-amt {
+	color: #ffffff;
+}
+
+// LAW 17: units + separators (/min, the "/", "(100%)", labels like "invested") stay white — never currency-colored.
+.lp-bitcoin-ops .lp-money-unit {
+	color: #ffffff;
+}
+
+// LAW 17 dual-price token: white divider bar between ฿ and $ (each side full-colored), tight gaps.
+.lp-bitcoin-ops .lp-money-divider {
+	color: #ffffff;
+	margin: 0 2px;
+}
+
+.lp-bitcoin-ops .lp-money-cash {
+	color: $hashd-green;
+}
+
+.lp-bitcoin-ops .lp-money-parens {
+	color: $hashd-text;
+}
+
+// COST LEADS the next panel — ₿ dominant (gold), $ value green inside
+// neutral parens (Law 13 value-only binding).
+.lp-bitcoin-ops .server-track-cost {
+	font-size: 14px;
+	font-weight: 900;
+	color: $hashd-amber-glow;
+
+	.usd {
+		font-size: 11px;
+		font-weight: 700;
+		color: $hashd-text;
+	}
+}
+
+.lp-bitcoin-ops .server-track-stat {
+	font-size: 12px;
+	font-weight: 700;
+	color: $hashd-text;
+
+	// GHz is the flavor line (money-first ruling).
+	&.flavor {
+		font-size: 10px;
+		font-weight: 600;
+		color: $hashd-muted;
+	}
+
+	&.delta {
+		color: $hashd-amber;
+	}
+
+	&.payback {
+		font-size: 11px;
+		color: $hashd-amber-glow;
+	}
+}
+
+.lp-bitcoin-ops .server-track-max-badge {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 4px;
+	padding: 2px 8px;
+	border-radius: 2px;
+	border: 1px solid $hashd-amber-glow;
+	font-size: 10px;
+	font-weight: 900;
+	letter-spacing: 0.08em;
+	color: $hashd-amber-glow;
+
+	.material-icons {
+		font-size: 13px;
+	}
+}
+
+.lp-bitcoin-ops .server-hero-foot {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px;
+	margin-top: 12px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .server-hero-receipt {
+	font-size: 12px;
+	font-weight: 700;
+	color: $hashd-amber;
+}
+
+.lp-bitcoin-ops .server-buffer-bar {
+	height: 6px;
+	width: 100%;
+	border-radius: 2px;
+	background-color: $hashd-inset-bg;
+	border: 1px solid $hashd-border;
+	overflow: hidden;
+}
+
+.lp-bitcoin-ops .server-buffer-bar-fill {
+	height: 100%;
+	background-color: $hashd-amber;
+}
+
+.lp-bitcoin-ops .server-detail-upgrade-btn {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	// Hard clamp — inside the detail column the button otherwise grows into a slab.
+	flex: 0 0 auto;
+	height: 36px;
+	padding: 0 16px;
+
+	.material-icons {
+		font-size: 16px;
+	}
+}
+
+// Hub logs — scroll past intro; nested pane rule had clipped the 6th row.
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel > .logs-feed > .logs-scroll,
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel > .logs-scroll {
+	flex: 1 1 0;
+	min-height: 0;
+	overflow-x: hidden;
+	overflow-y: scroll;
+}
+
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel > .logs-feed > .logs-scroll > .notif-list,
+.lp-bitcoin-ops .pane.logs-pane > .logs-panel > .logs-scroll > .notif-list {
+	flex-shrink: 0;
+	width: 100%;
+}
+
+// Hub scale — match the lifepunchulx window steps exactly (S 1040×640 → XL 1160×700).
+// Base .shell (1100×700, max 94%/92%) is the fallback; these only trim the shell per step.
+.lp-bitcoin-ops.lp-ui-size-s .shell {
+	width: 1040px;
+	height: 640px;
+}
+
+.lp-bitcoin-ops.lp-ui-size-m .shell {
+	width: 1100px;
+	height: 670px;
+}
+
+.lp-bitcoin-ops.lp-ui-size-l .shell {
+	width: 1140px;
+	height: 690px;
+}
+
+.lp-bitcoin-ops.lp-ui-size-xl .shell {
+	width: 1160px;
+	height: 700px;
+}
+
+// Overview simplification — command-center layout with progressive detail.
+.lp-bitcoin-ops .overview-command-center-intro {
+	margin-top: 6px;
+}
+
+.lp-bitcoin-ops .overview-command-center {
+	display: flex;
+	align-items: stretch;
+	gap: 14px;
+	min-height: 0;
+}
+
+.lp-bitcoin-ops .overview-checklist-panel,
+.lp-bitcoin-ops .overview-snapshot-panel {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	gap: 12px;
+	min-height: 0;
+}
+
+// Equal-partner law: the two Overview cards stretch to the row (1:1 ratio via
+// flex 1 1 0 on both panels), and each card's three items distribute across the
+// same content span — checklist rows and snapshot tiles read as lanes.
+.lp-bitcoin-ops .overview-checklist {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	// Grow only (basis auto) — basis 0 collapses the stack because the panel's
+	// height is content-driven (circular), and rows overlap their neighbors.
+	flex: 1 1 auto;
+}
+
+.lp-bitcoin-ops .overview-checklist-item {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	// Uniform row height — every action-slot variant (button, hint text, unlink, none)
+	// renders at the same height so no content can drag the card taller.
+	min-height: 66px;
+	// Rows share the card's span equally (lane law) — growth only, floor above.
+	flex: 1 1 auto;
+	gap: 12px;
+	padding: 10px 12px;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	border-radius: 0;
+	background: rgba(8, 12, 18, 0.55);
+}
+
+.lp-bitcoin-ops .overview-checklist-status {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	// Fixed column that never squeezes — stops "REQUIRED" wrapping to "REQUIRE D"
+	// and keeps the three rows' copy columns aligned.
+	flex: 0 0 auto;
+	white-space: nowrap;
+	min-width: 84px;
+	gap: 6px;
+	font-size: 11px;
+	font-weight: 800;
+	letter-spacing: 0.05em;
+	text-transform: uppercase;
+	color: $hashd-muted;
+}
+
+.lp-bitcoin-ops .overview-checklist-title {
+	font-size: 13px;
+	font-weight: 800;
+	letter-spacing: 0.02em;
+	color: #e8edf7;
+}
+
+.lp-bitcoin-ops .overview-checklist-sub {
+	font-size: 11px;
+	line-height: 1.35;
+	color: $hashd-muted;
+}
+
+.lp-bitcoin-ops .overview-snapshot-grid {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	// Grow to fill the card (basis auto — see checklist note) so the footer hint
+	// pins to the remaining space at the bottom.
+	flex: 1 1 auto;
+}
+
+.lp-bitcoin-ops .overview-snapshot-card {
+	display: flex;
+	flex-direction: column;
+	// Same lane law as the checklist rows: 66px floor, tiles share the span
+	// equally, content vertically centered to match the rows' align-items.
+	min-height: 66px;
+	flex: 1 1 auto;
+	justify-content: center;
+	gap: 3px;
+	padding: 10px 12px;
+	border: 1px solid rgba(255, 255, 255, 0.11);
+	border-radius: 0;
+	background: rgba(8, 12, 18, 0.55);
+}
+
+.lp-bitcoin-ops .overview-snapshot-label {
+	font-size: 10px;
+	font-weight: 900;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: $hashd-muted;
+}
+
+.lp-bitcoin-ops .overview-snapshot-value {
+	font-size: 16px;
+	font-weight: 800;
+	letter-spacing: 0.01em;
+	color: #e8edf7;
+}
+
+.lp-bitcoin-ops .overview-snapshot-value.on {
+	color: #8cf8b3;
+}
+
+.lp-bitcoin-ops .overview-snapshot-value.off {
+	color: #ffd089;
+}
+
+.lp-bitcoin-ops .overview-snapshot-sub {
+	font-size: 11px;
+	line-height: 1.35;
+	color: $hashd-muted;
+}
+
+.lp-bitcoin-ops .overview-snapshot-note,
+.lp-bitcoin-ops .overview-checklist-note {
+	font-size: 11px;
+	line-height: 1.45;
+	color: $hashd-muted;
+	width: 100%;
+	flex-shrink: 0;
+	// Bare text inside a panel is a flex child — justify-content centers it;
+	// text-align only handles wrapped lines within the label itself.
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	text-align: center;
+}
+
+.lp-bitcoin-ops .overview-command-actions {
+	margin-top: 12px;
+	gap: 10px;
+}
+
+.lp-bitcoin-ops .overview-command-action {
+	min-height: 36px;
+	padding: 8px 12px;
+	font-size: 11px;
+}
+
+.lp-bitcoin-ops .overview-command-action {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}
+
+.lp-bitcoin-ops .overview-command-action .material-icons {
+	font-size: 14px;
+}
+
+// Universal Upgrades home (three-surface shell — DECISION-0010, HASHD amber only)
+.lp-bitcoin-ops {
+	.upgrade-surface-chips,
+	.upgrade-rack-selector {
+		display: flex;
+		gap: 8px;
+		margin: 12px 0;
+		flex-wrap: wrap;
+	}
+
+	.upgrade-surface-chip,
+	.upgrade-rack-chip {
+		flex: 0 0 auto;
+		padding: 8px 18px;
+		border-radius: 0;
+		border: 1px solid $hashd-border;
+		background-color: $hashd-inset-bg;
+		color: $hashd-muted;
+		font-size: 12px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+		cursor: pointer;
+		transition: border-color .1s ease, color .1s ease, background-color .1s ease;
+
+		&:hover {
+			border-color: $hashd-amber;
+			color: $hashd-text;
+		}
+
+		&.active {
+			border-color: $hashd-amber;
+			color: $hashd-title;
+			background-color: rgba(232, 125, 62, 0.16);
+		}
+	}
+
+	.upgrade-rack-selector {
+		margin-top: 0;
+	}
+
+	.upgrade-rack-chip {
+		padding: 6px 14px;
+		font-size: 11px;
+	}
+
+	// Low-clutter launcher boxes (Upgrades home + GPU Rack target home)
+	.upgrade-home-grid {
+		display: flex;
+		flex-direction: column;
+		justify-content: center;
+		gap: 14px;
+		margin-top: 16px;
+		width: 100%;
+		flex: 1 1 auto;
+	}
+
+	.upgrade-home-box {
+		display: flex;
+		align-items: center;
+		gap: 16px;
+		width: 100%;
+		flex: 1 1 0;
+		min-height: 84px;
+		max-height: 140px;
+		padding: 18px 20px;
+		border-radius: 0; // squared tiles — natural rack hardware menu
+		border: 1px solid $hashd-border;
+		background-color: $hashd-inset-bg;
+		text-align: left;
+		cursor: pointer;
+		transition: border-color .1s ease, background-color .1s ease, transform .05s ease;
+
+		&:hover {
+			border-color: $hashd-amber;
+			background-color: rgba(232, 125, 62, 0.10);
+		}
+
+		&:active {
+			transform: translateY(1px);
+		}
+	}
+
+	.upgrade-home-box-icon {
+		flex: 0 0 auto;
+		color: $hashd-amber;
+		font-size: 40px;
+		width: 48px;
+		text-align: center;
+	}
+
+	.upgrade-home-box-body {
+		display: flex;
+		flex-direction: column;
+		gap: 3px;
+		flex: 1 1 auto;
+		min-width: 0;
+	}
+
+	// The index cards state status as chips, not as a text run with "·" separators.
+	.upgrade-home-box-body .entity-chip-row {
+		margin: 2px 0 1px;
+	}
+
+	.upgrade-home-box-title {
+		color: $hashd-title;
+		font-size: 18px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.upgrade-home-box-sub {
+		color: $hashd-amber;
+		font-size: 12px;
+		font-weight: 700;
+		text-transform: uppercase;
+		letter-spacing: 0.03em;
+	}
+
+	.upgrade-home-box-desc {
+		color: $hashd-muted;
+		font-size: 12px;
+		line-height: 16px;
+	}
+
+	.upgrade-home-box-foot {
+		display: flex;
+		flex-direction: column;
+		align-items: flex-end;
+		gap: 8px;
+		flex: 0 0 auto;
+	}
+
+	.upgrade-home-box-meta {
+		color: $hashd-muted;
+		font-size: 10px;
+		font-weight: 800;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	// Category aggregate (GPU RACKS): discrete spans on the standard chip gap. No separator
+	// glyphs — a literal "·" between @-expressions is what produced the run-on chip row.
+	.upgrade-home-box-meta-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 6px;
+		flex-shrink: 0;
+	}
+
+	.upgrade-home-box-chevron {
+		color: $hashd-amber;
+		font-size: 24px;
+	}
+
+	.universal-upgrades-scroll {
+		display: flex;
+		flex-direction: column;
+		gap: 18px;
+		margin-top: 16px;
+	}
+
+	.upgrade-section {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+	}
+
+	.upgrade-section-head {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: $hashd-title;
+		font-size: 12px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+
+		.material-icons {
+			color: $hashd-amber;
+			font-size: 18px;
+		}
+
+		&.cosmetic {
+			color: $hashd-muted;
+
+			.material-icons {
+				color: $hashd-muted;
+			}
+		}
+	}
+
+	.upgrade-track-cards {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+	}
+
+	.upgrade-track-card {
+		display: flex;
+		flex-direction: column;
+		gap: 10px;
+		width: 100%;
+		padding: $hashd-surface-pad;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid $hashd-surface-border;
+		background-color: $hashd-surface-bg;
+
+		&.cosmetic {
+			// s&box: border-style dashed unsupported — softer amber outline reads cosmetic
+			border-color: rgba(232, 125, 62, 0.28);
+			opacity: 0.92;
+		}
+
+		&.placeholder {
+			// purely informational shell — not a live purchase surface
+			cursor: default;
+		}
+	}
+
+	.upgrade-track-card-head {
+		display: flex;
+		align-items: center;
+		gap: 8px;
+		color: $hashd-title;
+		font-size: 13px;
+		font-weight: 800;
+
+		.material-icons {
+			color: $hashd-amber;
+			font-size: 18px;
+		}
+	}
+
+	.upgrade-track-card-tier {
+		color: $hashd-muted;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	// Tier tiles mirror the LIFEPUNCH ULX command grid (.action-btn): box icon + caption, accent
+	// fill when owned, hover when available, greyed + pointer-events:none when locked.
+	.upgrade-tier-grid {
+		display: flex;
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 6px;
+		width: 100%;
+	}
+
+	.upgrade-tier-box {
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 3px;
+		flex-grow: 1;
+		flex-shrink: 0;
+		flex-basis: 0;
+		min-width: 84px;
+		padding: 8px 4px;
+		border-radius: 0;
+		border: 1px solid $hashd-inset-border;
+		background-color: $hashd-inset-bg;
+		cursor: pointer;
+		transition: background-color 0.12s ease-out, border-color 0.12s ease-out, color 0.12s ease-out;
+
+		.tier-roman {
+			color: $hashd-text;
+			font-size: 13px;
+			font-weight: 800;
+			letter-spacing: 0.04em;
+		}
+
+		.tier-price {
+			color: $hashd-muted;
+			font-size: 9px;
+			font-weight: 700;
+			text-transform: uppercase;
+			letter-spacing: 0.05em;
+		}
+
+		// Owned (incl. Tier I baseline): amber fill, not clickable.
+		&.owned {
+			border-color: $hashd-amber;
+			background-color: rgba(232, 125, 62, 0.18);
+			pointer-events: none;
+			cursor: default;
+
+			.tier-roman {
+				color: $hashd-title;
+			}
+
+			.tier-price {
+				color: $hashd-amber;
+			}
+		}
+
+		// Available (next purchasable): clickable, brightens on hover.
+		&.available {
+			border-color: rgba(232, 125, 62, 0.5);
+
+			.tier-price {
+				color: $hashd-amber-glow;
+			}
+
+			&:hover {
+				background-color: rgba(232, 125, 62, 0.14);
+				border-color: $hashd-amber;
+
+				.tier-roman {
+					color: $hashd-title;
+				}
+			}
+		}
+
+		// Locked (later tiers): cannot be hovered or clicked until the prior tier is owned.
+		&.locked,
+		&.locked:hover {
+			pointer-events: none;
+			cursor: default;
+			opacity: 0.5;
+			border-color: rgba(255, 255, 255, 0.04);
+			background-color: rgba(0, 0, 0, 0.25);
+
+			.tier-roman {
+				color: $hashd-muted;
+			}
+
+			.tier-price {
+				color: $hashd-muted;
+			}
+		}
+	}
+
+	.upgrade-track-card-status {
+		align-self: flex-start;
+		padding: 4px 10px;
+		border-radius: 5px;
+		border: 1px solid $hashd-inset-border;
+		background-color: $hashd-inset-bg;
+		color: $hashd-muted;
+		font-size: 10px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.06em;
+	}
+
+	// Match the standard section header format used by every other pane (Wallet, Logs,
+	// Settings, …) so Universal Upgrades follows suit — no center alignment, no extra top margin.
+	.upgrades-home-title {
+		align-items: flex-start;
+		margin-top: 0;
+		margin-bottom: 14px;
+	}
+
+	.upgrades-home-intro {
+		text-align: center;
+		flex: 0 0 auto;
+		margin-top: 20px;
+	}
+
+	// Back navigation in the Universal Upgrades surface is a light, left-aligned link —
+	// not a full-width centered bar — so the short label sits under the header without
+	// crowding it (the column flex would otherwise stretch it edge to edge).
+	.upgrades-home .upgrades-back-btn {
+		flex: 0 0 auto;
+		align-self: flex-start;
+		justify-content: flex-start;
+		min-height: 0;
+		margin-top: 16px;
+		padding: 4px 6px;
+		border: 0;
+		border-radius: 5px;
+		text-align: left;
+		color: $hashd-muted;
+
+		&:hover {
+			border: 0;
+			color: $hashd-amber;
+			background-color: rgba(255, 255, 255, 0.04);
+		}
+	}
+
+	// GPU Rack target home: the launcher grid that follows the back bar fills flush
+	// (no center gap), so the back bar sits balanced under the header instead of
+	// hugging it with dead space below.
+	.upgrades-back-btn + .upgrade-home-grid {
+		justify-content: flex-start;
+		margin-top: 16px;
+
+		.upgrade-home-box {
+			max-height: 220px;
+		}
+	}
+
+	// Path-list sections fill the menu: the main track section grows so its cards
+	// distribute down and the cosmetic section sits flush near the bottom.
+	.upgrade-section-fill {
+		flex: 1 1 auto;
+
+		// Blocker-b fix (3.5): rows NEVER flex-grow/shrink — `1 1 0` let rows
+		// compress below content height and overlap (Cosmetics header over
+		// Cooling System). Natural-height stack; the scroll region scrolls.
+		.upgrade-path-list {
+			flex: 0 0 auto;
+		}
+
+		.upgrade-track-row {
+			flex: 0 0 auto;
+			min-height: 52px;
+		}
+	}
+
+	.upgrade-section-cosmetic {
+		flex: 0 0 auto;
+	}
+
+	// One-page law (slice 3): tracks are ROWS, never sub-pages. The live track carries the
+	// inline stepper; future tracks stay PLANNED rows and inherit this exact component.
+	.upgrade-path-list {
+		display: flex;
+		flex-direction: column;
+		gap: 8px;
+		width: 100%;
+	}
+
+	.upgrade-track-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 12px;
+		width: 100%;
+		padding: 12px 14px;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid $hashd-surface-border;
+		background-color: $hashd-surface-bg;
+
+		&.cosmetic {
+			border-color: rgba(232, 125, 62, 0.28);
+		}
+
+		&.live {
+			border-color: rgba(232, 125, 62, 0.45);
+		}
+	}
+
+	.upgrade-path-btn-icon {
+		color: $hashd-amber;
+		font-size: 22px;
+		flex-shrink: 0;
+	}
+
+	.upgrade-path-btn-body {
+		display: flex;
+		flex-direction: column;
+		gap: 2px;
+		flex-grow: 1;
+		min-width: 0;
+	}
+
+	.upgrade-path-btn-name {
+		color: $hashd-title;
+		font-size: 14px;
+		font-weight: 800;
+	}
+
+	.upgrade-path-btn-tier {
+		color: $hashd-muted;
+		font-size: 11px;
+		font-weight: 600;
+		text-transform: uppercase;
+		letter-spacing: 0.04em;
+	}
+
+	.upgrade-path-btn-status {
+		flex-shrink: 0;
+		color: $hashd-amber-glow;
+		font-size: 10px;
+		font-weight: 900;
+		text-transform: uppercase;
+		letter-spacing: 0.05em;
+	}
+
+	// ── Slice-3 stepper (sketch spec): roman-numeral bubbles, chain links, anchored popover. ──
+	// Bubbles are true circles (the UI standard's one sanctioned round shape). States:
+	// owned = filled · actionable = accent-lit, only clickable (affordability tint vs wallet) ·
+	// locked = dimmed inert. Links: solid = owned pair · open = before the actionable tier ·
+	// dark = beyond. Progression rendered as state.
+	.lp-stepper {
+		position: relative;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		padding: 0 4px;
+	}
+
+	.lp-stepper-cell {
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		width: 30px;
+		height: 30px;
+		border-radius: 50%;
+		border: 1px solid $hashd-border;
+		background-color: $hashd-inset-bg;
+		flex-shrink: 0;
+
+		span {
+			font-size: 12px;
+			font-weight: 900;
+			color: $hashd-muted;
+		}
+
+		&.owned {
+			border-color: $hashd-amber;
+			background-color: rgba(232, 125, 62, 0.85);
+
+			span {
+				color: #0a0d12;
+			}
+
+			&.just-bought {
+				animation: lp-stepper-pop-in 0.6s ease-out;
+				border-color: $hashd-amber-glow;
+			}
+		}
+
+		// Purchase frontier: GREY node with the click affordance — the tint IS the
+		// affordability signal (circuit ruling), not the base look.
+		&.actionable {
+			cursor: pointer;
+			border-color: $hashd-muted;
+
+			span {
+				color: $hashd-text;
+			}
+
+			&.affordable {
+				border-color: $hashd-amber-glow;
+				background-color: rgba(232, 125, 62, 0.22);
+				box-shadow: 0 0 8px rgba(240, 165, 0, 0.35);
+
+				span {
+					color: $hashd-amber-glow;
+				}
+			}
+
+			&.working {
+				animation: lp-stepper-working 1s linear infinite;
+			}
+
+			&:hover {
+				background-color: rgba(232, 125, 62, 0.15);
+			}
+		}
+
+		// Dimmed inert — clicks are code-guarded; hover stays live for the "requires" tooltip.
+		&.locked {
+			opacity: 0.35;
+			cursor: default;
+		}
+
+		// Tier V is the terminal node of the circuit — square, per MAX ruling.
+		&.max {
+			border-radius: 2px;
+		}
+	}
+
+	.lp-stepper-link {
+		width: 14px;
+		height: 2px;
+		flex-shrink: 0;
+
+		&.solid {
+			background-color: $hashd-amber;
+		}
+
+		&.dark {
+			background-color: $hashd-border;
+		}
+	}
+
+	// Anchored confirm CHIP above the frontier bubble (geometry ruling: one line,
+	// content-sized, no dim, no title — the anchor bubble IS the context; ✓ works,
+	// ✕/outside-click dismisses; rejection grows the chip one line + shake).
+	.lp-stepper-chip {
+		// DEFECT FIX: capture pointer events so ✓/✗ are clickable and hover no longer bleeds through
+		// to the row underneath the open popup (diagnosed cause c — pointer-events click-through).
+		pointer-events: all;
+		position: absolute;
+		bottom: 38px;
+		left: 0;
+		display: flex;
+		flex-direction: column;
+		gap: 4px;
+		padding: 6px 10px;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid rgba(232, 125, 62, 0.45);
+		background-color: #0a0d12;
+		z-index: 20;
+
+		&.shake {
+			animation: lp-stepper-shake 0.4s ease-in-out;
+		}
+	}
+
+	.lp-stepper-chip-row {
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+		white-space: nowrap;
+
+		&.reject {
+			color: $hashd-red;
+			font-size: 11px;
+			font-weight: 700;
+		}
+	}
+
+	.lp-stepper-chip-line {
+		color: $hashd-text;
+		font-size: 12px;
+		font-weight: 700;
+		white-space: nowrap;
+
+		&.working {
+			color: $hashd-amber-glow;
+		}
+	}
+
+	// Separator Law: a "·" between two value nodes is a discrete element carrying its own
+	// spacing — never a bare text node, which Razor would split off and collapse.
+	.lp-chip-sep {
+		color: $hashd-muted;
+		margin: 0 5px;
+	}
+
+
+	.lp-stepper-chip-yes,
+	.lp-stepper-chip-no {
+		// #3: larger hit target + pressed-active life; smooth hover/active transitions.
+		width: 24px;
+		height: 24px;
+		display: flex;
+		align-items: center;
+		justify-content: center;
+		border-radius: $hashd-surface-radius;
+		border: 1px solid transparent;
+		cursor: pointer;
+		flex-shrink: 0;
+		transition: background-color 0.12s ease, border-color 0.12s ease, transform 0.08s ease;
+
+		&:active {
+			transform: scale(0.9);
+		}
+
+		.material-icons {
+			font-size: 15px;
+		}
+	}
+
+	// ✓ = purchase-affirmative (green family) · ✕ = denial family (red).
+	.lp-stepper-chip-yes {
+		background-color: $hashd-green;
+		color: #0a0d12;
+
+		&:hover {
+			background-color: #7ce2a6;
+		}
+	}
+
+	.lp-stepper-chip-no {
+		background-color: transparent;
+		border-color: $hashd-border;
+		color: $hashd-red;
+
+		&:hover {
+			color: $hashd-red;
+			border-color: $hashd-red;
+		}
+	}
+
+	// Compact variant — the rack-detail action-row seat.
+	.lp-stepper.compact {
+		.lp-stepper-cell {
+			width: 24px;
+			height: 24px;
+
+			span {
+				font-size: 10px;
+			}
+		}
+
+		.lp-stepper-link {
+			width: 8px;
+		}
+
+		.lp-stepper-chip {
+			bottom: 32px;
+		}
+	}
+}
+
+@keyframes lp-stepper-shake {
+	0% { transform: translateX(0); }
+	20% { transform: translateX(-6px); }
+	40% { transform: translateX(5px); }
+	60% { transform: translateX(-4px); }
+	80% { transform: translateX(3px); }
+	100% { transform: translateX(0); }
+}
+
+@keyframes lp-stepper-pop-in {
+	0% { transform: scale(1.35); }
+	100% { transform: scale(1); }
+}
+
+@keyframes lp-stepper-working {
+	0% { opacity: 0.4; }
+	50% { opacity: 1; }
+	100% { opacity: 0.4; }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Hub Logs severity lanes — icon + kind label only; row layout untouched.
+// Defined late so they win over the base .notif-kind color (the red-hover lesson).
+// Warn uses amber-glow, not brand orange: the chrome is already orange everywhere,
+// so a warning in brand orange wouldn't jump.
+// ─────────────────────────────────────────────────────────────────────────────
+
+.lp-bitcoin-ops .notif-sev-security .material-icons,
+.lp-bitcoin-ops .notif-sev-security .notif-kind {
+	color: $hashd-red;
+}
+
+.lp-bitcoin-ops .notif-sev-warn .material-icons,
+.lp-bitcoin-ops .notif-sev-warn .notif-kind {
+	color: $hashd-amber-glow;
+}
+
+// HubTransfer / BTC-adjacent status — Law 17: green NEVER on BTC. Use hub amber.
+.lp-bitcoin-ops .notif-sev-money .material-icons,
+.lp-bitcoin-ops .notif-sev-money .notif-kind {
+	color: $hashd-amber;
+}
+
+// BITCOIN OPS rail and card tokens.
+$ops-orange: #f7931a;
+$ops-orange-hover: #ffad42;
+$ops-orange-soft: rgba(247, 147, 26, 0.10);
+$ops-orange-soft-hover: rgba(247, 147, 26, 0.16);
+$ops-orange-border: rgba(247, 147, 26, 0.48);
+$ops-bg: #000000;
+$ops-surface: #1a1d23;
+$ops-surface-inset: #12151a;
+$ops-card-header: #22262e;
+$ops-border: #374151;
+$ops-text: #ffffff;
+$ops-text-dim: #9ca3af;
+$ops-danger: #ef6b5f;
+$ops-cash: #5fd38d;
+$ops-radius: 6px;
+$ops-card-radius: 12px;
+$ops-hit: 44px;
+
+// BITCOIN OPS terminal-crypto menu skin.
+.lp-bitcoin-ops {
+	font-family: Poppins, Arial, sans-serif;
+	color: $ops-text;
+}
+
+.lp-bitcoin-ops .shell {
+	width: 1160px;
+	max-width: 96%;
+	max-height: 96%;
+	background-color: $ops-bg;
+	border-color: $ops-border;
+	border-radius: $ops-card-radius;
+	overflow: hidden;
+	box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.lp-bitcoin-ops .shell-body,
+.lp-bitcoin-ops .pin-gate,
+.lp-bitcoin-ops .pin-header,
+.lp-bitcoin-ops .hub-body,
+.lp-bitcoin-ops .hub-main,
+.lp-bitcoin-ops .sidebar,
+.lp-bitcoin-ops .workspace,
+.lp-bitcoin-ops .hub-header,
+.lp-bitcoin-ops .lp-window-watermark,
+.lp-bitcoin-ops .lp-window-watermark .lp-source-footer {
+	border-radius: 0;
+}
+
+.lp-bitcoin-ops .shell-body,
+.lp-bitcoin-ops .hub-body,
+.lp-bitcoin-ops .hub-main {
+	background-color: $ops-bg;
+}
+
+.lp-bitcoin-ops .sidebar {
+	width: 78px;
+	padding: 12px;
+	background-color: $ops-surface-inset;
+	border-right-color: $ops-border;
+}
+
+.lp-bitcoin-ops .sidebar-brand.hex-mark {
+	border: 0;
+	border-radius: $ops-radius;
+	background-color: transparent;
+	box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.lp-bitcoin-ops .sidebar-btn {
+	width: $ops-hit;
+	height: $ops-hit;
+	border-radius: $ops-radius;
+	color: $ops-text-dim;
+	opacity: 0.72;
+}
+
+.lp-bitcoin-ops .sidebar-btn:hover {
+	color: $ops-text;
+	background-color: $ops-orange-soft-hover;
+	opacity: 1;
+}
+
+.lp-bitcoin-ops .sidebar-btn.sidebar-btn-sel {
+	color: $ops-text;
+	background-color: $ops-orange-soft;
+	border: 0;
+	box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+	opacity: 1;
+}
+
+.lp-bitcoin-ops .workspace,
+.lp-bitcoin-ops .workspace-body,
+.lp-bitcoin-ops .main-panel > .pane:not(.overview),
+.lp-bitcoin-ops .overview {
+	background-color: $ops-bg;
+}
+
+.lp-bitcoin-ops .hub-header {
+	min-height: 64px;
+	padding: 10px 12px 10px 20px;
+	background-color: $ops-surface;
+	border-bottom-color: $ops-border;
+}
+
+.lp-bitcoin-ops .hub-title,
+.lp-bitcoin-ops .lp-ui-panel-title,
+.lp-bitcoin-ops .lp-hashd-section-head {
+	font-family: Poppins, Arial, sans-serif;
+	color: $ops-text;
+}
+
+.lp-bitcoin-ops .header-chip,
+.lp-bitcoin-ops .header-power-switch {
+	min-height: $ops-hit;
+	border-radius: $ops-radius;
+	background-color: $ops-card-header;
+	border-color: $ops-border;
+}
+
+.lp-bitcoin-ops .lp-hashd-surface,
+.lp-bitcoin-ops .overview .lp-ui-split > .lp-ui-panel,
+.lp-bitcoin-ops .transfer-column,
+.lp-bitcoin-ops .wallet-cashout-card,
+.lp-bitcoin-ops .rack-card,
+.lp-bitcoin-ops .upgrade-home-box {
+	background-color: $ops-surface;
+	border: 0;
+	border-radius: $ops-card-radius;
+}
+
+.lp-bitcoin-ops .lp-hashd-inset,
+.lp-bitcoin-ops .settings-row,
+.lp-bitcoin-ops .transfer-subsection,
+.lp-bitcoin-ops .wallet-cashout-tile,
+.lp-bitcoin-ops .entity-track-row,
+.lp-bitcoin-ops .overview-miner-card,
+.lp-bitcoin-ops .overview-status-upgrade-surface {
+	background-color: $ops-surface-inset;
+	border: 0;
+	border-radius: $ops-radius;
+}
+
+.lp-bitcoin-ops .lp-ui-info-value,
+.lp-bitcoin-ops .transfer-subsection-value,
+.lp-bitcoin-ops .transfer-command-text,
+.lp-bitcoin-ops .wallet-cashout-tile-value,
+.lp-bitcoin-ops .rack-stat-tile-value,
+.lp-bitcoin-ops .entity-track-price {
+	font-family: "Roboto Mono", monospace;
+}
+
+.lp-bitcoin-ops .header-power-switch.on .power-switch-track,
+.lp-bitcoin-ops .settings-switch.on .power-switch-track {
+	background-color: $ops-orange-soft-hover;
+	border-color: $ops-orange-border;
+}
+
+.lp-bitcoin-ops .lp-ui-status-dot.on {
+	background-color: $ops-orange;
+}
+
+.lp-bitcoin-ops .pane.racks .rack-stat-tile-value.on,
+.lp-bitcoin-ops .overview-miner-status.on,
+.lp-bitcoin-ops .overview-snapshot-value.on,
+.lp-bitcoin-ops .settings-pill.on,
+.lp-bitcoin-ops .rack-badge.green,
+.lp-bitcoin-ops .entity-chip.green {
+	color: $ops-orange;
+	border-color: $ops-orange-border;
+}
+
+.lp-bitcoin-ops .overview-intro-link-ready,
+.lp-bitcoin-ops .overview-intro-terminal-actions .lp-ui-btn-primary.overview-intro-link-ready {
+	color: $ops-text;
+	background-color: $ops-orange-soft;
+	border-color: $ops-orange-border;
+	box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.lp-bitcoin-ops .overview-intro-link-ready:hover,
+.lp-bitcoin-ops .overview-intro-terminal-actions .lp-ui-btn-primary.overview-intro-link-ready:hover {
+	color: $ops-text;
+	background-color: $ops-orange-soft-hover;
+	border-color: $ops-orange;
+	box-shadow: 0 0 0 rgba(0, 0, 0, 0);
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-ready,
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-success,
+.lp-bitcoin-ops .wallet-cashout-tile-btn.is-ready,
+.lp-bitcoin-ops .wallet-cashout-tile-btn.is-success,
+.lp-bitcoin-ops .wallet-cashout-all.is-ready,
+.lp-bitcoin-ops .wallet-cashout-all.is-success {
+	color: $ops-text;
+	background-color: $ops-orange-soft;
+	border-color: $ops-orange-border;
+}
+
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-ready .material-icons,
+.lp-bitcoin-ops .header-chip.cashout-all-chip.is-success .material-icons,
+.lp-bitcoin-ops .wallet-cashout-all.is-ready > .material-icons,
+.lp-bitcoin-ops .wallet-cashout-all.is-success > .material-icons {
+	color: $ops-orange;
+}
+
+// --- R1/R2 land overrides (after Codex 0047 skin) — labeled rail + LP Image marks ---
+.lp-bitcoin-ops .sidebar {
+	width: 190px;
+	align-items: stretch;
+	padding-left: 12px;
+	padding-right: 12px;
+}
+
+.lp-bitcoin-ops .sidebar-nav {
+	align-items: stretch;
+	width: 100%;
+}
+
+.lp-bitcoin-ops .sidebar-btn {
+	width: 100%;
+	height: auto;
+	min-height: $ops-hit;
+	flex-direction: row;
+	justify-content: flex-start;
+	gap: 10px;
+	padding: 8px 12px;
+}
+
+.lp-bitcoin-ops .sidebar-btn-label {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: inherit;
+	white-space: nowrap;
+}
+
+.lp-bitcoin-ops .sidebar-alert-dot {
+	top: 10px;
+	right: 10px;
+}
+
+.lp-bitcoin-ops .hub-title-mark {
+	width: 24px;
+	height: 24px;
+	flex-shrink: 0;
+}
+
+.lp-bitcoin-ops .brand-mark {
+	width: 30px;
+	height: 30px;
+	flex-shrink: 0;
+	background-image: none;
+}
+
+.lp-bitcoin-ops .pin-brand .brand-mark {
+	width: 40px;
+	height: 40px;
+}
+
+.lp-bitcoin-ops .sidebar-brand.hex-mark .brand-mark {
+	width: 30px;
+	height: 30px;
+}
+
+// --- Hub-shell mapping layer (dispatch opencode 0002) — SIDEBAR DESIGN CANON v1 +
+// MENU SHELL LAW eyebrow grammar. Identity block top, settings pinned bottom via the
+// existing sidebar-nav flex-grow spacer; selection stays the filled accent block, no left strip.
+.lp-bitcoin-ops .sidebar-identity {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	flex-shrink: 0;
+	margin-bottom: 22px;
+}
+
+.lp-bitcoin-ops .sidebar-foot {
+	align-items: stretch;
+	width: 100%;
+	padding-top: 10px;
+}
+
+// Eyebrow-over-title (hub exemplar roles, Ops-prefixed class) — accent eyebrow, tiny,
+// letterspaced, above each pane's section title.
+.lp-bitcoin-ops .ops-eyebrow {
+	flex-shrink: 0;
+	font-size: 11px;
+	font-weight: 600;
+	letter-spacing: 1.5px;
+	color: $hashd-amber;
+	margin-bottom: 2px;
+}

@@ -1,0 +1,336 @@
+@* ─────────────────────────────────────────────────────────────────────────────
+   PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+
+   "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* · addon ident: lifepunch) is the sole-owned
+   intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+   sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+   LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+   Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+   Presence in this repository or on the DXRP portal grants no rights to anyone else.
+   ───────────────────────────────────────────────────────────────────────────── *@
+@namespace LifePunch.DXRP.Addons
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+@attribute [StyleSheet]
+
+@{
+	var activeItem = ActiveNavItem();
+}
+
+<root class="lp-menu-shell shell">
+	<div class="shell-body">
+		<div class="hub-body">
+			<div class="hub-main">
+				<aside class="sidebar">
+					<div class="sidebar-identity">
+						@Mark
+					</div>
+
+					<nav class="sidebar-nav">
+						@foreach ( var item in NavItems.Where( item => !item.IsSettings ) )
+						{
+							<button class="sidebar-btn @(item.IsActive ? "sidebar-btn-sel" : "") @(item.HasAlert ? "sidebar-btn-has-alert" : "")"
+							        tooltip="@item.Tooltip"
+							        disabled="@(!item.Enabled)"
+							        onclick="@item.OnSelected">
+								<i class="material-icons">@item.Icon</i>
+								<span class="sidebar-btn-label">@item.Label</span>
+								@if ( item.HasAlert )
+								{
+									<span class="sidebar-alert-dot"></span>
+								}
+							</button>
+						}
+					</nav>
+
+					<div class="sidebar-foot">
+						@foreach ( var item in NavItems.Where( item => item.IsSettings ) )
+						{
+							<button class="sidebar-btn @(item.IsActive ? "sidebar-btn-sel" : "")"
+							        tooltip="@item.Tooltip"
+							        disabled="@(!item.Enabled)"
+							        onclick="@item.OnSelected">
+								<i class="material-icons">@item.Icon</i>
+								<span class="sidebar-btn-label">@item.Label</span>
+							</button>
+						}
+					</div>
+				</aside>
+
+				<div class="workspace">
+					<header class="page-header hub-header">
+						<div class="lp-ui-panel-title hub-title" style="color: @AccentColor">
+							<span>@Wordmark</span>
+						</div>
+						<div class="header-widgets">
+							@TopBarControls
+						</div>
+					</header>
+
+					<div class="workspace-body">
+						@if ( activeItem?.IsDashboard == true )
+						{
+							<div class="main-panel">
+								<div class="pane overview">
+									<div class="ops-eyebrow" style="color: @AccentColor">@Wordmark.ToUpperInvariant()</div>
+									<div class="lp-ui-panel-title overview-dash-title">
+										<i class="material-icons">@activeItem.PageIcon</i>
+										<span>@activeItem.PageTitle</span>
+									</div>
+									@if ( !string.IsNullOrWhiteSpace( activeItem.Callout ) )
+									{
+										<div class="lp-ui-intro overview-command-center-intro">@activeItem.Callout</div>
+									}
+
+									<div class="overview-command-center">
+										<div class="lp-ui-panel overview-checklist-panel">
+											<div class="lp-ui-panel-title">
+												<i class="material-icons">checklist</i>
+												<span>Getting started</span>
+											</div>
+											<div class="overview-checklist">
+												@foreach ( var card in DoorCards )
+												{
+													var status = card.Chips.FirstOrDefault();
+													<div class="overview-checklist-item">
+														@if ( card.Icon is not null )
+														{
+															<div class="lp-menu-shell-door-icon">@card.Icon</div>
+														}
+														<div class="overview-checklist-status">
+													<span class="lp-ui-status-dot @DoorStatusClass( card, status )"></span>
+															<span>@(status?.Text ?? string.Empty)</span>
+														</div>
+														<div class="overview-checklist-copy">
+															<div class="overview-checklist-title">@card.Title</div>
+															<div class="overview-checklist-sub">@card.Description</div>
+														</div>
+														@if ( card.UseActionGroup )
+														{
+															<div class="overview-checklist-action-group">
+																<button class="@($"{card.ActionClass} overview-checklist-action")" disabled="@(!card.Enabled)" onclick="@card.OnSelected">
+																	@if ( !string.IsNullOrWhiteSpace( card.ActionIcon ) )
+																	{
+																		<i class="material-icons">@card.ActionIcon</i>
+																		<span>@card.Label</span>
+																	}
+																	else
+																	{
+																		@card.Label
+																	}
+																</button>
+															</div>
+														}
+														else
+														{
+															<button class="@($"{card.ActionClass} overview-checklist-action")" disabled="@(!card.Enabled)" onclick="@card.OnSelected">
+																@if ( !string.IsNullOrWhiteSpace( card.ActionIcon ) )
+																{
+																	<i class="material-icons">@card.ActionIcon</i>
+																	<span>@card.Label</span>
+																}
+																else
+																{
+																	@card.Label
+																}
+															</button>
+														}
+													</div>
+												}
+											</div>
+											@if ( !string.IsNullOrWhiteSpace( DoorFooterNote() ) )
+											{
+												<div class="overview-checklist-note">@DoorFooterNote()</div>
+											}
+										</div>
+
+										<div class="lp-ui-panel overview-snapshot-panel">
+											<div class="lp-ui-panel-title">
+												<i class="material-icons">insights</i>
+												<span>Snapshot</span>
+											</div>
+											<div class="overview-snapshot-grid">
+												@foreach ( var stat in SnapshotStats )
+												{
+													<div class="overview-snapshot-card">
+														<div class="overview-snapshot-label">@stat.Label</div>
+														<div class="overview-snapshot-value @stat.ValueClass">
+															@if ( !string.IsNullOrWhiteSpace( stat.Sign ) )
+															{
+																<span class="@stat.SignClass">@stat.Sign</span> <span class="lp-money-amt">@stat.Amount</span>
+															}
+															else
+															{
+																@stat.Value
+															}
+														</div>
+														<div class="overview-snapshot-sub">
+															@if ( !string.IsNullOrWhiteSpace( stat.DetailSign ) )
+															{
+														<LifePunchCurrencyToken Sign="@stat.DetailSign" Amount="@stat.DetailAmount" Label="@stat.Description" SignClass="@stat.DetailSignClass" TokenClass="overview-wallet-value" />
+															}
+															else
+															{
+																@stat.Description
+															}
+														</div>
+													</div>
+												}
+											</div>
+											@if ( !string.IsNullOrWhiteSpace( SnapshotFooterNote() ) )
+											{
+												<div class="overview-snapshot-note">@SnapshotFooterNote()</div>
+											}
+										</div>
+									</div>
+
+									<div class="lp-ui-btn-row overview-command-actions">
+										@foreach ( var quickButton in QuickButtons )
+										{
+											<button class="@quickButton.CssClass"
+											        disabled="@(!quickButton.Enabled)"
+											        onclick="@quickButton.OnSelected">
+												<i class="material-icons">@quickButton.Icon</i>
+												<span>@quickButton.Label</span>
+											</button>
+										}
+									</div>
+								</div>
+							</div>
+						}
+						else
+						{
+							@ChildContent
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="lp-window-watermark">
+		<LifePunchUiFooter Product="@Wordmark" AccentColor="@AccentColor" />
+	</div>
+</root>
+
+@code
+{
+	// s&box Razor binds component parameters through [Property] (the engine equivalent of Blazor's [Parameter]).
+	[Property] public RenderFragment? Mark { get; set; }
+	[Property] public string Wordmark { get; set; } = string.Empty;
+	[Property] public string AccentColor { get; set; } = "#e87d3e";
+	[Property] public RenderFragment? TopBarControls { get; set; }
+	[Property] public List<NavItem> NavItems { get; set; } = new();
+	[Property] public List<DoorCard> DoorCards { get; set; } = new();
+	[Property] public List<StatRow> SnapshotStats { get; set; } = new();
+	[Property] public List<QuickButton> QuickButtons { get; set; } = new();
+
+	// Non-dashboard pane bodies use ChildContent inherited from Sandbox.UI.Panel.
+
+	public enum StatusChipVariant { Info, Success, Locked, Count }
+
+	public sealed class NavItem
+	{
+		public string Route { get; set; } = string.Empty;
+		public string Label { get; set; } = string.Empty;
+		public string Icon { get; set; } = string.Empty;
+		public string Tooltip { get; set; } = string.Empty;
+		public string PageIcon { get; set; } = string.Empty;
+		public string PageTitle { get; set; } = string.Empty;
+		public string Callout { get; set; } = string.Empty;
+		public bool IsActive { get; set; }
+		public bool IsSettings { get; set; }
+		public bool IsDashboard { get; set; }
+		public bool HasAlert { get; set; }
+		public bool Enabled { get; set; } = true;
+		public Action? OnSelected { get; set; }
+	}
+
+	public sealed class DoorCard
+	{
+		public RenderFragment? Icon { get; set; }
+		public string Title { get; set; } = string.Empty;
+		public List<StatusChip> Chips { get; set; } = new();
+		public string Description { get; set; } = string.Empty;
+		public string Label { get; set; } = string.Empty;
+		public string Route { get; set; } = string.Empty;
+		public bool Enabled { get; set; } = true;
+		public string StatusClass { get; set; } = string.Empty;
+		public string ActionClass { get; set; } = string.Empty;
+		public string ActionIcon { get; set; } = string.Empty;
+		public string FooterNote { get; set; } = string.Empty;
+		public bool UseActionGroup { get; set; }
+		public Action? OnSelected { get; set; }
+	}
+
+	public sealed class StatusChip
+	{
+		public string Text { get; set; } = string.Empty;
+		public StatusChipVariant Variant { get; set; }
+	}
+
+	public sealed class StatRow
+	{
+		public string Label { get; set; } = string.Empty;
+		public string Value { get; set; } = string.Empty;
+		public string ValueClass { get; set; } = string.Empty;
+		public string Description { get; set; } = string.Empty;
+		public string Sign { get; set; } = string.Empty;
+		public string Amount { get; set; } = string.Empty;
+		public string SignClass { get; set; } = "lp-money-btc";
+		public string DetailSign { get; set; } = string.Empty;
+		public string DetailAmount { get; set; } = string.Empty;
+		public string DetailSignClass { get; set; } = "lp-money-cash";
+		public string FooterNote { get; set; } = string.Empty;
+	}
+
+	public sealed class QuickButton
+	{
+		public string Label { get; set; } = string.Empty;
+		public string Icon { get; set; } = string.Empty;
+		public string Route { get; set; } = string.Empty;
+		public string CssClass { get; set; } = "lp-ui-btn-ghost overview-command-action";
+		public bool Enabled { get; set; } = true;
+		public Action? OnSelected { get; set; }
+	}
+
+	private NavItem? ActiveNavItem() => NavItems.FirstOrDefault( item => item.IsActive );
+
+	private string DoorStatusClass( DoorCard card, StatusChip? status )
+	{
+		if ( !string.IsNullOrWhiteSpace( card.StatusClass ) )
+			return card.StatusClass;
+
+		return status?.Variant switch
+		{
+			StatusChipVariant.Success => "on",
+			StatusChipVariant.Locked => "off",
+			StatusChipVariant.Count => "on",
+			_ => "off"
+		};
+	}
+
+	private string DoorFooterNote()
+		=> DoorCards.FirstOrDefault( card => !string.IsNullOrWhiteSpace( card.FooterNote ) )?.FooterNote ?? string.Empty;
+
+	private string SnapshotFooterNote()
+		=> SnapshotStats.FirstOrDefault( stat => !string.IsNullOrWhiteSpace( stat.FooterNote ) )?.FooterNote ?? string.Empty;
+
+	protected override int BuildHash()
+	{
+		var hash = HashCode.Combine( Wordmark, AccentColor, Mark is not null, TopBarControls is not null, NavItems.Count );
+		foreach ( var item in NavItems )
+			hash = HashCode.Combine( hash, item.Route, item.Label, item.Icon, item.IsActive, item.IsSettings, item.HasAlert, item.Enabled );
+		foreach ( var card in DoorCards )
+			hash = HashCode.Combine( hash, card.Title, card.Description, card.Label, card.Enabled, card.StatusClass, card.Chips.Count );
+		foreach ( var stat in SnapshotStats )
+			hash = HashCode.Combine( hash, stat.Label, stat.Value, stat.ValueClass, stat.Description, stat.Sign, stat.Amount, stat.DetailAmount );
+		foreach ( var quickButton in QuickButtons )
+			hash = HashCode.Combine( hash, quickButton.Label, quickButton.Icon, quickButton.Route, quickButton.Enabled );
+		return hash;
+	}
+}

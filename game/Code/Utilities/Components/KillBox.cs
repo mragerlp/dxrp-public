@@ -35,6 +35,14 @@ public class KillBox : Component, Component.ITriggerListener
 			return;
 		}
 
+		// Never destroy the map itself: low-sitting map geometry (e.g. scene maps
+		// whose terrain reaches below a killbox volume) would otherwise take the
+		// whole MapInstance root with it.
+		if ( other.GameObject.Tags.Has( Constants.MapTag ) || target.GetComponent<MapInstance>() != null )
+		{
+			return;
+		}
+
 		// Destroy anything else
 		target.Destroy();
 	}

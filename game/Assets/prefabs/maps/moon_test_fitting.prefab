@@ -1,0 +1,800 @@
+{
+    "RootObject":  {
+                       "__guid":  "41ae7690-908f-4170-a059-f0ae37d8c6ff",
+                       "__version":  2,
+                       "Flags":  0,
+                       "Name":  "moon_test_fitting",
+                       "Position":  "0,0,0",
+                       "Rotation":  "0,0,0,1",
+                       "Scale":  "1,1,1",
+                       "Tags":  "",
+                       "Enabled":  true,
+                       "NetworkMode":  2,
+                       "NetworkFlags":  0,
+                       "NetworkOrphaned":  0,
+                       "NetworkTransmit":  true,
+                       "OwnerTransfer":  1,
+                       "Components":  [
+
+                                      ],
+                       "Children":  [
+                                        {
+                                            "__guid":  "da1d3c6b-2b78-44c1-ae6f-fb5d9f4f5ecc",
+                                            "__version":  2,
+                                            "Flags":  0,
+                                            "Name":  "moon_test_lineup",
+                                            "Position":  "0,0,0",
+                                            "Rotation":  "0,0,0,1",
+                                            "Scale":  "1,1,1",
+                                            "Tags":  "",
+                                            "Enabled":  true,
+                                            "NetworkMode":  2,
+                                            "NetworkFlags":  0,
+                                            "NetworkOrphaned":  0,
+                                            "NetworkTransmit":  true,
+                                            "OwnerTransfer":  1,
+                                            "Components":  [
+
+                                                           ],
+                                            "Children":  [
+                                                             {
+                                                                 "__guid":  "2a23d108-2aef-4b64-bd93-d28621714ffe",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/doors/door_single.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "acab9fd6-a2bb-4684-bac5-40924b575dd3"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_door_single"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "acab9fd6-a2bb-4684-bac5-40924b575dd3"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "0,-540,-327.49"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "acab9fd6-a2bb-4684-bac5-40924b575dd3":  "2a23d108-2aef-4b64-bd93-d28621714ffe",
+                                                                                                "92ff1211-d124-40d5-8eb3-b9ac86e4973b":  "18ba47ba-8f3a-46e6-bb09-74bccfa01687",
+                                                                                                "2f2c076b-22e0-48a5-afaa-461dbfd68225":  "6d0847f6-7e48-4ec0-a8e1-68fe5a4c420e",
+                                                                                                "778e2db6-9c75-4ba9-a4c8-2317e04cad4d":  "5d091113-a06d-4ea6-bab2-1ce44f273838",
+                                                                                                "f20dfe59-1663-43f3-a474-32f9783838db":  "b1a9193c-8e85-4c15-9336-3bfab1ceabfd",
+                                                                                                "0d3d3fc1-6347-4f73-8c7b-a926a19a995d":  "b8dce827-05e0-4c53-bf6f-9a3bde2390bf",
+                                                                                                "69753950-85d5-422c-adfe-f3c86978d1a2":  "67ee6e79-9c99-4dc1-9c5b-a234dced14f0",
+                                                                                                "7eb458d5-53a4-413c-8c59-d18822d2d92c":  "5a650fb5-a061-4035-8120-ad68f8777ce3",
+                                                                                                "bb9193ac-fd65-48bd-8e4a-cf6cbde56e7c":  "5736e946-5641-4d3d-92f4-d3f2509a0b89",
+                                                                                                "81a8bf2d-8825-4a45-af26-4f7805b5668b":  "e3b49274-b670-4d55-a425-addb490ed344",
+                                                                                                "df85d599-2e36-41b9-92cc-540a09fda029":  "46d3a848-4b56-4fb3-86c1-bf4537b850e5",
+                                                                                                "fa639408-2967-4a20-8741-46c129ee8cd6":  "aec56265-dcee-48ab-97e8-5376bad44d3f",
+                                                                                                "f51f5030-4e5a-45ab-a85b-04c563b21c28":  "c460fdd5-3e67-4ffa-be05-dfce64fd1758"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "dd2c976d-e4dc-4630-8993-2e61ca2ebf8e",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/doors/door_double.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "acab9fd6-a2bb-4684-bac5-40924b575dd3"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_door_double"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "acab9fd6-a2bb-4684-bac5-40924b575dd3"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "0,-360,-324.76"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "acab9fd6-a2bb-4684-bac5-40924b575dd3":  "dd2c976d-e4dc-4630-8993-2e61ca2ebf8e",
+                                                                                                "92ff1211-d124-40d5-8eb3-b9ac86e4973b":  "50ebb839-f1e1-46f2-b22f-c7b90541da17",
+                                                                                                "03c256fd-a95b-4a49-93ae-db34902f9ac9":  "f9c1f6f7-2b7f-4c33-921c-b80ba3143057",
+                                                                                                "8179ba9b-eddd-4b11-bc9c-06484056670b":  "8b19ae66-7926-460e-91fc-40143ede329c",
+                                                                                                "baa08284-1273-444a-b1d1-ad0413316bbb":  "f6478c6f-d39c-461c-8db8-6b57d89268fa",
+                                                                                                "8fe9d86d-9144-4dd1-8a7d-98f52e87e109":  "3a5cae40-7012-48cc-8a92-6ef78dabbc77",
+                                                                                                "163a1c48-1542-4cc3-937e-541f17cb3a6d":  "ec9b40c0-27d4-44bf-a284-549df108eaa2",
+                                                                                                "940af7c0-43fa-46de-8a1b-9d132d8eb5cb":  "e84aa4f4-207f-4044-becb-83e8c5232837",
+                                                                                                "7f91f14f-bc3f-4002-9906-81caa5d98262":  "19b11273-3404-45ec-a52b-7d62aacc4826",
+                                                                                                "e385640b-5f2d-4a17-b8fa-9dfbffb3056a":  "af52b83e-cf45-451a-9544-3162960bae20",
+                                                                                                "ef069050-f372-4226-92b8-b58e98e5fd3b":  "eb0cbe9b-4bf3-4f34-b9a9-2ed51e7ae395",
+                                                                                                "c803e0bf-677c-4c1a-bee1-3e12a1883146":  "efc98766-2532-4e91-91c8-e68be5e49940",
+                                                                                                "440fa657-3c80-4cb5-9fb7-7761ca706085":  "67053015-cd42-4362-8a33-937637ca7712",
+                                                                                                "2b4586ec-97ab-41db-9cf8-3b7971fbb927":  "816fed3f-8a6a-4187-b275-8ccbe5cb835c",
+                                                                                                "9c295d3c-c460-41ac-b563-8e8f27374d34":  "565ca425-3935-4094-9696-bf16326677b3",
+                                                                                                "e41361a3-0b3b-4b24-802f-a38f82898e8c":  "7c455772-5553-41a1-8b45-dc0eca30f356",
+                                                                                                "706b3042-cf06-4b6c-935b-ccfab72a5036":  "94f44886-3deb-439c-ae50-dad56d3552a8",
+                                                                                                "60fbfc5c-f0d1-432b-8d57-263d149a51d9":  "cce82c81-4298-49a6-8032-449c3d91d477",
+                                                                                                "4b93b9ef-afc4-44bc-ad36-a4e6f006ae69":  "aa33ed84-2f09-4224-ba1f-4b64e92ab120",
+                                                                                                "fa26d275-2136-42ca-ab54-8b42782ca933":  "d22a0699-b1fb-421c-aac5-823aa645e3f5",
+                                                                                                "608c8325-708a-42fe-b074-131000f2e0c8":  "bc4329b7-bd26-4913-98bb-c80f1c5fcefc",
+                                                                                                "c7f991d0-a611-4473-8fbf-7d57b64a3bba":  "1775db74-aec6-4036-9136-313b80023bb3"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "681c5028-ebfb-4280-9d50-1d75803ae5be",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/doors/door_roller.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "acab9fd6-a2bb-4684-bac5-40924b575dd3"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_door_roller"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "acab9fd6-a2bb-4684-bac5-40924b575dd3"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "0,-180,-382.34"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "acab9fd6-a2bb-4684-bac5-40924b575dd3":  "681c5028-ebfb-4280-9d50-1d75803ae5be",
+                                                                                                "92ff1211-d124-40d5-8eb3-b9ac86e4973b":  "b1ea8ac6-a276-44e7-8e78-1352a158bcd6",
+                                                                                                "03c256fd-a95b-4a49-93ae-db34902f9ac9":  "40a3bff4-9a0d-4f82-9fa8-5decee382bbe",
+                                                                                                "7ee0f172-d0dd-4dfa-8f5f-5ab723de2803":  "ae95883f-4b5c-4543-bbb6-b0f604b4d50e",
+                                                                                                "baa08284-1273-444a-b1d1-ad0413316bbb":  "5dba8ae5-c7ca-4daf-bf45-5c50643a65e0",
+                                                                                                "8fe9d86d-9144-4dd1-8a7d-98f52e87e109":  "1b548af6-784f-4f6e-a7df-899d55aa4157",
+                                                                                                "9bdbe57a-394d-43a0-8e2a-05dcb1cb483d":  "b133b842-bbc5-4b07-b99b-61d44dc17263"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "8be2b5f9-e959-4e23-ab98-8979624e13fb",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/doors/door_manhole.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "acab9fd6-a2bb-4684-bac5-40924b575dd3"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_door_manhole"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "acab9fd6-a2bb-4684-bac5-40924b575dd3"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "0,0,-466.04"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "acab9fd6-a2bb-4684-bac5-40924b575dd3":  "8be2b5f9-e959-4e23-ab98-8979624e13fb",
+                                                                                                "92ff1211-d124-40d5-8eb3-b9ac86e4973b":  "1218f518-648e-4d88-8fbe-bec0d7971026",
+                                                                                                "03c256fd-a95b-4a49-93ae-db34902f9ac9":  "82be49f9-d52e-4f51-b148-2afbc9db4c6c",
+                                                                                                "7ee0f172-d0dd-4dfa-8f5f-5ab723de2803":  "4a6ba744-1a45-4d6e-8a09-000ac48b4795",
+                                                                                                "baa08284-1273-444a-b1d1-ad0413316bbb":  "27b9d541-f200-4bfd-a31f-61a4f55fe610",
+                                                                                                "8fe9d86d-9144-4dd1-8a7d-98f52e87e109":  "c5e5e61c-b29c-46a8-b3be-7f980709d669",
+                                                                                                "9bdbe57a-394d-43a0-8e2a-05dcb1cb483d":  "47c8dbd2-bfb3-4bfd-915f-648dc185bd73"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "58d0da5a-40d6-4086-b9ba-81a6861d5785",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/markers/glass_marker.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "6345d108-75b6-4a46-8153-c1ddba98bb71"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_glass"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "6345d108-75b6-4a46-8153-c1ddba98bb71"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "0,180,-504.62"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "6345d108-75b6-4a46-8153-c1ddba98bb71":  "58d0da5a-40d6-4086-b9ba-81a6861d5785",
+                                                                                                "f4f64cd3-bb3f-436a-9b8b-9733b88ff7b6":  "2c55d0f4-336a-43b6-9a09-f3ea945a7480"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "4aec1aed-d883-455b-bb97-a3a78537cc84",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/atm.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "dc9ce24a-42c6-4ade-a2be-f05509e088db"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_atm"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "dc9ce24a-42c6-4ade-a2be-f05509e088db"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "0,360,-574.27"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "dc9ce24a-42c6-4ade-a2be-f05509e088db":  "4aec1aed-d883-455b-bb97-a3a78537cc84",
+                                                                                                "3a2088f6-51c4-420e-8dd0-ad703e9ef306":  "35140d2c-3f00-4c52-ad68-af16f7c259d9",
+                                                                                                "92936ff4-422c-4f1a-bceb-b7b803df0660":  "fb07e025-c032-45fd-b17b-153761b33dc1",
+                                                                                                "e851b968-fef6-49db-8565-898030ee7a54":  "98c3305f-0ca1-4544-ad57-440715dfb322",
+                                                                                                "af2a3a9a-b2de-4989-b61e-34bda1cc799b":  "ffe8667e-7ebd-4c21-b781-a45d66457b30",
+                                                                                                "17af5e76-3664-4cbf-8996-64d09411a272":  "255bba9a-c174-44f2-b9cb-c36820a4c5d9",
+                                                                                                "6064742a-c474-41fd-bc91-ae0de52d221a":  "7af86e12-5980-4bf1-a8c9-52a405a7ef37",
+                                                                                                "43494b7c-7c8d-4b44-b0e9-e90b284509d4":  "e4c8dad7-1fa8-49f1-8a61-0bd924aeb9ae",
+                                                                                                "e80756c7-d883-4183-832e-e9030703d996":  "ebbabba9-81ca-49c0-9072-142c4a2f55ce",
+                                                                                                "19965290-d4e8-42a0-8d40-e20c39599268":  "a0a536c6-c0a4-4457-a5d3-fab21e74b6f6",
+                                                                                                "88e27661-2d75-4b36-a047-c10f0814d595":  "6f64efbf-ce41-4a28-be6c-6f647201f5fe",
+                                                                                                "f7f16e4a-0c73-4401-9def-987b2f457c5e":  "df0f390f-c481-4b21-a841-a30542162ca8"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "6824ac30-695e-419d-bcf6-e5289a9a7e9a",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/drug_drop.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "3ae75db6-1a23-413d-a31f-836193063eab"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_drug_drop"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "3ae75db6-1a23-413d-a31f-836193063eab"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "0,540,-635.18"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "3ae75db6-1a23-413d-a31f-836193063eab":  "6824ac30-695e-419d-bcf6-e5289a9a7e9a",
+                                                                                                "a4369ede-ed20-45e4-874b-15a28850a726":  "419e480a-ba89-4d41-8b53-bfb56251d1b2",
+                                                                                                "b3981e16-61b5-485f-81af-2f373bbd0562":  "07c382a1-65ff-46a9-9703-c76fb6e36592",
+                                                                                                "091c2c8a-3fb4-4135-9f04-636560bc2888":  "74b4757c-eae5-4b8b-b0e9-340f61e323d2",
+                                                                                                "a26a9f2f-dcd6-4586-be32-5e3918e39f5c":  "10639e1a-4806-4b0f-b92e-1ac745a9a640"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "8394c17e-8a27-4333-b8e0-85748baa35a3",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/bin.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "2e891355-fc1a-4768-824f-4341a575e010"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_bin"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "2e891355-fc1a-4768-824f-4341a575e010"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "200,-540,-406.01"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "2e891355-fc1a-4768-824f-4341a575e010":  "8394c17e-8a27-4333-b8e0-85748baa35a3",
+                                                                                                "19a3c5a5-da86-4a3a-a3a6-ad9f68275541":  "aaecb2a4-dd0c-49af-8d21-5bce853eb75b",
+                                                                                                "077e2aa7-6dd8-4b05-8192-f9edc33b3f9d":  "34161aff-9008-46d8-b907-320cc5dc82c4",
+                                                                                                "90bf10c0-3281-427c-9576-83bb24acf3af":  "48b1ce2d-1c65-4b0a-93b4-34b42c98aff0",
+                                                                                                "d41c7603-d0af-48b4-869e-f32fda7c48a7":  "1cc796c7-5d56-4567-a1d0-14c274d0b0c3",
+                                                                                                "ef7faa59-49c7-4f54-9ad1-231015275fe8":  "681eb1de-eb66-4d68-abda-a4f9825174f2"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "9cb1eb45-2617-423e-a1c0-2450e731d581",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/helpers/garbage_point.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "b2602fee-3d65-43c7-b0e8-a2b1eb838738"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_garbage_point"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "b2602fee-3d65-43c7-b0e8-a2b1eb838738"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "200,-360,-406.04"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "b2602fee-3d65-43c7-b0e8-a2b1eb838738":  "9cb1eb45-2617-423e-a1c0-2450e731d581",
+                                                                                                "b39bec63-b692-46c0-873a-49278a09a02b":  "7d576150-8a02-46ef-bcc4-f0edba26d800"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "90ca76f2-54de-40bf-a8e8-03e5ee6e1d3d",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/panic.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "62f6f5d4-b7ac-48ac-ab00-2e193609f517"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_panic"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "62f6f5d4-b7ac-48ac-ab00-2e193609f517"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "200,-180,-438.67"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "62f6f5d4-b7ac-48ac-ab00-2e193609f517":  "90ca76f2-54de-40bf-a8e8-03e5ee6e1d3d",
+                                                                                                "08690fc0-0ecb-429d-9cd2-98883c33a544":  "bcf3245d-10f0-4533-b2f9-858c061e6917",
+                                                                                                "ad386d51-0979-408f-b1dc-22f89cf6e3b1":  "39caa806-2640-4cfa-b2ec-5e871cac4be6",
+                                                                                                "f04a7681-9293-42ce-b3c5-48c2252548eb":  "d536e924-5cc2-4edb-ad06-5f34a46fcbca",
+                                                                                                "aa26090b-1744-4ef2-b863-eeb7a5c4daaa":  "1ce216ab-0145-4ed5-b28b-78a70cac0851",
+                                                                                                "1f5fa396-ae46-48be-94e1-741a904ca6d5":  "7f072d2b-f9d6-4701-a56a-3ceec38e0862",
+                                                                                                "26da67fe-e254-4fc3-af32-8e94132fea6d":  "31945af7-b1fa-44c5-92d6-1f30440e4c14"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "4c4cbaba-a374-4959-b470-b4a777057f3f",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/stat_board.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "9d1f4d2c-66ef-4e6e-94c4-cc791ff2b5b0"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_stat_board"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "9d1f4d2c-66ef-4e6e-94c4-cc791ff2b5b0"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "200,0,-564.87"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "9d1f4d2c-66ef-4e6e-94c4-cc791ff2b5b0"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Rotation",
+                                                                                                                             "Value":  "0,0,1,0"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "9d1f4d2c-66ef-4e6e-94c4-cc791ff2b5b0":  "4c4cbaba-a374-4959-b470-b4a777057f3f",
+                                                                                                "10cf5355-eec0-4cf4-8c10-bedc596dedba":  "21fe8a81-a394-46cc-bd7a-8f53ecf94e89",
+                                                                                                "5660c721-affe-466f-a06b-3c044d75b82b":  "004dbfff-7954-4f56-9df8-9a1dc35a938e",
+                                                                                                "2362198a-82f0-429e-92cb-ac83f0d434f4":  "1a35905c-caf0-49ed-b93a-750d3f39f5b3",
+                                                                                                "f6e098e6-8981-4c24-a3db-2fdf9ee97a60":  "8e4443c0-d5fa-43e7-88c2-9d829d898e96",
+                                                                                                "43060705-bb27-4b8a-9732-df9707eab3f2":  "90606b4f-f7bd-4891-a306-06b212f4c8d4",
+                                                                                                "0e751342-db1d-4841-a9ec-e72a61f2bbd9":  "624a59e7-2b19-489e-b569-eade14d90f9b"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "ad6eee44-08b6-4409-a2c5-1404ed5726a5",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/law_board_world.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "fe1d8b80-106e-4f35-92e6-3750335ee74d"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_law_board"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "fe1d8b80-106e-4f35-92e6-3750335ee74d"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "200,180,-553.61"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "fe1d8b80-106e-4f35-92e6-3750335ee74d"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Rotation",
+                                                                                                                             "Value":  "0,0,1,0"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "fe1d8b80-106e-4f35-92e6-3750335ee74d":  "ad6eee44-08b6-4409-a2c5-1404ed5726a5",
+                                                                                                "4f97bc1e-0b3f-4cc8-adf1-de296068d3de":  "822a8fee-604e-4b7d-b89c-2a35d95cd6ad",
+                                                                                                "a685fd3d-6a41-4320-9d08-25cdbe72f6b5":  "3e1e8b7c-429a-4ff2-a5a6-791fa139f04b",
+                                                                                                "0814c0a0-7446-471d-9673-129844c5f248":  "1a5c4511-2dd9-4a12-8568-97f3368961d7",
+                                                                                                "2a464266-71f6-46df-9fa5-2370cd15ded3":  "a2ef27b9-ead3-42e8-b730-063e1068def1",
+                                                                                                "b78ea16d-ae1d-40a7-ad8c-8c742b1fa292":  "4dfd26a3-ec5f-4350-a27f-8f05aad91e99"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "68101da7-c68b-4497-8055-900e5f9e0454",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/motd.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "f7281ca9-9b5d-4abc-a9f1-7afdb1f5e40e"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_motd"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "f7281ca9-9b5d-4abc-a9f1-7afdb1f5e40e"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "200,360,-673.29"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "f7281ca9-9b5d-4abc-a9f1-7afdb1f5e40e"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Rotation",
+                                                                                                                             "Value":  "0,0,1,0"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "f7281ca9-9b5d-4abc-a9f1-7afdb1f5e40e":  "68101da7-c68b-4497-8055-900e5f9e0454",
+                                                                                                "6a5d3334-3ebb-498c-9836-ff2b46dfa1f8":  "b72c3f2c-0d7e-4eab-8419-039179c2a4c5",
+                                                                                                "ff6025a0-7bca-49ef-a655-f1ad261f6bed":  "1a01fa3c-690c-4129-b2ec-b6ea8fc2c048",
+                                                                                                "d5d6191f-7e0c-45d6-9bbc-e89bea11fa39":  "8881815d-2a14-4352-b53c-1785653fc07f",
+                                                                                                "438aff19-312c-4595-810e-b96d1e237fb3":  "1a9db23e-430e-4fa5-af67-9070dda92e52",
+                                                                                                "e18a265c-2022-4711-aa41-a5a3dfd6c025":  "613ec951-ed4d-424a-99fc-13efbe07b88a",
+                                                                                                "3c36151f-2ffa-4de0-9c12-d3522c56859b":  "05f28ba6-21d5-4a10-a535-52560b8baff8"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "908839cc-0939-4e62-8f79-e9d86092878f",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/world_spawn.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "60214700-8816-4a41-95f7-591659578668"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_spawn_1"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "60214700-8816-4a41-95f7-591659578668"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "-220,-270,-343.99"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "60214700-8816-4a41-95f7-591659578668":  "908839cc-0939-4e62-8f79-e9d86092878f",
+                                                                                                "c9dc349f-c586-43cd-84a2-d8b0d2724fd5":  "cb0d6296-f11b-4eda-9387-12ca4e84f9a1"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "b3216c32-6049-4e6d-a1ca-a0b0b7778d4d",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/world_spawn.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "60214700-8816-4a41-95f7-591659578668"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_spawn_2"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "60214700-8816-4a41-95f7-591659578668"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "-220,-90,-358.28"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "60214700-8816-4a41-95f7-591659578668":  "b3216c32-6049-4e6d-a1ca-a0b0b7778d4d",
+                                                                                                "c9dc349f-c586-43cd-84a2-d8b0d2724fd5":  "35f6e1c3-c7c4-492e-aea9-8b782d4efee3"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "cb79d6c2-adc7-46b2-9991-78bd8e68f555",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/world_spawn.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "60214700-8816-4a41-95f7-591659578668"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_spawn_3"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "60214700-8816-4a41-95f7-591659578668"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "-220,90,-385.96"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "60214700-8816-4a41-95f7-591659578668":  "cb79d6c2-adc7-46b2-9991-78bd8e68f555",
+                                                                                                "c9dc349f-c586-43cd-84a2-d8b0d2724fd5":  "156797ac-dbb0-4621-8813-9a0e785af077"
+                                                                                            }
+                                                             },
+                                                             {
+                                                                 "__guid":  "00904e35-829a-417e-b7cf-ace1bbe64bfd",
+                                                                 "__version":  2,
+                                                                 "__Prefab":  "prefabs/world/world_spawn.prefab",
+                                                                 "__PrefabInstancePatch":  {
+                                                                                               "AddedObjects":  [
+
+                                                                                                                ],
+                                                                                               "RemovedObjects":  [
+
+                                                                                                                  ],
+                                                                                               "PropertyOverrides":  [
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "60214700-8816-4a41-95f7-591659578668"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Name",
+                                                                                                                             "Value":  "test_spawn_4"
+                                                                                                                         },
+                                                                                                                         {
+                                                                                                                             "Target":  {
+                                                                                                                                            "Type":  "GameObject",
+                                                                                                                                            "IdValue":  "60214700-8816-4a41-95f7-591659578668"
+                                                                                                                                        },
+                                                                                                                             "Property":  "Position",
+                                                                                                                             "Value":  "-220,270,-448.67"
+                                                                                                                         }
+                                                                                                                     ],
+                                                                                               "MovedObjects":  [
+
+                                                                                                                ]
+                                                                                           },
+                                                                 "__PrefabIdToInstanceId":  {
+                                                                                                "60214700-8816-4a41-95f7-591659578668":  "00904e35-829a-417e-b7cf-ace1bbe64bfd",
+                                                                                                "c9dc349f-c586-43cd-84a2-d8b0d2724fd5":  "b2b9e4af-bc92-4a2d-a57e-de1de5f38032"
+                                                                                            }
+                                                             }
+                                                         ]
+                                        }
+                                    ]
+                   },
+    "ResourceVersion":  2,
+    "ShowInMenu":  false,
+    "MenuPath":  null,
+    "MenuIcon":  null,
+    "DontBreakAsTemplate":  false,
+    "__references":  [
+
+                     ],
+    "__version":  2
+}

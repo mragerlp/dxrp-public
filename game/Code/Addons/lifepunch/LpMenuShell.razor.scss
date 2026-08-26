@@ -1,0 +1,255 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+// Universal LIFEPUNCH menu shell chrome; consumers provide only their product skin.
+// ─────────────────────────────────────────────────────────────────────────────
+
+$lp-shell-bg: #000000;
+$lp-shell-surface: #1a1d23;
+$lp-shell-inset: #12151a;
+$lp-shell-border: #374151;
+$lp-shell-text: #ffffff;
+$lp-shell-text-dim: #9ca3af;
+
+.lp-menu-shell {
+	position: relative;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	width: 1160px;
+	height: 700px;
+	max-width: 96%;
+	max-height: 96%;
+	min-height: 0;
+	background-color: $lp-shell-bg;
+	border: 1px solid $lp-shell-border;
+	border-radius: 12px;
+	overflow: hidden;
+	pointer-events: all;
+}
+
+.lp-menu-shell .shell-body,
+.lp-menu-shell .hub-body,
+.lp-menu-shell .hub-main,
+.lp-menu-shell .sidebar,
+.lp-menu-shell .workspace,
+.lp-menu-shell .hub-header,
+.lp-menu-shell .lp-window-watermark,
+.lp-menu-shell .lp-window-watermark .lp-source-footer {
+	border-radius: 0;
+}
+
+.lp-menu-shell .shell-body,
+.lp-menu-shell .hub-body,
+.lp-menu-shell .hub-main {
+	flex: 1 1 0;
+	min-height: 0;
+	display: flex;
+	overflow: hidden;
+	background-color: $lp-shell-bg;
+}
+
+.lp-menu-shell .shell-body,
+.lp-menu-shell .hub-body {
+	flex-direction: column;
+}
+
+.lp-menu-shell .hub-main {
+	flex-direction: row;
+}
+
+.lp-menu-shell .sidebar {
+	width: 190px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	padding: 12px;
+	background-color: $lp-shell-inset;
+	border-right: 1px solid $lp-shell-border;
+	overflow: hidden;
+}
+
+.lp-menu-shell .sidebar-identity {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	width: 100%;
+	flex-shrink: 0;
+	margin-bottom: 22px;
+}
+
+.lp-menu-shell .sidebar-nav {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	gap: 8px;
+	width: 100%;
+	flex-grow: 1;
+}
+
+.lp-menu-shell .sidebar-foot {
+	display: flex;
+	flex-direction: column;
+	align-items: stretch;
+	width: 100%;
+	padding-top: 10px;
+}
+
+.lp-menu-shell .sidebar-btn {
+	position: relative;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	gap: 10px;
+	width: 100%;
+	min-height: 44px;
+	padding: 8px 12px;
+	border: 0;
+	border-radius: 6px;
+	background-color: transparent;
+	color: $lp-shell-text-dim;
+	opacity: 0.72;
+	cursor: pointer;
+}
+
+.lp-menu-shell .sidebar-btn:hover,
+.lp-menu-shell .sidebar-btn.sidebar-btn-sel {
+	color: $lp-shell-text;
+	opacity: 1;
+}
+
+.lp-menu-shell .sidebar-btn-label {
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 11px;
+	font-weight: 700;
+	letter-spacing: 0.04em;
+	color: inherit;
+	white-space: nowrap;
+}
+
+.lp-menu-shell .workspace {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	background-color: $lp-shell-bg;
+	overflow: hidden;
+}
+
+.lp-menu-shell .hub-header {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: space-between;
+	gap: 12px 16px;
+	min-height: 64px;
+	padding: 10px 12px 10px 20px;
+	flex-shrink: 0;
+	background-color: $lp-shell-surface;
+	border-bottom: 1px solid $lp-shell-border;
+}
+
+.lp-menu-shell .hub-title {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-start;
+	flex: 1 1 auto;
+	min-width: 0;
+	margin-bottom: 0;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 22px;
+	font-weight: 900;
+	text-transform: uppercase;
+	letter-spacing: 0.07em;
+	line-height: 1;
+	white-space: nowrap;
+}
+
+.lp-menu-shell .header-widgets {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 8px;
+	flex-shrink: 0;
+}
+
+.lp-menu-shell .workspace-body,
+.lp-menu-shell .main-panel {
+	flex: 1 1 auto;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+	background-color: $lp-shell-bg;
+}
+
+.lp-menu-shell .lp-window-watermark {
+	flex: 0 0 32px;
+	width: 100%;
+	height: 32px;
+	overflow: hidden;
+	background-color: $lp-shell-inset;
+}
+
+// Shared Getting Started geometry: copy owns the fluid middle, actions own one fixed rail.
+.lp-menu-shell .overview-checklist-copy {
+	display: flex;
+	flex-direction: column;
+	flex: 1 1 0;
+	gap: 3px;
+	min-width: 0;
+}
+
+.lp-menu-shell .overview-checklist-action-group,
+.lp-menu-shell .overview-checklist-action {
+	flex: 0 0 auto;
+	min-height: 44px;
+	white-space: nowrap;
+}
+
+.lp-menu-shell .overview-checklist-action-group {
+	display: flex;
+	flex-direction: column;
+	justify-content: center;
+	align-self: center;
+	width: 156px;
+}
+
+.lp-menu-shell .overview-checklist-action {
+	width: 156px;
+}
+
+.lp-menu-shell .overview-checklist-action-group .lp-ui-btn-ghost,
+.lp-menu-shell .overview-checklist-action-group .lp-ui-btn-primary {
+	flex: 0 0 auto;
+	width: 100%;
+	min-height: 44px;
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+	text-align: center;
+	white-space: nowrap;
+}
+
+.lp-menu-shell .overview-checklist-action,
+.lp-menu-shell .overview-checklist-action-group .lp-ui-btn-primary,
+.lp-menu-shell .overview-checklist-action-group .lp-ui-btn-ghost {
+	padding: 8px 12px;
+	font-size: 11px;
+}
+
+.lp-menu-shell .overview-checklist-action {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: 8px;
+}

@@ -1,0 +1,39 @@
+{
+  "model": "bitcoinhub.vmdl",
+  "source": "source/fbx/bitcoinhub.fbx",
+  "blendArchive": "source/blend/bitcoinhub.blend",
+  "ownerDrop": "Desktop/addon test/addons/lifepunch/lpbitcoin/bitcoinhub/assets/source/bitcoinhub.{blend,fbx}",
+  "textureRoot": "assets/textures",
+  "note": "Steam Machine hub (Jun 2026 greenfield). FBX slot → vmdl remap → vmat. Expected anims after clean export: fanAction, front_panelAction only — purge orphan Steam_controllerAction in Blender before export.",
+  "vmats": {
+    "bitcoinhub-sm-body.vmat": {
+      "shader": "complex",
+      "textures": ["sm_body_mat_BaseColor.png", "sm_body_mat_Normal.png", "sm_body_mat_Metallic-sm_body_mat_Roughness@channels=G.png", "sm_body_mat_Metallic-sm_body_mat_Roughness@channels=B.png"]
+    },
+    "bitcoinhub-sm-details-one.vmat": {
+      "textures": ["sm_details_one_mat_BaseColor.png", "sm_details_one_mat_Normal.png", "sm_details_one_mat_Metallic-sm_details_one_mat_Roughness@cha.png"]
+    },
+    "bitcoinhub-sm-details-two.vmat": {
+      "textures": ["sm_details_two_mat_BaseColor.png", "sm_details_two_mat_Normal.png", "sm_details_two_mat_Metallic-sm_details_two_mat_Roughness@cha.png"]
+    },
+    "bitcoinhub-sm-panel.vmat": {
+      "textures": ["sm_panel_mat_BaseColor.png", "sm_panel_mat_Normal.png", "sm_panel_mat_Metallic-sm_panel_mat_Roughness@channels=G.png", "sm_panel_mat_Metallic-sm_panel_mat_Roughness@channels=B.png"]
+    },
+    "bitcoinhub-sm-fence-led.vmat": {
+      "shader": "complex + emissive",
+      "textures": ["sm_fence_led_mat_BaseColor-sm_fence_led_mat_Alpha.png", "sm_fence_led_mat_Normal.png", "sm_fence_led_mat_Emissive.png", "sm_fence_led_mat_Metallic-sm_fence_led_mat_Roughness@channel.png"]
+    }
+  },
+  "fbxSlots": {
+    "sm_body_mat": ["sm_body_mat"],
+    "sm_details_one_mat": ["sm_details_one_mat"],
+    "sm_details_two_mat": ["sm_details_two_mat"],
+    "sm_panel_mat": ["sm_panel_mat"],
+    "sm_fence_led_mat": ["sm_fence_led_mat"]
+  },
+  "animations": {
+    "powered": ["fanAction", "power_on", "front_panelAction"],
+    "off": ["bindPose", "power_off"]
+  },
+  "superseded": "Ophion.fbx + bitcoinhub-chassis/acrylic/gpu vmats (gaming PC — archived)"
+}

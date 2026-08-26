@@ -1,0 +1,14 @@
+﻿{
+    "slot":  "advancedgpurack",
+    "primary_mesh":  "assets/source/fbx/GPU_Farm_Stacked_Anim.fbx",
+    "issues":  [
+                   "Stacked anim FBX only â€” may need static stacked export from blend"
+               ],
+    "sourced_from":  "lpbitcoinmining/gpurack (same Fab Crypto Farm pack)",
+    "role":  "Advanced GPU Rack (stacked)",
+    "notes":  [
+                  "Stacked variant split from gpurack slot",
+                  "Use static body in ModelDoc â€” not anim rig as body"
+              ]
+}
+

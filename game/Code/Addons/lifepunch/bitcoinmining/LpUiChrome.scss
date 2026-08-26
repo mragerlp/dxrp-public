@@ -1,0 +1,164 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCH Bitcoin Miner for DXRP" (s&box ident: lifepunch.bitcoin · addon ident: bitcoinmining)
+// Shared hub + CRT header chrome (red close/ESC, settings cog, scale dropdown).
+// ─────────────────────────────────────────────────────────────────────────────
+
+$lp-chrome-danger: #e4002b;
+$lp-chrome-danger-hover: #c40024;
+
+// Poppins on parent panels cascades onto material-icons and renders ligature names as text.
+.material-icons {
+	font-family: Material Icons;
+	font-weight: normal;
+	font-style: normal;
+	text-transform: none;
+	letter-spacing: normal;
+	white-space: nowrap;
+}
+
+.lp-ui-chrome-actions {
+	display: flex;
+	flex-direction: row;
+	align-items: center;
+	gap: 6px;
+	flex-shrink: 0;
+}
+
+.lp-ui-chrome-btn {
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	width: 34px;
+	height: 34px;
+	border-radius: 0; // squared natural — no soft rounding on controls
+	background-color: transparent;
+	border: 0;
+	color: #aeb8cb;
+	cursor: pointer;
+
+	.material-icons {
+		line-height: 1;
+	}
+
+	&:hover {
+		background-color: rgba(255, 255, 255, 0.08);
+		color: #f7f9fc;
+	}
+
+	&.cog .material-icons {
+		font-size: 24px;
+	}
+
+	&.cog.active {
+		background-color: rgba(240, 165, 0, 0.18);
+		color: #f0a500;
+	}
+
+	&.close {
+		color: $lp-chrome-danger;
+
+		.material-icons {
+			font-size: 26px;
+			color: $lp-chrome-danger;
+		}
+
+		&:hover {
+			background-color: $lp-chrome-danger;
+			color: #fff;
+
+			.material-icons {
+				color: #fff;
+			}
+		}
+	}
+
+	&.esc {
+		width: auto;
+		min-width: 52px;
+		padding: 0 10px;
+		font-size: 11px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		color: $lp-chrome-danger;
+		border: 1px solid rgba(228, 0, 43, 0.45);
+
+		&:hover {
+			background-color: $lp-chrome-danger;
+			border-color: $lp-chrome-danger;
+			color: #fff;
+		}
+	}
+
+	&.clear-log {
+		width: auto;
+		min-width: 58px;
+		padding: 0 10px;
+		font-size: 10px;
+		font-weight: 700;
+		letter-spacing: 0.06em;
+		color: #f0a500;
+		border: 1px solid rgba(240, 165, 0, 0.45);
+
+		&:hover {
+			background-color: rgba(240, 165, 0, 0.18);
+			border-color: rgba(240, 165, 0, 0.65);
+			color: #ffd27a;
+		}
+	}
+}
+
+.lp-ui-scale-menu {
+	position: relative;
+	display: flex;
+	flex-direction: column;
+}
+
+.lp-ui-scale-dropdown {
+	position: absolute;
+	top: calc(100% + 6px);
+	right: 0;
+	display: flex;
+	flex-direction: column;
+	min-width: 120px;
+	padding: 6px;
+	border-radius: 0;
+	border: 1px solid rgba(255, 255, 255, 0.12);
+	background-color: rgba(12, 14, 18, 0.98);
+	box-shadow: 0 8px 24px rgba(0, 0, 0, 0.45);
+	z-index: 20;
+}
+
+.lp-ui-scale-dropdown-title {
+	padding: 4px 8px 6px;
+	font-size: 10px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	color: #8b95a8;
+	text-transform: uppercase;
+}
+
+.lp-ui-scale-opt {
+	display: flex;
+	align-items: center;
+	justify-content: space-between;
+	height: 30px;
+	padding: 0 10px;
+	border-radius: 0;
+	border: 0;
+	background-color: transparent;
+	color: #d5dbe7;
+	font-size: 12px;
+	font-weight: 600;
+	cursor: pointer;
+
+	&:hover {
+		background-color: rgba(255, 255, 255, 0.06);
+	}
+
+	&.active {
+		background-color: rgba(79, 140, 255, 0.16);
+		color: #8eb8ff;
+	}
+}

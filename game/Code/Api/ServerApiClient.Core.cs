@@ -102,6 +102,8 @@ public static partial class ServerApiClient
 
 	public static bool Audit( string action, string description, long? cause = null )
 	{
+		LocalAuditStore.Record( action, description, cause );
+
 		if ( !ServerApiLink.HasAuthorizationKey )
 		{
 			Log.Info( $"[{action}] {description}" );

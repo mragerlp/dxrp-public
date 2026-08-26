@@ -1,0 +1,15 @@
+// LifePunch bitcoinhub — Steam Machine details (primary)
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	F_SPECULAR 1
+
+	TextureColor "addons/lifepunch/lpbitcoin/bitcoinhub/assets/textures/sm_details_one_mat_BaseColor.png"
+	TextureNormal "addons/lifepunch/lpbitcoin/bitcoinhub/assets/textures/sm_details_one_mat_Normal.png"
+	TextureRoughness "addons/lifepunch/lpbitcoin/bitcoinhub/assets/textures/sm_details_one_mat_Metallic-sm_details_one_mat_Roughness@cha.png"
+
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+}

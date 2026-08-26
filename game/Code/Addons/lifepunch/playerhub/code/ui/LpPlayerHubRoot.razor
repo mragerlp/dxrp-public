@@ -1,0 +1,276 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   LIFEPUNCH Player Hub for DXRP
+   Fixture-backed Slices 1-5. No purchase, unlock, RPC or live-data seam.
+*@
+@namespace LifePunch.DXRP.Addons.PlayerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits PanelComponent
+
+@attribute [StyleSheet]
+
+<root class="@RootClass()">
+	<div class="hub-shell">
+		<div class="hub-header">
+			<div class="hub-brand">LIFEPUNCH PLAYER HUB</div>
+
+			<div class="hub-header-right">
+				@if ( VisibleTabIsFixture )
+				{
+					<div class="hub-preview-tag" tooltip="@PreviewTooltip">PREVIEW &#183; FIXTURE DATA</div>
+				}
+
+				<div class="hub-stat">
+					<span class="hub-stat-label">LEVEL</span>
+					<span class="hub-stat-value">@Vm.Level</span>
+				</div>
+
+				<div class="hub-stat" tooltip="@LpTooltip">
+					<span class="lp-mark hub-lp-mark">$LP</span>
+					<span class="hub-stat-value">@LpAmount</span>
+				</div>
+
+				<button class="hub-close" tooltip="Close Player Hub" onclick="@Close">
+					<i class="material-icons">close</i>
+				</button>
+			</div>
+		</div>
+
+		<div class="hub-body">
+			<div class="hub-sidebar">
+				<div class="hub-identity">
+					<div class="hub-avatar"><i class="material-icons">person</i></div>
+					<div class="hub-identity-copy">
+						<div class="hub-player-name">@Vm.PlayerName</div>
+						<div class="hub-player-rank">@Vm.RankLabel</div>
+					</div>
+				</div>
+
+				<div class="hub-nav">
+					@foreach ( var tab in Tabs )
+					{
+						<button class="@NavClass( tab )" onclick="@( () => SetTab( tab ) )">
+							<div class="hub-nav-indicator"></div>
+							<i class="material-icons hub-nav-icon">@LpPlayerHubTabInfo.Icon( tab )</i>
+							<span class="hub-nav-label">@LpPlayerHubTabInfo.Label( tab )</span>
+							@if ( BadgeFor( tab ) > 0 )
+							{
+								<span class="hub-nav-badge">@BadgeFor( tab )</span>
+							}
+						</button>
+					}
+				</div>
+
+				<div class="hub-sidebar-note">
+					<div class="hub-sidebar-note-title">FIXTURE SCOPE</div>
+					<div class="hub-sidebar-note-copy">Browse and inspect only. Transactions and live data remain gated.</div>
+				</div>
+			</div>
+
+			<div class="hub-content">
+				<div class="hub-page-head">
+					<div class="hub-title">@LpPlayerHubTabInfo.Label( ActiveTab )</div>
+					<div class="hub-blurb">@LpPlayerHubTabInfo.Blurb( ActiveTab )</div>
+				</div>
+
+				<div class="hub-tabhost">
+					@if ( ActiveTab == LpPlayerHubTab.Overview )
+					{
+						<LpPlayerHubOverview Model="@OverviewModel" />
+					}
+					else if ( ActiveTab == LpPlayerHubTab.Stats )
+					{
+						<LpPlayerHubStats Model="@StatsModel" />
+					}
+					else if ( ActiveTab == LpPlayerHubTab.Skills )
+					{
+						<LpPlayerHubSkills Model="@SkillsModel" />
+					}
+					else if ( ActiveTab == LpPlayerHubTab.Store )
+					{
+						<LpPlayerHubStore Model="@StoreModel" />
+					}
+				</div>
+			</div>
+		</div>
+
+		<LifePunchUiFooter Product="Player Hub" />
+	</div>
+</root>
+
+@code
+{
+	public const string SliceMark = "LP_PLAYERHUB_SLICES1_5_FIXTURE_20260722";
+	public const string QaMark = "LP_PLAYERHUB_NO_SCROLL_FIXTURE_20260722";
+
+	private static readonly LpPlayerHubTab[] Tabs =
+	{
+		LpPlayerHubTab.Overview,
+		LpPlayerHubTab.Skills,
+		LpPlayerHubTab.Store,
+		LpPlayerHubTab.Stats,
+	};
+
+	private LpPlayerHubTab _activeTab = LpPlayerHubTab.Overview;
+	private string _selectedSkillTrackId = "resilience";
+	private string _selectedSkillId = "resilience-slot-1";
+	private string _selectedStoreCategoryId = "all";
+	private string _selectedStoreItemId = "identity-banner";
+
+	private LpPlayerHubTab ActiveTab => _activeTab;
+	private LpPlayerHubShellVm Vm => LpPlayerHubFixture.Shell( _activeTab );
+
+	private LpOverviewVm OverviewModel => LpPlayerHubFixture.Overview(
+		new[]
+		{
+			new LpHubActionVm(
+				Id: "skills",
+				Label: "View skills",
+				Icon: "account_tree",
+				Hint: "Browse skill tracks",
+				Enabled: true,
+				OnSelected: () => SetTab( LpPlayerHubTab.Skills )),
+			new LpHubActionVm(
+				Id: "store",
+				Label: "Open store",
+				Icon: "storefront",
+				Hint: "Browse the fixture catalog",
+				Enabled: true,
+				OnSelected: () => SetTab( LpPlayerHubTab.Store )),
+			new LpHubActionVm(
+				Id: "stats",
+				Label: "View stats",
+				Icon: "insights",
+				Hint: "Inspect read-only activity",
+				Enabled: true,
+				OnSelected: () => SetTab( LpPlayerHubTab.Stats )),
+		});
+
+	private LpStatsVm StatsModel => LpPlayerHubFixture.Stats();
+
+	private LpSkillsVm SkillsModel => LpPlayerHubFixture.Skills(
+		_selectedSkillTrackId,
+		_selectedSkillId,
+		SelectSkillTrack,
+		SelectSkill);
+
+	private LpStoreVm StoreModel => LpPlayerHubFixture.Store(
+		_selectedStoreCategoryId,
+		_selectedStoreItemId,
+		SelectStoreCategory,
+		SelectStoreItem);
+
+	private bool VisibleTabIsFixture => _activeTab switch
+	{
+		LpPlayerHubTab.Overview => OverviewModel.IsFixture,
+		LpPlayerHubTab.Skills => SkillsModel.IsFixture,
+		LpPlayerHubTab.Store => StoreModel.IsFixture,
+		LpPlayerHubTab.Stats => StatsModel.IsFixture,
+		_ => Vm.IsFixture,
+	};
+
+	private const string PreviewTooltip =
+		"Slices 1-5 use deterministic preview fixtures. Values are not live player state.";
+
+	private const string LpTooltip =
+		"$LP is a TEMPORARY display sign and colour. This fixture does not spend currency.";
+
+	private string LpAmount => Vm.LpBalance.ToString( "N0" );
+
+	private string RootClass() => "lp-playerhub is-open";
+
+	private string NavClass( LpPlayerHubTab tab )
+	{
+		var active = tab == _activeTab ? " is-active" : string.Empty;
+		return "hub-nav-item" + active;
+	}
+
+	private int BadgeFor( LpPlayerHubTab tab )
+	{
+		return tab == LpPlayerHubTab.Skills ? Vm.SkillsBadgeCount : 0;
+	}
+
+	private void SetTab( LpPlayerHubTab tab )
+	{
+		if ( _activeTab == tab )
+			return;
+
+		_activeTab = tab;
+		StateHasChanged();
+	}
+
+	private void SelectSkillTrack( string trackId )
+	{
+		_selectedSkillTrackId = trackId;
+		_selectedSkillId = trackId + "-slot-1";
+		StateHasChanged();
+	}
+
+	private void SelectSkill( string skillId )
+	{
+		if ( _selectedSkillId == skillId )
+			return;
+
+		_selectedSkillId = skillId;
+		StateHasChanged();
+	}
+
+	private void SelectStoreCategory( string categoryId )
+	{
+		_selectedStoreCategoryId = categoryId;
+		_selectedStoreItemId = categoryId switch
+		{
+			"identity" => "identity-banner",
+			"utility" => "job-route-card",
+			_ => _selectedStoreItemId,
+		};
+		StateHasChanged();
+	}
+
+	private void SelectStoreItem( string itemId )
+	{
+		if ( _selectedStoreItemId == itemId )
+			return;
+
+		_selectedStoreItemId = itemId;
+		StateHasChanged();
+	}
+
+	private void Close() => LpPlayerHubHost.RequestClose();
+
+	protected override void OnStart()
+	{
+		LifePunchUiScrollPolicy.Apply( Panel );
+	}
+
+	protected override void OnUpdate()
+	{
+		LifePunchUiScrollPolicy.Apply( Panel );
+	}
+
+	protected override void OnEnabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuOpened();
+	}
+
+	protected override void OnDisabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuClosed();
+	}
+
+	protected override int BuildHash()
+	{
+		var hash = new HashCode();
+		hash.Add( (int)_activeTab );
+		hash.Add( _selectedSkillTrackId );
+		hash.Add( _selectedSkillId );
+		hash.Add( _selectedStoreCategoryId );
+		hash.Add( _selectedStoreItemId );
+		hash.Add( VisibleTabIsFixture );
+		return hash.ToHashCode();
+	}
+}

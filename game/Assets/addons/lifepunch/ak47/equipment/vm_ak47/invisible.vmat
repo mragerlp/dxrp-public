@@ -1,0 +1,24 @@
+// Fully-transparent material used to HIDE the M4 master viewmodel mesh.
+// The M4 skeleton still drives the camera bone, animgraph and hand IK,
+// while the textured AK mesh (bonemerged on top) is what the player sees.
+//
+// DXRP ViewModel.cs forces the renderer Tint alpha back to 1 every frame,
+// so visibility is killed at the MATERIAL level (opacity scale + tint alpha 0),
+// which the per-renderer Tint cannot override.
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	//---- Translucent ----
+	F_TRANSLUCENT 1
+	g_flOpacityScale "0.000"
+
+	//---- Color ----
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+	TextureColor "materials/default/default_color.tga"
+
+	//---- Fog ----
+	g_bFogEnabled "0"
+}

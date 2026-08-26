@@ -1,0 +1,302 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Player Hub Slice 4 - fixture-backed Skills browser. No point spend.
+*@
+@namespace LifePunch.DXRP.Addons.PlayerHub
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-playerhub-skills">
+	<div class="skills-summary lp-hub-panel">
+		<div class="skills-summary-metric">
+			<div class="skills-summary-label">AVAILABLE POINTS</div>
+			<div class="skills-summary-value">@Model.SkillPointsAvailable</div>
+		</div>
+		<div class="skills-summary-metric">
+			<div class="skills-summary-label">TRACKS MASTERED</div>
+			<div class="skills-summary-value compact">@Model.TracksMastered / 5</div>
+		</div>
+		<div class="@GrandMasteryClass()">
+			<i class="material-icons">workspace_premium</i>
+			<div>
+				<div class="skills-mastery-title">GRAND MASTERY</div>
+				<div class="skills-mastery-state">@GrandMasteryLabel()</div>
+			</div>
+		</div>
+		<div class="skills-summary-note">
+			<i class="material-icons">visibility</i>
+			<span>Five-track fixture preview. Spending remains gated.</span>
+		</div>
+	</div>
+
+	<div class="skills-workspace">
+		<div class="skills-track-list">
+			<div class="skills-list-label"><span>TRACKS</span><span>5</span></div>
+			@foreach ( var track in Model.Tracks )
+			{
+				<button class="@TrackClass( track )" onclick="@track.OnSelected">
+					<i class="material-icons skills-track-icon">@track.Icon</i>
+					<div class="skills-track-copy">
+						<div class="skills-track-label">@track.Label</div>
+						<div class="skills-track-description">@track.Description</div>
+						<div class="skills-track-meta">
+							<span>@TrackProgressText( track )</span>
+							<span>@KeystoneShortLabel( track )</span>
+						</div>
+					</div>
+				</button>
+			}
+		</div>
+
+		<div class="skills-catalog lp-hub-panel">
+			<div class="skills-catalog-head lp-hub-bar">
+				<div>
+					<div class="skills-list-label">@SelectedTrackLabel()</div>
+					<div class="skills-catalog-subtitle">Five independent skills, each ranked I-V</div>
+				</div>
+				<div class="skills-catalog-count">5 SKILLS / 25 RANKS</div>
+			</div>
+
+			<div class="skills-skill-list">
+				@foreach ( var skill in SkillsForSelectedTrack() )
+				{
+					<button class="@SkillClass( skill )" onclick="@skill.OnSelected">
+						<i class="material-icons skills-skill-icon">@SkillIcon( skill )</i>
+						<div class="skills-skill-copy">
+							<div class="skills-skill-title">@skill.Title</div>
+							<div class="skills-skill-description">@skill.Description</div>
+						</div>
+						<div class="skills-skill-progress">
+							<div class="skills-skill-rank">@SkillRankText( skill )</div>
+							<div class="skills-tier-track">
+							@foreach ( var tier in skill.Tiers )
+							{
+								<span class="@TierClass( tier )">@tier.Label</span>
+							}
+							</div>
+						</div>
+						<div class="@SkillStateClass( skill )">@SkillStateLabel( skill )</div>
+					</button>
+				}
+			</div>
+
+			@if ( SelectedTrack() is LpSkillTrackVm track )
+			{
+				<div class="@KeystoneClass( track )">
+					<i class="material-icons">diamond</i>
+					<div class="skills-keystone-copy">
+						<div class="skills-keystone-title">@track.KeystoneTitle</div>
+						<div class="skills-keystone-effect">@track.KeystoneEffect</div>
+					</div>
+					<div class="skills-keystone-progress">@track.SkillsMastered / 5 MASTERED</div>
+				</div>
+			}
+		</div>
+
+		<div class="skills-detail lp-hub-panel">
+			@if ( SelectedSkill() is LpSkillVm skill )
+			{
+				<div class="skills-detail-hero">
+					<div class="skills-detail-icon"><i class="material-icons">@SkillIcon( skill )</i></div>
+					<div class="skills-detail-state @StateClass( skill )">@SkillStateLabel( skill )</div>
+				</div>
+				<div class="skills-detail-title">@skill.Title</div>
+				<div class="skills-detail-description">@skill.Description</div>
+				<div class="skills-detail-rank">@SkillRankText( skill )</div>
+
+				<div class="skills-detail-block">
+					<div class="skills-detail-label">CURRENT EFFECT</div>
+					<div class="skills-detail-value">@skill.CurrentEffect</div>
+				</div>
+				<div class="skills-detail-block">
+					<div class="skills-detail-label">NEXT TIER</div>
+					<div class="skills-detail-value">@skill.NextTierEffect</div>
+				</div>
+				<div class="skills-detail-row lp-hub-field-row">
+					<div class="lp-hub-field">
+						<div class="skills-detail-label">REQUIREMENT</div>
+						<div class="skills-detail-value">@skill.Requirement</div>
+					</div>
+					<div class="lp-hub-field">
+						<div class="skills-detail-label">POINT COST</div>
+						<div class="skills-detail-value">@skill.PointCost point</div>
+					</div>
+				</div>
+
+				<button class="skills-unlock" disabled="@(!UnlockEnabled)">
+					<i class="material-icons">lock</i>
+					<span>Progression contract pending</span>
+				</button>
+				<div class="skills-detail-footnote">No point deduction, unlock request, modifier or live progression service exists in this slice.</div>
+			}
+		</div>
+	</div>
+</root>
+
+@code
+{
+	[Property] public LpSkillsVm Model { get; set; } = null!;
+
+	private const bool UnlockEnabled = false;
+
+	private IEnumerable<LpSkillVm> SkillsForSelectedTrack()
+	{
+		return Model.Skills.Where( skill => skill.TrackId == Model.SelectedTrackId );
+	}
+
+	private LpSkillVm SelectedSkill()
+	{
+		return Model.Skills.FirstOrDefault( skill => skill.Id == Model.SelectedSkillId )!;
+	}
+
+	private LpSkillTrackVm SelectedTrack()
+	{
+		return Model.Tracks.FirstOrDefault( track => track.Id == Model.SelectedTrackId )!;
+	}
+
+	private string SelectedTrackLabel()
+	{
+		return Model.Tracks.FirstOrDefault( track => track.Id == Model.SelectedTrackId )?.Label ?? "Skill track";
+	}
+
+	private string TrackClass( LpSkillTrackVm track )
+	{
+		return track.Id == Model.SelectedTrackId
+			? "skills-track lp-hub-button is-active"
+			: "skills-track lp-hub-button";
+	}
+
+	private string SkillClass( LpSkillVm skill )
+	{
+		var selected = skill.Id == Model.SelectedSkillId ? " is-selected" : string.Empty;
+		return "skills-skill lp-hub-button " + StateClass( skill ) + selected;
+	}
+
+	private static string StateClass( LpSkillVm skill ) => skill.State switch
+	{
+		LpSkillState.Maxed => "is-maxed",
+		LpSkillState.Unlocked => "is-unlocked",
+		LpSkillState.Available => "is-available",
+		_ => "is-locked",
+	};
+
+	private static string SkillStateClass( LpSkillVm skill )
+	{
+		return "skills-skill-state " + StateClass( skill );
+	}
+
+	private static string SkillStateLabel( LpSkillVm skill ) => skill.State switch
+	{
+		LpSkillState.Maxed => "MAXED",
+		LpSkillState.Unlocked => "UNLOCKED",
+		LpSkillState.Available => "AVAILABLE",
+		_ => "LOCKED",
+	};
+
+	private static string SkillIcon( LpSkillVm skill ) => skill.State switch
+	{
+		LpSkillState.Maxed => "verified",
+		LpSkillState.Unlocked => "check_circle",
+		LpSkillState.Available => "radio_button_checked",
+		_ => "lock",
+	};
+
+	private static string TierClass( LpSkillTierVm tier )
+	{
+		return tier.State switch
+		{
+			LpSkillTierState.Earned => "skills-tier is-earned",
+			LpSkillTierState.Next => "skills-tier is-next",
+			_ => "skills-tier is-locked",
+		};
+	}
+
+	private static string KeystoneClass( LpSkillTrackVm track )
+	{
+		return track.KeystoneActive ? "skills-keystone is-active" : "skills-keystone is-locked";
+	}
+
+	private static string KeystoneShortLabel( LpSkillTrackVm track )
+	{
+		return track.KeystoneActive ? "Keystone active" : "Keystone locked";
+	}
+
+	private static string TrackProgressText( LpSkillTrackVm track )
+	{
+		return $"{track.RanksPurchased} / {track.TotalRanks} ranks";
+	}
+
+	private static string SkillRankText( LpSkillVm skill )
+	{
+		return $"RANK {skill.Rank} / {skill.MaxRank}";
+	}
+
+	private string GrandMasteryClass()
+	{
+		return Model.GrandMasteryActive ? "skills-mastery is-active" : "skills-mastery is-locked";
+	}
+
+	private string GrandMasteryLabel()
+	{
+		return Model.GrandMasteryActive ? "ACTIVE" : "LOCKED";
+	}
+
+	protected override int BuildHash()
+	{
+		var hash = new HashCode();
+		hash.Add( Model.IsFixture );
+		hash.Add( Model.SkillPointsAvailable );
+		hash.Add( Model.TracksMastered );
+		hash.Add( Model.GrandMasteryActive );
+		hash.Add( Model.SelectedTrackId );
+		hash.Add( Model.SelectedSkillId );
+
+		foreach ( var track in Model.Tracks )
+		{
+			hash.Add( track.Id );
+			hash.Add( track.Label );
+			hash.Add( track.Description );
+			hash.Add( track.Icon );
+			hash.Add( track.RanksPurchased );
+			hash.Add( track.TotalRanks );
+			hash.Add( track.SkillsMastered );
+			hash.Add( track.KeystoneTitle );
+			hash.Add( track.KeystoneEffect );
+			hash.Add( track.KeystoneActive );
+			hash.Add( track.OnSelected is not null );
+		}
+
+		foreach ( var skill in Model.Skills )
+		{
+			hash.Add( skill.Id );
+			hash.Add( skill.TrackId );
+			hash.Add( skill.Title );
+			hash.Add( skill.Description );
+			hash.Add( skill.CurrentEffect );
+			hash.Add( skill.NextTierEffect );
+			foreach ( var tier in skill.Tiers )
+			{
+				hash.Add( tier.Rank );
+				hash.Add( tier.Label );
+				hash.Add( tier.Effect );
+				hash.Add( (int)tier.State );
+			}
+			hash.Add( skill.Rank );
+			hash.Add( skill.MaxRank );
+			hash.Add( skill.PointCost );
+			hash.Add( skill.CanUnlock );
+			hash.Add( (int)skill.State );
+			hash.Add( skill.Requirement );
+			hash.Add( skill.OnSelected is not null );
+		}
+
+		return hash.ToHashCode();
+	}
+}

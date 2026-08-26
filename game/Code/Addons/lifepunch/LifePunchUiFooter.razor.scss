@@ -1,0 +1,130 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* · addon ident: lifepunch) is the sole-owned
+// intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+// sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+// LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+// Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+// Presence in this repository or on the DXRP portal grants no rights to anyone else.
+// ─────────────────────────────────────────────────────────────────────────────
+
+.lp-source-footer {
+	flex: 0 0 32px;
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: row;
+	justify-content: space-between;
+	align-items: center;
+	align-self: stretch;
+	gap: 10px;
+	width: 100%;
+	max-width: 100%;
+	height: 32px;
+	min-height: 32px;
+	max-height: 32px;
+	padding: 0 14px;
+	border-top: 1px solid rgba(255, 255, 255, 0.08);
+	background-color: #060606;
+	font-family: "Roboto Mono";
+	font-size: 10px;
+	letter-spacing: 0.5px;
+	overflow: hidden;
+
+	// Left and right zones share equal flex so the legal line sits dead-center.
+	.lp-footer-identity {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-start;
+		gap: 4px;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+
+	.lp-footer-legal {
+		flex-shrink: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+
+	.lp-footer-link {
+		flex: 1 1 0;
+		min-width: 0;
+		display: flex;
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-end;
+		overflow: hidden;
+		white-space: nowrap;
+	}
+
+	.lp-mark {
+		display: flex;
+		align-items: center;
+		color: #c8a45a;
+		font-weight: bold;
+		flex-shrink: 0;
+		line-height: 1;
+		white-space: nowrap;
+	}
+
+	.lp-product {
+		color: rgba(255, 255, 255, 0.72);
+		font-weight: bold;
+		white-space: nowrap;
+	}
+
+	.lp-legal {
+		color: rgba(255, 255, 255, 0.5);
+		white-space: nowrap;
+	}
+
+	.lp-url-copy {
+		display: flex;
+		align-items: center;
+		padding: 0;
+		border: none;
+		background-color: transparent;
+		color: rgba(255, 255, 255, 0.55);
+		font-family: inherit;
+		font-size: inherit;
+		letter-spacing: inherit;
+		line-height: 1;
+		cursor: pointer;
+		text-align: right;
+		white-space: nowrap;
+		flex-shrink: 0;
+		transition: color 0.15s ease;
+
+		&:hover {
+			color: #8ec8ff;
+		}
+
+		&.copied {
+			color: #8ec8ff;
+		}
+	}
+}
+
+// Hub/admin shells — watermark follows the 22px rounded window bottom (StaffMenu, LpHashdPanel, rack menus).
+.lp-window-watermark--rounded {
+	border-radius: 0 0 22px 22px;
+
+	.lp-source-footer {
+		border-radius: 0 0 22px 22px;
+	}
+}
+
+// CRT terminals — square footer seam under boxed crt-frame (hashd terminal, hacker CRT, etc.).
+.lp-window-watermark--boxed {
+	border-radius: 0;
+
+	.lp-source-footer {
+		border-radius: 0;
+	}
+}

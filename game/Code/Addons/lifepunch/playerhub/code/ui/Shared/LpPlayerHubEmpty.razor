@@ -1,0 +1,45 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Player Hub shared empty state.
+*@
+@namespace LifePunch.DXRP.Addons.PlayerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-playerhub-empty">
+	<div class="hub-state-icon"><i class="material-icons">@Model.Icon</i></div>
+	<div class="hub-state-title">@Model.Title</div>
+	<div class="hub-state-message">@Model.Message</div>
+	@if ( Model.ShowAction && Model.OnSelected is not null )
+	{
+		<button class="hub-state-action" onclick="@Model.OnSelected">@Model.ActionLabel</button>
+	}
+</root>
+
+@code
+{
+	[Property] public LpHubStateVm Model { get; set; } = new(
+		Icon: "inbox",
+		Title: "Nothing here yet",
+		Message: "This fixture-backed section has no rows.",
+		ActionLabel: string.Empty,
+		ShowAction: false,
+		OnSelected: null);
+
+	protected override int BuildHash()
+	{
+		var hash = new HashCode();
+		hash.Add( Model.Icon );
+		hash.Add( Model.Title );
+		hash.Add( Model.Message );
+		hash.Add( Model.ActionLabel );
+		hash.Add( Model.ShowAction );
+		hash.Add( Model.OnSelected is not null );
+		return hash.ToHashCode();
+	}
+}

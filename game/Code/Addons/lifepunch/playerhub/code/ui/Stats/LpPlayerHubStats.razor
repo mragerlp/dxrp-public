@@ -1,0 +1,191 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Player Hub Slice 3 - dense, read-only fixture Stats.
+*@
+@namespace LifePunch.DXRP.Addons.PlayerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-playerhub-stats">
+	@if ( Model is not LpStatsVm model )
+	{
+		<LpPlayerHubError Model="@InvalidStatsState" />
+	}
+	else if ( IsEmpty( model ) )
+	{
+		<LpPlayerHubEmpty Model="@EmptyStatsState" />
+	}
+	else
+	{
+		<div class="stats-plate-row">
+			@foreach ( var plate in model.HeroPlates )
+			{
+				<div class="stats-plate lp-hub-panel">
+					<i class="material-icons stats-plate-icon">@plate.Icon</i>
+					<div class="stats-plate-copy">
+						<div class="stats-plate-label">@plate.Label</div>
+						<div class="stats-plate-value">@plate.Value</div>
+						<div class="stats-plate-hint">@plate.Hint</div>
+					</div>
+				</div>
+			}
+		</div>
+
+		<div class="stats-workspace">
+			<div class="stats-section stats-activity lp-hub-panel">
+				<div class="stats-section-head lp-hub-bar">
+					<div class="stats-section-title">ACTIVITY TREND</div>
+					<div class="stats-section-note">Seven fixture sessions</div>
+				</div>
+				<div class="stats-trend-list">
+					@foreach ( var bar in model.ActivityTrend )
+					{
+						<div class="stats-trend-row">
+							<div class="stats-trend-label">@bar.Label</div>
+							<div class="stats-trend-meter">
+								<div class="@ActivityFillClass( bar.Percent )"></div>
+							</div>
+							<div class="stats-trend-value">@bar.Value</div>
+						</div>
+					}
+				</div>
+				<div class="stats-activity-summary">@model.ActivitySummary</div>
+			</div>
+
+			<div class="stats-right-column">
+				<div class="stats-section stats-highlights lp-hub-panel">
+					<div class="stats-section-head lp-hub-bar">
+						<div class="stats-section-title">HIGHLIGHTS</div>
+						<div class="stats-section-note">No rankings</div>
+					</div>
+					<div class="stats-highlight-list">
+						@foreach ( var highlight in model.Highlights )
+						{
+							<div class="stats-highlight-row lp-hub-chip-row">
+								<div class="stats-highlight-copy">
+									<div class="stats-highlight-label">@highlight.Label</div>
+									<div class="stats-highlight-hint">@highlight.Hint</div>
+								</div>
+								<div class="stats-highlight-value">@highlight.Value</div>
+							</div>
+						}
+					</div>
+				</div>
+
+				<div class="stats-section stats-breakdown lp-hub-panel">
+					<div class="stats-section-head lp-hub-bar">
+						<div class="stats-section-title">SYSTEM BREAKDOWN</div>
+						<div class="stats-section-note">Unknown values stay --</div>
+					</div>
+					<div class="stats-section-row">
+						@foreach ( var section in model.Sections )
+						{
+							<div class="stats-table">
+								<div class="stats-table-title">@section.Title</div>
+								@foreach ( var row in section.Rows )
+								{
+									<div class="stats-table-row">
+										<div class="stats-table-copy">
+											<div class="stats-table-label">@row.Label</div>
+											<div class="stats-table-hint">@row.Hint</div>
+										</div>
+										<div class="stats-table-value">@row.Value</div>
+									</div>
+								}
+							</div>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	[Property] public LpStatsVm Model { get; set; } = null!;
+
+	private static readonly LpHubStateVm InvalidStatsState = new(
+		Icon: "error_outline",
+		Title: "Stats unavailable",
+		Message: "The read-only stats projection did not receive a valid model.",
+		ActionLabel: string.Empty,
+		ShowAction: false,
+		OnSelected: null);
+
+	private static readonly LpHubStateVm EmptyStatsState = new(
+		Icon: "query_stats",
+		Title: "No stats to show",
+		Message: "This fixture-backed stats projection has no rows.",
+		ActionLabel: string.Empty,
+		ShowAction: false,
+		OnSelected: null);
+
+	private static bool IsEmpty( LpStatsVm model )
+	{
+		return model.HeroPlates.Count == 0
+			&& model.ActivityTrend.Count == 0
+			&& model.Highlights.Count == 0
+			&& model.Sections.Count == 0;
+	}
+
+	private static string ActivityFillClass( int percent )
+	{
+		if ( percent >= 90 ) return "stats-trend-fill fill-100";
+		if ( percent >= 75 ) return "stats-trend-fill fill-75";
+		if ( percent >= 60 ) return "stats-trend-fill fill-60";
+		if ( percent >= 45 ) return "stats-trend-fill fill-45";
+		if ( percent >= 30 ) return "stats-trend-fill fill-30";
+		return "stats-trend-fill fill-15";
+	}
+
+	protected override int BuildHash()
+	{
+		if ( Model is not LpStatsVm model )
+			return -1;
+
+		var hash = new HashCode();
+		hash.Add( model.IsFixture );
+		hash.Add( model.ActivitySummary );
+
+		foreach ( var plate in model.HeroPlates )
+		{
+			hash.Add( plate.Icon );
+			hash.Add( plate.Label );
+			hash.Add( plate.Value );
+			hash.Add( plate.Hint );
+		}
+
+		foreach ( var bar in model.ActivityTrend )
+		{
+			hash.Add( bar.Label );
+			hash.Add( bar.Percent );
+			hash.Add( bar.Value );
+		}
+
+		foreach ( var highlight in model.Highlights )
+		{
+			hash.Add( highlight.Label );
+			hash.Add( highlight.Value );
+			hash.Add( highlight.Hint );
+		}
+
+		foreach ( var section in model.Sections )
+		{
+			hash.Add( section.Title );
+			foreach ( var row in section.Rows )
+			{
+				hash.Add( row.Label );
+				hash.Add( row.Value );
+				hash.Add( row.Hint );
+			}
+		}
+
+		return hash.ToHashCode();
+	}
+}

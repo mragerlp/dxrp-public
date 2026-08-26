@@ -1,0 +1,38 @@
+﻿{
+  "SelectionMode": "Random",
+  "DistanceAttenuation": true,
+  "UI": false,
+  "Volume": "1",
+  "Sounds": [
+    "addons/lifepunch/ak47/sounds/ak47_cock.vsnd"
+  ],
+  "Transmission": true,
+  "Pitch": "1",
+  "AirAbsorption": true,
+  "Decibels": 55,
+  "Falloff": [
+    {
+      "y": 1,
+      "out": -1.8,
+      "in": 0,
+      "mode": "Mirrored",
+      "x": 0
+    },
+    {
+      "y": 0,
+      "out": 0,
+      "in": 0,
+      "mode": "Mirrored",
+      "x": 1
+    }
+  ],
+  "__version": 1,
+  "Occlusion": true,
+  "Distance": 1500,
+  "OcclusionRadius": 32,
+  "__references": [],
+  "DefaultMixer": {
+    "Id": "00000000-0000-0000-0000-000000000000",
+    "Name": "unknown"
+  }
+}

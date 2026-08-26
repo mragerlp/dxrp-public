@@ -1,0 +1,985 @@
+@* ─────────────────────────────────────────────────────────────────────────────
+   PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+   "LIFEPUNCH Bitcoin Miner for DXRP" (s&box ident: lifepunch.bitcoin · addon ident: bitcoinmining)
+   ───────────────────────────────────────────────────────────────────────────── *@
+@namespace LifePunch.DXRP.Addons.Bitcoin
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits PanelComponent
+
+@attribute [StyleSheet]
+
+<root class="@GetRootClass()">
+	<div class="shell">
+		<div class="crt-frame">
+			<div class="crt-header">
+				<span class="crt-header-title hashd-prompt-accent">HASHD TERMINAL</span>
+				<div class="crt-status-row">
+					<span class="@StatusPowerClass()">@StatusPowerLabel()</span>
+					<span>@($"{LinkedRackCount()} racks")</span>
+					<span>@($"sel {SelectedRackSlotLabel()}")</span>
+				</div>
+				<div class="lp-ui-chrome-actions">
+					<div class="lp-terminal-settings-menu">
+						<button class="lp-ui-chrome-btn cog" tooltip="Terminal settings" onclick="@ToggleSettingsMenu">
+							<i class="material-icons">settings</i>
+						</button>
+						@if ( _showSettingsMenu )
+						{
+							<div class="lp-terminal-settings-dropdown">
+								<div class="lp-terminal-settings-title">Linked racks</div>
+								@{
+									var linkedRacks = GetLinkedRacks();
+								}
+								@if ( linkedRacks.Count == 0 )
+								{
+									<div class="lp-terminal-settings-empty">No racks linked — type <span class="hashd-prompt-accent">link gpurack-1</span> at rig0.</div>
+								}
+								else
+								{
+									<div class="lp-terminal-settings-racks">
+										@for ( var rackIndex = 0; rackIndex < linkedRacks.Count; rackIndex++ )
+										{
+											var rack = linkedRacks[rackIndex];
+											<div class="lp-terminal-settings-rack-row @( rackIndex == _selectedIndex ? "selected" : "" )">
+												<div class="lp-terminal-settings-rack-head">
+													<span class="lp-terminal-settings-rack-name">@RackSlotDisplayLabel( rack, linkedRacks )</span>
+													<span class="lp-terminal-settings-rack-state @RackStateClass( rack )">@RackStateLabel( rack )</span>
+												</div>
+												<div class="lp-terminal-settings-rack-sub">@($"{RackSlotTerminalToken( rack, linkedRacks )} · {RackSettingsSubline( rack )}")</div>
+											</div>
+										}
+									</div>
+								}
+								<div class="lp-terminal-settings-actions">
+									<button class="lp-terminal-settings-clear-btn" onclick="@ClearTerminalLog">Clear terminal log</button>
+								</div>
+							</div>
+						}
+					</div>
+					<button class="lp-ui-chrome-btn clear-log" tooltip="Clear console scrollback" onclick="@ClearTerminalLog">CLEAR</button>
+					<button class="lp-ui-chrome-btn esc" tooltip="Close terminal" onclick="@Close">ESC</button>
+				</div>
+			</div>
+			<div class="crt-body">
+				<div class="sidebar">
+					<div class="sidebar-title">COMMANDS</div>
+					<div class="sidebar-cmd-list lp-ui-scroll-region terminal-sidebar-scroll">
+					@foreach ( var cmd in _commandRefs )
+					{
+						<div class="cmd-ref @( IsCommandCopied( cmd ) ? "copied" : "" )"
+						     onclick="@(() => CopySidebarCommand( cmd ))">
+							@( IsCommandCopied( cmd ) ? ">copied" : cmd )
+						</div>
+					}
+					</div>
+					<div class="sidebar-status">
+						<div class="sidebar-status-title">STATUS</div>
+						<div class="sidebar-status-row">
+							<span class="sidebar-status-k">Power</span>
+							<span class="@StatusPowerClass()">@(_hub?.IsPowered == true ? "ON" : "OFF")</span>
+						</div>
+						<div class="sidebar-status-row">
+							<span class="sidebar-status-k">Racks</span>
+							<span>@LinkedRackCount() linked</span>
+						</div>
+						<div class="sidebar-status-row">
+							<span class="sidebar-status-k">Selected</span>
+							<span class="sidebar-status-v">@SelectedRackSlotLabel()</span>
+						</div>
+					</div>
+				</div>
+				<div class="screen">
+					@if ( _showTerminalPinGate )
+					{
+						<div class="boot-splash term-pin-gate">
+							<div class="boot-mark"></div>
+							<div class="boot-title">HASHD</div>
+							<div class="term-pin-sub">secure rig — enter hub PIN</div>
+							<div class="term-pin-dots">
+								@for ( var i = 0; i < LpBitcoinHubPin.MaxDigits; i++ )
+								{
+									<span class="term-pin-dot @(i < _terminalPinBuffer.Length ? "filled" : "")"></span>
+								}
+							</div>
+							@if ( !string.IsNullOrWhiteSpace( _terminalPinError ) )
+							{
+								<div class="term-pin-error">@_terminalPinError</div>
+							}
+							<div class="term-pin-pad">
+								@foreach ( var key in _terminalPinKeys )
+								{
+									<button class="term-pin-key @(key == "ok" ? "ok" : "") @(key == "clr" ? "clr" : "")"
+									        onclick="@(() => PressTerminalPinKey(key))">
+										@if ( key == "clr" )
+										{
+											<i class="material-icons">backspace</i>
+										}
+										else if ( key == "ok" )
+										{
+											<i class="material-icons">check</i>
+										}
+										else
+										{
+											<span>@key</span>
+										}
+									</button>
+								}
+							</div>
+						</div>
+					}
+					else if ( _showBootSplash )
+					{
+						<div class="boot-splash" onclick="@SkipBoot">
+							<div class="boot-mark"></div>
+							<div class="boot-title">HASHD</div>
+							<div class="boot-status">@_bootStatus</div>
+							<div class="boot-hint">click to skip boot</div>
+						</div>
+					}
+					<div class="log-shell">
+						<div class="log lp-ui-scroll-region terminal-log-scroll"></div>
+					</div>
+					<div class="prompt-row" onclick="@FocusInput">
+						<span class="prompt hashd-prompt-accent">@PromptLabel</span>
+						<LpBitcoinTerminalCommandInput @ref="InputBox" onsubmit="@Submit" Placeholder="type command..." />
+					</div>
+				</div>
+			</div>
+		</div>
+		<div class="lp-window-watermark lp-window-watermark--boxed">
+			<LifePunchUiFooter Product="Bitcoin Terminal" />
+		</div>
+	</div>
+</root>
+
+@code
+{
+	private readonly record struct LogLine( string Kind, string Text );
+
+	private LpBitcoinHubEntity _hub;
+	public LpBitcoinHubEntity Hub => _hub;
+	private int _selectedIndex;
+	private readonly List<LogLine> _lines = new();
+	private bool _showBootSplash = true;
+	private bool _bootComplete;
+	private int _bootLineIndex;
+	private float _bootElapsed;
+	private string _bootStatus = "INITIALIZING RIG...";
+	private bool _showSettingsMenu;
+	private LpBitcoinTerminalCommandInput InputBox { get; set; }
+
+	// Terminal PIN gate — submits the attempt to the linked Hub via its host verify RPC (digest is host-only).
+	// Visual keypad overlay (HASHD CRT art) gates the rig before the boot loading screen runs.
+	private bool _terminalUnlocked = true;
+	private bool _showTerminalPinGate;
+	private string _terminalPinBuffer = "";
+	private string _terminalPinError = "";
+	private static readonly string[] _terminalPinKeys = { "1", "2", "3", "4", "5", "6", "7", "8", "9", "clr", "0", "ok" };
+
+	private const int MaxLogLines = 200;
+	private const int MaxCommandHistory = 100;
+
+	private readonly List<string> _commandHistory = new();
+	private int _historyIndex;
+	private string _draftBeforeHistory = "";
+	private bool _commandInputWired;
+
+	private static readonly string[] _commandRefs =
+	{
+		"help",
+		"racks",
+		"link gpurack-1",
+		"link gpurack-2",
+		"link advancedgpurack",
+		"select 0",
+		"status",
+		"info",
+		"wallet",
+		"mining start",
+		"mining stop",
+		"mining start all",
+		"deposit",
+		"deposit all",
+		"send",
+		"clear"
+	};
+
+	private int _scrollLogPendingFrames;
+	private bool _scrollLogForce;
+	private int _scrollBootstrapWarmupFrames = 2;
+	private int _scrollBootstrapRetriesLeft;
+	private bool _scrollBootstrapComplete;
+	private string _copiedCommandFlash;
+	private RealTimeSince _copiedCommandFlashSince;
+	private int _lastInputTextLength;
+
+	private static readonly string[] BootLines =
+	{
+		"HASHD rig — boot sequence",
+		"loading hashd kernel ............... OK",
+		"probe hashd hub bus ................ OK",
+		"sync gpu-rack telemetry ............ OK",
+		"rig console online ................. OK"
+	};
+
+	private const float BootLineIntervalSeconds = 0.35f;
+	private const float BootSplashHoldSeconds = 0.4f;
+	private string PromptLabel => "rig@hub>";
+	private static readonly Color CmdSelectionTint = (Color.Parse( "#f0a500" ) ?? new Color( 0.941f, 0.647f, 0f )).WithAlpha( 0.35f );
+
+	private string GetRootClass() =>
+		$"lp-ops-crt lp-ops-crt--gray {LpUiScale.CssClass( LpUiScale.Default )}";
+
+	private static string LineClass( LogLine line ) => line.Kind switch
+	{
+		"err" => "err",
+		"ok" => "ok",
+		"dim" => "dim",
+		"cmd" => "cmd",
+		_ => ""
+	};
+
+	private IReadOnlyList<LpBitcoinRackEntity> GetLinkedRacks()
+		=> _hub?.GetLinkedRacks() ?? Array.Empty<LpBitcoinRackEntity>();
+
+	private int LinkedRackCount() => GetLinkedRacks().Count;
+
+	private string StatusPowerLabel() => _hub?.IsPowered == true ? "hub power on" : "hub power off";
+
+	private string StatusPowerClass() => _hub?.IsPowered == true ? "status-ok" : "status-warn";
+
+	private void ToggleSettingsMenu() => _showSettingsMenu = !_showSettingsMenu;
+
+	private static string RackSlotDisplayLabel( LpBitcoinRackEntity rack, IReadOnlyList<LpBitcoinRackEntity> racks )
+		=> LpBitcoinIdent.FormatRackSlotDisplayName( rack, racks );
+
+	private static string RackSlotTerminalToken( LpBitcoinRackEntity rack, IReadOnlyList<LpBitcoinRackEntity> racks )
+		=> LpBitcoinIdent.FormatRackSlotTerminalToken( rack, racks );
+
+	private static string RackStateLabel( LpBitcoinRackEntity rack )
+	{
+		var cap = LpBitcoinEconomy.RackBtcCapacityFor( rack );
+		if ( rack.BitcoinAmount >= cap )
+			return "FULL";
+
+		return rack.IsMining ? "MINING" : "IDLE";
+	}
+
+	private static string RackStateClass( LpBitcoinRackEntity rack )
+	{
+		var cap = LpBitcoinEconomy.RackBtcCapacityFor( rack );
+		if ( rack.BitcoinAmount >= cap )
+			return "status-warn";
+
+		return rack.IsMining ? "status-ok" : "status-dim";
+	}
+
+	private static string RackSettingsSubline( LpBitcoinRackEntity rack )
+	{
+		var cap = LpBitcoinEconomy.RackBtcCapacityFor( rack );
+		return $"₿ {rack.BitcoinAmount:F4}/{cap:F4}";
+	}
+
+	private void ClearTerminalLog()
+	{
+		_lines.Clear();
+		ClearLogStack();
+		_hub?.RequestPushTerminalCommandAlert( "clear", "log cleared" );
+		_showSettingsMenu = false;
+
+		var log = GetLogScroll();
+		if ( log.IsValid() )
+		{
+			log.ScrollToTop();
+			log.PreferScrollToBottom = true;
+		}
+
+		AppendLogLine( "dim", "console cleared — use CLEAR when scrollback floods (200 line cap)" );
+		FocusInput();
+	}
+
+	private static void EnsureScrollFactory()
+	{
+		// Re-register every open — hot reload can leave a stale factory from a prior compile.
+		LpBitcoinScrollRegionFactory.Register();
+	}
+
+	protected override void OnEnabled()
+	{
+		EnsureScrollFactory();
+		LifePunchMenuInputBlock.NotifyMenuOpened();
+		LpBitcoinHudBridge.SetMenuCursorMode( true );
+		LifePunchUiScrollPolicy.Apply( Panel );
+		ApplyCommandInputChrome();
+		ResetScrollBootstrap();
+		SyncLogScrollPosition();
+	}
+
+	public void Bind( LpBitcoinHubEntity hub, LpBitcoinRackEntity focusRack = null )
+	{
+		_hub = hub;
+		_lines.Clear();
+		ClearLogStack();
+		_showBootSplash = true;
+		_bootComplete = false;
+		_bootLineIndex = 0;
+		_bootElapsed = 0f;
+		_bootStatus = "INITIALIZING RIG...";
+		_pendingFocusRack = focusRack;
+		_lastInputTextLength = 0;
+		_commandHistory.Clear();
+		ResetCommandHistoryNavigation();
+		_commandInputWired = false;
+		ResetScrollBootstrap();
+
+		// PIN session state — matches the hub's AccessPin.
+		// When a PIN is set, the visual keypad gate shows FIRST and the cool boot
+		// loading screen is held back until a correct PIN unlocks the rig.
+		_terminalPinBuffer = "";
+		_terminalPinError = "";
+		if ( hub.IsValid() && hub.AccessPinIsSet )
+		{
+			_terminalUnlocked = false;
+			_showTerminalPinGate = true;
+			_showBootSplash = false;
+		}
+		else
+		{
+			_terminalUnlocked = true;
+			_showTerminalPinGate = false;
+			_showBootSplash = true;
+		}
+	}
+
+	private void ResetScrollBootstrap()
+	{
+		_scrollBootstrapWarmupFrames = 2;
+		_scrollBootstrapRetriesLeft = 6;
+		_scrollBootstrapComplete = false;
+	}
+
+	protected override void OnDisabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuClosed();
+		LpBitcoinHudBridge.SetMenuCursorMode( false );
+	}
+
+	private LpBitcoinRackEntity _pendingFocusRack;
+
+	public void FocusInput()
+	{
+		if ( InputBox.IsValid() )
+			InputBox.Focus();
+	}
+
+	private void CopySidebarCommand( string cmd )
+	{
+		if ( !_bootComplete )
+			SkipBoot();
+
+		Clipboard.SetText( cmd );
+		_copiedCommandFlash = cmd;
+		_copiedCommandFlashSince = 0;
+	}
+
+	private bool IsCommandCopied( string cmd ) =>
+		!string.IsNullOrEmpty( _copiedCommandFlash ) && _copiedCommandFlash == cmd;
+
+	private void TickCopiedCommandFlash()
+	{
+		if ( string.IsNullOrEmpty( _copiedCommandFlash ) || _copiedCommandFlashSince < 1.5f )
+			return;
+
+		_copiedCommandFlash = null;
+		StateHasChanged();
+	}
+
+	private void SkipBoot()
+	{
+		if ( _bootComplete )
+			return;
+
+		while ( _bootLineIndex < BootLines.Length )
+		{
+			AppendLogLine( "dim", BootLines[_bootLineIndex] );
+			_bootLineIndex++;
+		}
+
+		FinishBoot();
+	}
+
+	private void Submit()
+	{
+		if ( !InputBox.IsValid() )
+			return;
+
+		// Locked rig — the visual PIN gate owns input; never run commands until unlocked.
+		if ( _showTerminalPinGate || ( _hub.IsValid() && _hub.AccessPinIsSet && !_terminalUnlocked ) )
+		{
+			InputBox.Text = string.Empty;
+			InputBox.Focus();
+			_lastInputTextLength = 0;
+			return;
+		}
+
+		if ( !_bootComplete )
+		{
+			SkipBoot();
+			if ( string.IsNullOrWhiteSpace( InputBox.Text ) )
+				return;
+		}
+
+		var raw = InputBox.Text?.Trim() ?? string.Empty;
+		if ( string.IsNullOrWhiteSpace( raw ) )
+			return;
+
+		AppendCommandToHistory( raw );
+		ResetCommandHistoryNavigation();
+
+		AppendLogLine( "cmd", $"{PromptLabel} {raw}" );
+
+		if ( raw.Equals( "clear", StringComparison.OrdinalIgnoreCase ) )
+		{
+			ClearTerminalLog();
+			InputBox.Text = string.Empty;
+			InputBox.Focus();
+			_lastInputTextLength = 0;
+			return;
+		}
+
+		var result = LpBitcoinTerminalCommands.Execute( _hub, ref _selectedIndex, raw );
+		AppendCommandResult( result );
+		_hub?.RequestPushTerminalCommandAlert( raw, SummarizeResult( result ) );
+
+		InputBox.Text = string.Empty;
+		InputBox.Focus();
+		_lastInputTextLength = 0;
+		SyncLogScrollPosition( forceFollowBottom: true );
+	}
+
+	/// <summary>Visual keypad input on the terminal PIN gate (mirrors the hub keypad).</summary>
+	private void PressTerminalPinKey( string key )
+	{
+		if ( !_showTerminalPinGate )
+			return;
+
+		_terminalPinError = "";
+
+		switch ( key )
+		{
+			case "clr":
+				if ( _terminalPinBuffer.Length > 0 )
+					_terminalPinBuffer = _terminalPinBuffer[..^1];
+				break;
+
+			case "ok":
+				if ( _terminalPinBuffer.Length >= LpBitcoinHubPin.MinDigits )
+					_hub?.RequestTerminalUnlock( _terminalPinBuffer );
+				break;
+
+			default:
+				if ( _terminalPinBuffer.Length >= LpBitcoinHubPin.MaxDigits )
+					break;
+
+				// Match the hub PIN flow: digits only fill the buffer — submit requires the OK key.
+				_terminalPinBuffer += key;
+				break;
+		}
+
+		StateHasChanged();
+	}
+
+	/// <summary>Called by the linked hub after a terminal PIN unlock attempt (reuses the same hash secret).</summary>
+	public void OnTerminalPinResult( bool success )
+	{
+		if ( success )
+		{
+			_terminalUnlocked = true;
+			_showTerminalPinGate = false;
+			_terminalPinError = "";
+			_terminalPinBuffer = "";
+
+			// PIN cleared — now run the cool boot loading screen.
+			StartBootSequence();
+		}
+		else
+		{
+			_terminalPinError = "incorrect pin";
+			_terminalPinBuffer = "";
+		}
+
+		StateHasChanged();
+	}
+
+	/// <summary>(Re)arms the HASHD boot loading screen from the top.</summary>
+	private void StartBootSequence()
+	{
+		_showBootSplash = true;
+		_bootComplete = false;
+		_bootLineIndex = 0;
+		_bootElapsed = 0f;
+		_bootStatus = "INITIALIZING RIG...";
+	}
+
+	private void AppendCommandToHistory( string command )
+	{
+		if ( string.IsNullOrWhiteSpace( command ) )
+			return;
+
+		if ( _commandHistory.Count > 0
+		     && _commandHistory[^1].Equals( command, StringComparison.Ordinal ) )
+			return;
+
+		_commandHistory.Add( command );
+
+		while ( _commandHistory.Count > MaxCommandHistory )
+			_commandHistory.RemoveAt( 0 );
+
+		if ( _historyIndex > _commandHistory.Count )
+			_historyIndex = _commandHistory.Count;
+	}
+
+	private void ResetCommandHistoryNavigation()
+	{
+		_historyIndex = _commandHistory.Count;
+		_draftBeforeHistory = string.Empty;
+	}
+
+	private void NavigateHistoryUp()
+	{
+		if ( !InputBox.IsValid() || _commandHistory.Count == 0 )
+			return;
+
+		if ( _historyIndex == _commandHistory.Count )
+			_draftBeforeHistory = InputBox.Text ?? string.Empty;
+
+		if ( _historyIndex <= 0 )
+			return;
+
+		_historyIndex--;
+		SetInputTextWithoutTypingSound( _commandHistory[_historyIndex] );
+	}
+
+	private void NavigateHistoryDown()
+	{
+		if ( !InputBox.IsValid() || _commandHistory.Count == 0 )
+			return;
+
+		if ( _historyIndex >= _commandHistory.Count - 1 )
+		{
+			_historyIndex = _commandHistory.Count;
+			SetInputTextWithoutTypingSound( _draftBeforeHistory ?? string.Empty );
+			return;
+		}
+
+		_historyIndex++;
+		SetInputTextWithoutTypingSound( _commandHistory[_historyIndex] );
+	}
+
+	private void SetInputTextWithoutTypingSound( string text )
+	{
+		InputBox.Text = text ?? string.Empty;
+		InputBox.Focus();
+		_lastInputTextLength = InputBox.Text?.Length ?? 0;
+	}
+
+	private void MaybeQueueScrollLogToBottom( bool force = false )
+	{
+		var log = GetLogScroll();
+		if ( !log.IsValid() )
+			return;
+
+		if ( !force && !log.PreferScrollToBottom )
+			return;
+
+		SyncLogScrollPosition( forceFollowBottom: force );
+	}
+
+	private void AppendCommandResult( LpBitcoinCommandResult result )
+	{
+		if ( string.IsNullOrWhiteSpace( result.Line ) )
+			return;
+
+		foreach ( var line in result.Line.Split( '\n' ) )
+		{
+			var trimmed = line.TrimEnd();
+			if ( string.IsNullOrWhiteSpace( trimmed ) )
+				continue;
+
+			AppendLogLine( result.Ok ? "ok" : "err", trimmed );
+		}
+	}
+
+	private static string SummarizeResult( LpBitcoinCommandResult result )
+	{
+		if ( string.IsNullOrWhiteSpace( result.Line ) )
+			return string.Empty;
+
+		var first = result.Line.Split( '\n' ).FirstOrDefault( l => !string.IsNullOrWhiteSpace( l ) );
+		return first?.Trim() ?? string.Empty;
+	}
+
+	private void AppendLogLine( string kind, string text )
+	{
+		var log = GetLogScroll();
+		if ( log.IsValid() )
+		{
+			var scrollMaxY = log.GetMaxScrollY();
+			var nearBottom = scrollMaxY <= 0f || log.ScrollOffset.y >= scrollMaxY - 32f;
+			log.PreferScrollToBottom = nearBottom;
+		}
+
+		_lines.Add( new LogLine( kind, text ) );
+		TrimLog();
+
+		var stack = GetLogStack();
+		if ( stack.IsValid() )
+			AddLogLabel( stack, kind, text );
+		else if ( !_scrollBootstrapComplete )
+			_scrollBootstrapRetriesLeft = Math.Max( _scrollBootstrapRetriesLeft, 4 );
+
+		ApplyLogScrollChrome();
+
+		if ( !log.IsValid() )
+			return;
+
+		var maxY = log.GetMaxScrollY();
+		if ( maxY <= 0f )
+		{
+			log.ScrollToTop();
+			log.PreferScrollToBottom = true;
+			return;
+		}
+
+		if ( log.PreferScrollToBottom )
+			QueueScrollLogToBottom( force: true );
+	}
+
+	private void ClearLogStack()
+	{
+		var stack = GetLogStack();
+		if ( !stack.IsValid() )
+			return;
+
+		foreach ( var child in stack.Children.ToList() )
+			child.Delete();
+	}
+
+	private void RebuildLogStackIfNeeded()
+	{
+		var stack = GetLogStack();
+		if ( !stack.IsValid() || stack.Children.Any() || _lines.Count == 0 )
+			return;
+
+		foreach ( var line in _lines )
+			AddLogLabel( stack, line.Kind, line.Text );
+	}
+
+	private void AddLogLabel( Panel stack, string kind, string text )
+	{
+		var label = new Label
+		{
+			Text = text,
+			Parent = stack,
+			Selectable = true,
+			ShouldDrawSelection = true,
+			SelectionColor = CmdSelectionTint
+		};
+
+		label.AddClass( "log-line" );
+
+		var cls = LineClass( new LogLine( kind, text ) );
+		if ( !string.IsNullOrEmpty( cls ) )
+			label.AddClass( cls );
+	}
+
+	private void TrimLog()
+	{
+		while ( _lines.Count > MaxLogLines )
+		{
+			_lines.RemoveAt( 0 );
+
+			var stack = GetLogStack();
+			if ( !stack.IsValid() || !stack.Children.Any() )
+				continue;
+
+			stack.Children.First().Delete();
+		}
+	}
+
+	private void QueueScrollLogToBottom( bool force = false )
+	{
+		_scrollLogPendingFrames = Math.Max( _scrollLogPendingFrames, 4 );
+		if ( force )
+			_scrollLogForce = true;
+	}
+
+	private void SyncLogScrollPosition( bool forceFollowBottom = false )
+	{
+		var log = GetLogScroll();
+		if ( !log.IsValid() )
+			return;
+
+		log.SyncTerminalScroll( forceFollowBottom );
+	}
+
+	private LifePunchScrollRegionPanel GetLogScroll()
+		=> LifePunchScrollRegionBootstrap.FindFirstFromHost( this, "log" );
+
+	private Panel GetLogShell()
+	{
+		if ( Panel is null || !Panel.IsValid )
+			return null;
+
+		foreach ( var panel in Panel.Descendants )
+		{
+			if ( panel.IsValid() && panel.HasClass( "terminal-log-scroll" ) )
+				return panel;
+		}
+
+		return null;
+	}
+
+	private void EnsureLogStack()
+	{
+		if ( GetLogStack().IsValid() )
+			return;
+
+		var log = GetLogScroll() as Panel ?? GetLogShell();
+		if ( !log.IsValid() )
+			return;
+
+		var stack = new Panel();
+		stack.AddClass( "log-stack" );
+		stack.Parent = log;
+	}
+
+	private Panel GetLogStack()
+	{
+		var log = GetLogScroll() as Panel ?? GetLogShell();
+		if ( !log.IsValid() )
+			return null;
+
+		return log.Children.FirstOrDefault( child => child.HasClass( "log-stack" ) );
+	}
+
+	private void ApplyLogScrollChrome()
+	{
+		if ( GetLogScroll() is LpBitcoinTerminalLogPanel terminalLog )
+		{
+			terminalLog.CopyFallback = BuildLogClipboardText;
+			terminalLog.ApplyLineSelectionChrome();
+		}
+	}
+
+	private void TickScrollBootstrap()
+	{
+		if ( _scrollBootstrapComplete )
+			return;
+
+		if ( _scrollBootstrapWarmupFrames > 0 )
+		{
+			_scrollBootstrapWarmupFrames--;
+			return;
+		}
+
+		EnsureLogStack();
+		LifePunchScrollRegionBootstrap.UpgradeScrollRegionsFromHost( this );
+		ApplyLogScrollChrome();
+		RebuildLogStackIfNeeded();
+
+		if ( GetLogScroll().IsValid() )
+		{
+			_scrollBootstrapComplete = true;
+			SyncLogScrollPosition();
+			return;
+		}
+
+		if ( _scrollBootstrapRetriesLeft > 0 )
+			_scrollBootstrapRetriesLeft--;
+		else
+			_scrollBootstrapComplete = true;
+	}
+
+	private void TickScrollLog()
+	{
+		TickScrollBootstrap();
+
+		if ( _scrollLogPendingFrames <= 0 )
+			return;
+
+		_scrollLogPendingFrames--;
+		var log = GetLogScroll();
+		if ( !log.IsValid() )
+			return;
+
+		log.SyncTerminalScroll( _scrollLogForce );
+
+		if ( _scrollLogPendingFrames <= 0 )
+			_scrollLogForce = false;
+	}
+
+	private void ResetLogScrollPosition()
+		=> SyncLogScrollPosition();
+
+	private void Close() => LpBitcoinTerminalUiHost.CloseOpen();
+
+	protected override void OnUpdate()
+	{
+		base.OnUpdate();
+		LifePunchMenuInputBlock.Apply();
+		LifePunchUiScrollPolicy.Apply( Panel );
+		if ( !_hub.IsValid() )
+		{
+			Close();
+			return;
+		}
+
+		// Hold the boot loading screen until the PIN gate is cleared.
+		if ( !_showTerminalPinGate && !_bootComplete )
+			TickBoot();
+
+		TickCommandInputTypingSound();
+		ApplyCommandInputChrome();
+		TickCopiedCommandFlash();
+		TickScrollLog();
+		ApplyLogScrollChrome();
+	}
+
+	private void TickBoot()
+	{
+		_bootElapsed += Time.Delta;
+
+		while ( _bootLineIndex < BootLines.Length
+		        && _bootElapsed >= BootLineIntervalSeconds * ( _bootLineIndex + 1 ) )
+		{
+			AppendLogLine( "dim", BootLines[_bootLineIndex] );
+			_bootStatus = _bootLineIndex < BootLines.Length - 1
+				? $"{BootLines[_bootLineIndex + 1].Split( ' ' )[0].ToUpperInvariant()}..."
+				: "READY";
+			_bootLineIndex++;
+		}
+
+		var bootEnd = BootLineIntervalSeconds * BootLines.Length + BootSplashHoldSeconds;
+		if ( _bootLineIndex < BootLines.Length || _bootElapsed < bootEnd )
+			return;
+
+		FinishBoot();
+	}
+
+	private void FinishBoot()
+	{
+		_bootComplete = true;
+		_showBootSplash = false;
+		AppendLogLine( "ok", _hub?.IsPowered == true ? "hub power: ON" : "hub power: OFF" );
+
+		if ( _hub.IsValid() && _hub.AccessPinIsSet && _terminalUnlocked )
+			AppendLogLine( "ok", "secure access granted" );
+
+		AppendLogLine( "dim", $"type help for {PromptLabel} commands · CLEAR (header) or clear resets scrollback · ctrl+c copies · End follows log · ↑/↓ recalls commands" );
+
+		if ( _pendingFocusRack.IsValid() )
+		{
+			var racks = _hub?.GetLinkedRacks() ?? Array.Empty<LpBitcoinRackEntity>();
+			for ( var i = 0; i < racks.Count; i++ )
+			{
+				if ( racks[i].GameObject.Id != _pendingFocusRack.GameObject.Id )
+					continue;
+
+				_selectedIndex = i;
+				AppendLogLine( "ok", $"focused {LpBitcoinIdent.FormatRackSlotTerminalToken( racks[i], racks )}" );
+				break;
+			}
+		}
+
+		_pendingFocusRack = null;
+
+		var log = GetLogScroll();
+		if ( log.IsValid() && log.GetMaxScrollY() <= 0f )
+			log.ScrollToTop();
+
+		SyncLogScrollPosition();
+		FocusInput();
+	}
+
+	private static string BuildLogClipboardText( IReadOnlyList<LogLine> lines )
+	{
+		if ( lines.Count == 0 )
+			return string.Empty;
+
+		return string.Join( "\n", lines.Select( l => l.Text ) );
+	}
+
+	private string BuildLogClipboardText() => BuildLogClipboardText( _lines );
+
+	private void ApplyCommandInputChrome()
+	{
+		if ( !InputBox.IsValid() )
+			return;
+
+		InputBox.SelectionColor = CmdSelectionTint;
+		InputBox.AcceptsFocus = true;
+
+		if ( !_commandInputWired )
+		{
+			InputBox.HistoryNavigateUp = NavigateHistoryUp;
+			InputBox.HistoryNavigateDown = NavigateHistoryDown;
+			_commandInputWired = true;
+		}
+	}
+
+	private void TickCommandInputTypingSound()
+	{
+		if ( !InputBox.IsValid() )
+			return;
+
+		var length = InputBox.Text?.Length ?? 0;
+		if ( length == _lastInputTextLength )
+			return;
+
+		_lastInputTextLength = length;
+		LpBitcoinUiSounds.PlayKeyboardClick();
+	}
+
+	private string SelectedRackSlotLabel()
+	{
+		var racks = GetLinkedRacks();
+		if ( _selectedIndex < 0 || _selectedIndex >= racks.Count )
+			return "—";
+
+		return RackSlotTerminalToken( racks[_selectedIndex], racks );
+	}
+
+	protected override int BuildHash()
+	{
+		// Never hash InputBox.Text or log line count — log lines are imperative (no Razor foreach).
+		var hash = new HashCode();
+		hash.Add( _selectedIndex );
+		hash.Add( _hub?.IsPowered );
+		hash.Add( LinkedRackCount() );
+		hash.Add( _showSettingsMenu );
+		hash.Add( _showBootSplash );
+		hash.Add( _bootStatus );
+		hash.Add( _bootComplete );
+		hash.Add( _showTerminalPinGate );
+		hash.Add( _terminalPinBuffer.Length );
+		hash.Add( _terminalPinError );
+		hash.Add( _terminalUnlocked );
+		hash.Add( _copiedCommandFlash );
+
+		foreach ( var rack in GetLinkedRacks() )
+		{
+			hash.Add( rack.GameObject.Id );
+			hash.Add( rack.AdvancedRack );
+			hash.Add( rack.IsMining );
+			hash.Add( (int)( rack.BitcoinAmount * 10000f ) );
+		}
+
+		return hash.ToHashCode();
+	}
+}

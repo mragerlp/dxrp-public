@@ -18,7 +18,7 @@ Exports/*
 # Auto-generated asset related files
 .sbox/*
 *.generated.*
-!*.shader_c
+# !*.shader_c  (neutralized WORKBENCH-P2 Act 3 — compiled shader_c is editor churn)
 *.los
 **/*launchSettings.json
 
@@ -445,7 +445,7 @@ code/Properties/*
 # Auto-generated asset related files
 .sbox/*
 *.generated.*
-!*.shader_c
+# !*.shader_c  (neutralized WORKBENCH-P2 Act 3 — compiled shader_c is editor churn)
 *.los
 *.vpk
 
@@ -478,3 +478,28 @@ game/Editor/rp.editor.csproj
 game/rp.slnx
 
 .devcontainer/
+
+# WORKBENCH-P2 Act 3 — compiled editor artifacts under game/Assets
+game/Assets/**/*.vmat_c
+game/Assets/**/*.shader_c
+game/Assets/**/*.vtex_c
+game/Assets/**/*.vmdl_c
+game/Assets/**/*.vsnd_c
+game/Assets/**/*.vphys_c
+game/Assets/**/*.vpcf_c
+game/Assets/**/*.vagrp_c
+game/Assets/**/*.vanim_c
+game/Assets/**/*.vsnap_c
+game/Assets/**/*.vsndevts_c
+game/Assets/**/*.vmap_c
+game/Assets/**/*.vcompmat_c
+game/Assets/**/*.vrman_c
+game/Assets/**/*.vvis_c
+game/Assets/**/*.vmesh_c
+game/Assets/**/*.sound_c
+game/Assets/**/*.prefab_c
+game/Assets/**/*.scene_c
+game/Assets/**/*.generated.vtex_c
+
+# Asset rollback backups (keep on disk, ignore in git)
+*.bak

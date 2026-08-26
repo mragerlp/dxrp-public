@@ -1,0 +1,65 @@
+// PROPRIETARY & CONFIDENTIAL - Copyright 2026 lifepunch.co.
+
+@import "../LpPlayerHubTokens.scss";
+
+.lp-playerhub-error {
+	flex-grow: 1;
+	min-height: 0;
+	width: 100%;
+    padding: 24px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: $gap-content;
+    text-align: center;
+    border: 1px solid $bad;
+    border-radius: $radius-card;
+    background-color: $surface;
+}
+
+.lp-playerhub-error > .hub-state-icon {
+    font-family: "Material Icons";
+    font-size: 44px;
+    color: $bad;
+}
+
+.lp-playerhub-error > .hub-state-title {
+    font-family: Poppins, Arial, sans-serif;
+    font-size: 20px;
+    font-weight: 700;
+    color: $text-main;
+}
+
+.lp-playerhub-error > .hub-state-message {
+    max-width: 440px;
+    font-family: Inter, Arial, sans-serif;
+    font-size: 14px;
+    line-height: 1.5;
+    color: $text-dim;
+}
+
+.lp-playerhub-error > .hub-state-action {
+    min-height: $hit;
+    padding: 0 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid $lp-blue;
+    border-radius: $radius;
+    background-color: $lp-blue;
+    color: $text-main;
+    font-family: Inter, Arial, sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    cursor: pointer;
+}
+
+.lp-playerhub-error > .hub-state-action:hover {
+    background-color: $lp-blue-hover;
+}
+
+.lp-playerhub-error > .hub-state-action:focus,
+.lp-playerhub-error > .hub-state-action:active {
+	background-color: $accent-focus;
+}

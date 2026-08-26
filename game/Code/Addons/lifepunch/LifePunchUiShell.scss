@@ -1,0 +1,427 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* · addon ident: lifepunch) is the sole-owned
+// intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+// sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+// LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+// Presence in this repository or on the DXRP portal grants no rights to anyone else.
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Website-mirror panel shell (lifepunch.co store geometry). s&box-safe: flex + solid colors only.
+// Default accent = site blue. Job panels add .lp-ui-accent-hashd on the root for amber overrides.
+
+$lp-ui-bg: #000000;
+$lp-ui-surface: #1a1d23;
+$lp-ui-surface-inset: #12151a;
+$lp-ui-border: #374151;
+$lp-ui-text: #ffffff;
+$lp-ui-text-dim: #9ca3af;
+$lp-ui-accent: #017aef;
+$lp-ui-accent-hover: #005bb5;
+$lp-ui-accent-soft: rgba(1, 122, 239, 0.1);
+$lp-ui-accent-border: rgba(1, 122, 239, 0.35);
+$lp-ui-success: #00c853;
+
+$lp-ui-hashd-accent: #e87d3e;
+$lp-ui-hashd-accent-hover: #d06b2f;
+$lp-ui-hashd-accent-soft: rgba(232, 125, 62, 0.12);
+$lp-ui-hashd-accent-border: rgba(232, 125, 62, 0.35);
+
+// ── Flex-scroll shell chain (required with lp-ui-size-* — see LifePunchUiScale.scss) ──
+// Column shell → workspace body → scroll region. Pin chrome with lp-ui-chrome-slot.
+.lp-ui-workspace {
+	flex: 1 1 0;
+	min-height: 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.lp-ui-chrome-slot {
+	flex-shrink: 0;
+}
+
+// Alias: use on the one region inside a tab that should scroll (lists, forms, grids).
+// Same contract as .lp-ui-scroll below — prefer this class name on new panels.
+.lp-ui-scroll-region {
+	flex: 1 1 auto;
+	min-height: 0;
+	min-width: 0;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+.lp-ui-intro {
+	flex-shrink: 0;
+	width: 100%;
+	padding: 18px 20px;
+	border-radius: 10px;
+	border: 1px solid $lp-ui-accent-border;
+	background-color: $lp-ui-accent-soft;
+	color: $lp-ui-text;
+	font-size: 13px;
+	line-height: 1.65;
+	text-align: left;
+	white-space: normal;
+}
+
+.lp-ui-split {
+	flex: 1 1 auto;
+	min-height: 0;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 18px;
+}
+
+.lp-ui-panel {
+	flex: 1 1 300px;
+	min-width: 0;
+	min-height: 0;
+	display: flex;
+	flex-direction: column;
+	padding: 22px;
+	border-radius: 12px;
+	border: 1px solid $lp-ui-border;
+	background-color: $lp-ui-surface;
+}
+
+.lp-ui-panel-title {
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 10px;
+	margin-bottom: 16px;
+	color: $lp-ui-accent;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 16px;
+	font-weight: 900;
+	text-transform: uppercase;
+	white-space: normal;
+	line-height: 1.25;
+
+	.material-icons {
+		flex-shrink: 0;
+		font-size: 18px;
+		margin-top: 1px;
+	}
+
+	span {
+		flex: 1 1 auto;
+		min-width: 0;
+		white-space: normal;
+	}
+}
+
+.lp-ui-scroll {
+	flex: 1 1 auto;
+	min-height: 0;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+.lp-ui-empty {
+	flex: 1 1 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: 10px;
+	padding: 28px 16px;
+	color: $lp-ui-text-dim;
+	font-size: 13px;
+	line-height: 1.45;
+	text-align: center;
+	white-space: normal;
+
+	.material-icons {
+		color: $lp-ui-accent;
+		font-size: 36px;
+	}
+
+	span {
+		min-width: 0;
+		white-space: normal;
+	}
+}
+
+.lp-ui-list {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+}
+
+.lp-ui-list-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 8px 12px;
+	padding: 14px 14px;
+	border-radius: 8px;
+	border: 1px solid $lp-ui-border;
+	background-color: rgba(255, 255, 255, 0.03);
+	cursor: pointer;
+
+	&:hover {
+		border-color: $lp-ui-accent;
+		background-color: $lp-ui-accent-soft;
+	}
+}
+
+.lp-ui-list-main {
+	flex: 1 1 140px;
+	min-width: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 3px;
+}
+
+.lp-ui-list-title {
+	color: $lp-ui-text;
+	font-size: 14px;
+	font-weight: 700;
+	white-space: normal;
+	line-height: 1.35;
+}
+
+.lp-ui-list-sub {
+	color: $lp-ui-text-dim;
+	font-size: 11px;
+	line-height: 1.45;
+	white-space: normal;
+}
+
+.lp-ui-list-meta {
+	flex: 0 0 auto;
+	min-width: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px 10px;
+}
+
+.lp-ui-list-value {
+	color: $lp-ui-accent;
+	font-size: 13px;
+	font-weight: 900;
+	white-space: normal;
+}
+
+.lp-ui-list-tag {
+	color: $lp-ui-text-dim;
+	font-size: 10px;
+	font-weight: 700;
+	text-transform: uppercase;
+	white-space: normal;
+}
+
+.lp-ui-info {
+	display: flex;
+	flex-direction: column;
+	gap: 10px;
+	margin-bottom: 16px;
+	padding: 16px;
+	border-radius: 8px;
+	background-color: rgba(255, 255, 255, 0.03);
+}
+
+.lp-ui-info-row {
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: flex-start;
+	justify-content: space-between;
+	gap: 4px 12px;
+	font-size: 13px;
+}
+
+.lp-ui-info-label {
+	flex: 1 1 100px;
+	min-width: 0;
+	color: $lp-ui-text-dim;
+	white-space: normal;
+	line-height: 1.4;
+}
+
+.lp-ui-info-value {
+	flex: 1 1 120px;
+	min-width: 0;
+	color: $lp-ui-text;
+	font-weight: 700;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	align-items: center;
+	justify-content: flex-end;
+	gap: 6px;
+	white-space: normal;
+	line-height: 1.4;
+	text-align: right;
+
+	&.accent {
+		color: $lp-ui-accent;
+	}
+}
+
+.lp-ui-perks {
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: column;
+	gap: 8px;
+	margin-bottom: 16px;
+	padding: 16px;
+	border-radius: 8px;
+	border: 1px solid $lp-ui-accent-border;
+	background-color: $lp-ui-accent-soft;
+}
+
+.lp-ui-perk {
+	display: flex;
+	flex-direction: row;
+	align-items: flex-start;
+	gap: 8px;
+	color: $lp-ui-text;
+	font-size: 12px;
+	line-height: 1.45;
+	white-space: normal;
+
+	&::before {
+		content: "✓";
+		color: $lp-ui-accent;
+		font-weight: 700;
+		flex-shrink: 0;
+	}
+}
+
+.lp-ui-btn-row {
+	flex-shrink: 0;
+	display: flex;
+	flex-direction: row;
+	flex-wrap: wrap;
+	gap: 10px;
+	margin-top: 0;
+}
+
+.lp-ui-btn-primary {
+	flex: 1 1 140px;
+	min-width: 0;
+	padding: 14px 16px;
+	border-radius: 6px;
+	border: 0;
+	background-color: $lp-ui-accent;
+	color: #ffffff;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 12px;
+	font-weight: 900;
+	text-transform: uppercase;
+	text-align: center;
+	line-height: 1.35;
+	white-space: normal;
+	cursor: pointer;
+
+	&:hover {
+		background-color: $lp-ui-accent-hover;
+	}
+
+	&.disabled {
+		opacity: 0.45;
+		cursor: default;
+	}
+}
+
+.lp-ui-btn-ghost {
+	flex: 1 1 120px;
+	min-width: 0;
+	padding: 14px 16px;
+	border-radius: 6px;
+	border: 1px solid $lp-ui-border;
+	background-color: transparent;
+	color: $lp-ui-text-dim;
+	font-family: Poppins, Arial, sans-serif;
+	font-size: 12px;
+	font-weight: 700;
+	text-align: center;
+	line-height: 1.35;
+	white-space: normal;
+	cursor: pointer;
+
+	&:hover {
+		border-color: $lp-ui-text;
+		color: $lp-ui-text;
+	}
+
+	&.disabled {
+		opacity: 0.45;
+		cursor: default;
+	}
+}
+
+.lp-ui-status-dot {
+	width: 8px;
+	height: 8px;
+	border-radius: 999px;
+	background-color: #6b7280;
+	flex-shrink: 0;
+
+	&.on {
+		background-color: $lp-ui-success;
+	}
+
+	&.off {
+		background-color: #ef6b5f;
+	}
+}
+
+.lp-ui-accent-hashd {
+	.lp-ui-intro {
+		border-color: $lp-ui-hashd-accent-border;
+		background-color: $lp-ui-hashd-accent-soft;
+	}
+
+	.lp-ui-panel-title {
+		color: $lp-ui-hashd-accent;
+	}
+
+	.lp-ui-empty .material-icons {
+		color: $lp-ui-hashd-accent;
+	}
+
+	.lp-ui-list-row:hover {
+		border-color: $lp-ui-hashd-accent;
+		background-color: $lp-ui-hashd-accent-soft;
+	}
+
+	.lp-ui-list-value {
+		color: $lp-ui-hashd-accent;
+	}
+
+	.lp-ui-info-value.accent {
+		color: $lp-ui-hashd-accent;
+	}
+
+	.lp-ui-perks {
+		border-color: $lp-ui-hashd-accent-border;
+		background-color: $lp-ui-hashd-accent-soft;
+	}
+
+	.lp-ui-perk::before {
+		color: $lp-ui-hashd-accent;
+	}
+
+	.lp-ui-btn-primary {
+		background-color: $lp-ui-hashd-accent;
+
+		&:hover {
+			background-color: $lp-ui-hashd-accent-hover;
+		}
+	}
+}

@@ -1,0 +1,203 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Player Hub Slice 2 - fixture-backed Overview.
+*@
+@namespace LifePunch.DXRP.Addons.PlayerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-playerhub-overview">
+	<div class="overview-progress-card lp-hub-panel">
+		<div class="overview-progress-copy">
+			<div class="overview-kicker">LEVEL @Model.Level PROGRESS</div>
+			<div class="overview-progress-value">@XpProgressText</div>
+			<div class="overview-progress-hint">@XpRemaining.ToString( "N0" ) XP to level @(Model.Level + 1)</div>
+		</div>
+		<div class="overview-progress-track">
+			<div class="@XpFillClass()"></div>
+		</div>
+		<div class="overview-next-unlock">
+			<i class="material-icons">lock_open</i>
+			<div class="overview-next-unlock-copy">
+				<div class="overview-next-unlock-label">NEXT SKILL TIER</div>
+				<div class="overview-next-unlock-value">@Model.NextUnlockLabel</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="overview-summary-row">
+		<div class="overview-summary-card lp-hub-panel">
+			<div class="overview-summary-icon lp"><i class="material-icons">savings</i></div>
+			<div class="overview-summary-copy">
+				<div class="overview-summary-label">TEMPORARY $LP SIGN</div>
+				<div class="overview-money"><span class="overview-lp-sign">$LP</span><span class="overview-money-amount">@Model.LpBalance.ToString( "N0" )</span></div>
+				<div class="overview-summary-hint">Display-only fixture balance</div>
+			</div>
+		</div>
+		<div class="overview-summary-card lp-hub-panel">
+			<div class="overview-summary-icon"><i class="material-icons">account_tree</i></div>
+			<div class="overview-summary-copy">
+				<div class="overview-summary-label">SKILL RANKS</div>
+				<div class="overview-summary-value">@Model.SkillRanksPurchased</div>
+				<div class="overview-summary-hint">@SkillRankSummary</div>
+			</div>
+		</div>
+		<div class="overview-summary-card lp-hub-panel">
+			<div class="overview-summary-icon"><i class="material-icons">verified</i></div>
+			<div class="overview-summary-copy">
+				<div class="overview-summary-label">DATA MODE</div>
+				<div class="overview-summary-value">PREVIEW</div>
+				<div class="overview-summary-hint">No live progression source</div>
+			</div>
+		</div>
+		<div class="overview-summary-card overview-quick-card lp-hub-panel">
+			<div class="overview-summary-copy">
+				<div class="overview-summary-label">QUICK LINKS</div>
+				<div class="overview-quick-actions">
+					@foreach ( var action in Model.Actions )
+					{
+						<button class="overview-action lp-hub-button" disabled="@(!action.Enabled)" onclick="@action.OnSelected" tooltip="@action.Hint">
+							<i class="material-icons">@action.Icon</i>
+							<span>@action.Label</span>
+						</button>
+					}
+				</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="overview-detail-grid">
+		<div class="overview-section lp-hub-panel">
+			<div class="overview-section-head lp-hub-bar">
+				<div class="overview-section-title">RECENT PROGRESS</div>
+				<div class="overview-section-note">Fixture events</div>
+			</div>
+			<div class="overview-event-list">
+				@foreach ( var progress in Model.RecentEvents )
+				{
+					<div class="overview-event-row lp-hub-chip-row">
+						<i class="material-icons overview-event-icon">@progress.Icon</i>
+						<div class="overview-event-copy">
+							<div class="overview-event-title">@progress.Title</div>
+							<div class="overview-event-detail">@progress.Detail</div>
+						</div>
+						<div class="overview-event-when">@progress.When</div>
+					</div>
+				}
+			</div>
+		</div>
+
+		<div class="overview-section lp-hub-panel">
+			<div class="overview-section-head lp-hub-bar">
+				<div class="overview-section-title">STAT SNAPSHOT</div>
+				<div class="overview-section-note">Read only</div>
+			</div>
+			<div class="overview-snapshot-list">
+				@foreach ( var stat in Model.StatSnapshot )
+				{
+					<div class="overview-snapshot-row lp-hub-chip-row">
+						<div class="overview-snapshot-copy">
+							<div class="overview-snapshot-label">@stat.Label</div>
+							<div class="overview-snapshot-hint">@stat.Hint</div>
+						</div>
+						<div class="overview-snapshot-value">@stat.Value</div>
+					</div>
+				}
+			</div>
+		</div>
+		<div class="overview-section lp-hub-panel">
+			<div class="overview-section-head lp-hub-bar">
+				<div class="overview-section-title">$LP ROUTE READINESS</div>
+				<div class="overview-section-note">No live award route</div>
+			</div>
+			<div class="overview-earn-list">
+				@foreach ( var route in Model.EarnRoutes )
+				{
+					<div class="overview-earn-card lp-hub-chip-row">
+						<i class="material-icons overview-earn-icon">@route.Icon</i>
+						<div class="overview-earn-copy">
+							<div class="overview-earn-title">@route.Title</div>
+							<div class="overview-earn-body">@route.Body</div>
+						</div>
+						<div class="overview-earn-hint">@route.RewardHint</div>
+					</div>
+				}
+			</div>
+		</div>
+	</div>
+</root>
+
+@code
+{
+	[Property] public LpOverviewVm Model { get; set; } = null!;
+
+	private int XpRemaining => Math.Max( 0, Model.XpForNextLevel - Model.XpIntoLevel );
+	private string XpProgressText => $"{Model.XpIntoLevel:N0} / {Model.XpForNextLevel:N0} XP";
+	private string SkillRankSummary => $"{Model.SkillRanksPurchased} purchased / {Model.SkillPointsAvailable} available";
+
+	private string XpFillClass()
+	{
+		if ( Model.XpForNextLevel <= 0 )
+			return "overview-progress-fill fill-0";
+
+		var percent = Model.XpIntoLevel * 100 / Model.XpForNextLevel;
+		if ( percent >= 90 ) return "overview-progress-fill fill-100";
+		if ( percent >= 75 ) return "overview-progress-fill fill-75";
+		if ( percent >= 50 ) return "overview-progress-fill fill-50";
+		if ( percent >= 25 ) return "overview-progress-fill fill-25";
+		return "overview-progress-fill fill-10";
+	}
+
+	protected override int BuildHash()
+	{
+		var hash = new HashCode();
+		hash.Add( Model.IsFixture );
+		hash.Add( Model.LpBalance );
+		hash.Add( Model.Level );
+		hash.Add( Model.XpIntoLevel );
+		hash.Add( Model.XpForNextLevel );
+		hash.Add( Model.SkillPointsAvailable );
+		hash.Add( Model.SkillRanksPurchased );
+		hash.Add( Model.NextUnlockLabel );
+
+		foreach ( var route in Model.EarnRoutes )
+		{
+			hash.Add( route.Icon );
+			hash.Add( route.Title );
+			hash.Add( route.Body );
+			hash.Add( route.RewardHint );
+		}
+
+		foreach ( var progress in Model.RecentEvents )
+		{
+			hash.Add( progress.Icon );
+			hash.Add( progress.Title );
+			hash.Add( progress.Detail );
+			hash.Add( progress.When );
+		}
+
+		foreach ( var stat in Model.StatSnapshot )
+		{
+			hash.Add( stat.Label );
+			hash.Add( stat.Value );
+			hash.Add( stat.Hint );
+		}
+
+		foreach ( var action in Model.Actions )
+		{
+			hash.Add( action.Id );
+			hash.Add( action.Label );
+			hash.Add( action.Icon );
+			hash.Add( action.Hint );
+			hash.Add( action.Enabled );
+			hash.Add( action.OnSelected is not null );
+		}
+
+		return hash.ToHashCode();
+	}
+}

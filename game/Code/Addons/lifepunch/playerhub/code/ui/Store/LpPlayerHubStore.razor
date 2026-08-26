@@ -1,0 +1,204 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Player Hub Slice 5 - fixture-backed Store browser. No purchase seam.
+*@
+@namespace LifePunch.DXRP.Addons.PlayerHub
+@using System
+@using System.Collections.Generic
+@using System.Linq
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-playerhub-store">
+	<div class="store-balance-strip lp-hub-panel">
+		<div class="store-balance-copy">
+			<div class="store-balance-label">CURRENT BALANCE</div>
+			<div class="store-money"><span class="store-lp-sign">$LP</span><span class="store-money-amount">@Model.LpBalance.ToString( "N0" )</span></div>
+		</div>
+		<div class="store-balance-note">
+			<i class="material-icons">info</i>
+			<div>
+				<div class="store-balance-note-title">TEMPORARY SIGN / FIXTURE BALANCE</div>
+				<div class="store-balance-note-copy">Browse only. No debit, grant or ownership mutation is wired.</div>
+			</div>
+		</div>
+	</div>
+
+	<div class="store-category-row">
+		@foreach ( var category in Model.Categories )
+		{
+			<button class="@CategoryClass( category )" onclick="@category.OnSelected">
+				<i class="material-icons">@category.Icon</i>
+				<span>@category.Label</span>
+			</button>
+		}
+	</div>
+
+	<div class="store-workspace">
+		<div class="store-catalog lp-hub-panel">
+			<div class="store-section-head lp-hub-bar">
+				<div class="store-section-title">CATALOG</div>
+				<div class="store-section-note">@VisibleItemCount() fixture items</div>
+			</div>
+			<div class="store-item-list">
+				@foreach ( var item in VisibleItems() )
+				{
+					<button class="@ItemClass( item )" onclick="@item.OnSelected">
+						<div class="store-item-icon"><i class="material-icons">@item.Icon</i></div>
+						<div class="store-item-copy">
+							<div class="store-item-title">@item.Title</div>
+							<div class="store-item-description">@item.Description</div>
+							<div class="store-item-meta">
+								<span class="store-lp-sign">$LP</span>
+								<span class="store-item-price">@item.PriceLp.ToString( "N0" )</span>
+								<span class="@OwnershipClass( item )">@OwnershipLabel( item )</span>
+							</div>
+						</div>
+					</button>
+				}
+			</div>
+		</div>
+
+		<div class="store-detail lp-hub-panel">
+			@if ( SelectedItem() is LpStoreItemVm item )
+			{
+				<div class="store-detail-hero">
+					<div class="store-detail-icon"><i class="material-icons">@item.Icon</i></div>
+					<div class="store-detail-state">@OwnershipLabel( item )</div>
+				</div>
+				<div class="store-detail-title">@item.Title</div>
+				<div class="store-detail-description">@item.Description</div>
+
+				<div class="store-detail-fields lp-hub-field-row">
+					<div class="lp-hub-field">
+						<div class="store-detail-label">DURATION</div>
+						<div class="store-detail-value">@item.DurationLabel</div>
+					</div>
+					<div class="lp-hub-field">
+						<div class="store-detail-label">COMBAT IMPACT</div>
+						<div class="store-detail-value">@item.CombatImpact</div>
+					</div>
+				</div>
+
+				<div class="store-price-summary lp-hub-field-row">
+					<div class="store-price-row lp-hub-field">
+						<div class="store-price-label">PRICE</div>
+						<div class="store-money compact"><span class="store-lp-sign">$LP</span><span class="store-money-amount">@item.PriceLp.ToString( "N0" )</span></div>
+					</div>
+					<div class="store-price-row lp-hub-field">
+						<div class="store-price-label">CURRENT</div>
+						<div class="store-money compact"><span class="store-lp-sign">$LP</span><span class="store-money-amount">@Model.LpBalance.ToString( "N0" )</span></div>
+					</div>
+					<div class="store-price-row lp-hub-field">
+						<div class="store-price-label">AFTER</div>
+						<div class="store-money compact"><span class="store-lp-sign">$LP</span><span class="store-money-amount">@AfterBalance( item ).ToString( "N0" )</span></div>
+					</div>
+				</div>
+
+				<button class="store-review" disabled="@(!PurchaseEnabled)">
+					<i class="material-icons">lock</i>
+					<span>Purchases open in a later slice</span>
+				</button>
+				<div class="store-detail-footnote">No play-earned $LP route or purchase settlement is approved in this fixture slice.</div>
+			}
+		</div>
+	</div>
+</root>
+
+@code
+{
+	[Property] public LpStoreVm Model { get; set; } = null!;
+
+	private const bool PurchaseEnabled = false;
+
+	private IEnumerable<LpStoreItemVm> VisibleItems()
+	{
+		if ( Model.SelectedCategoryId == "all" )
+			return Model.Items;
+
+		return Model.Items.Where( item => item.CategoryId == Model.SelectedCategoryId );
+	}
+
+	private int VisibleItemCount()
+	{
+		return VisibleItems().Count();
+	}
+
+	private LpStoreItemVm SelectedItem()
+	{
+		return Model.Items.FirstOrDefault( item => item.Id == Model.SelectedItemId )!;
+	}
+
+	private string CategoryClass( LpStoreCategoryVm category )
+	{
+		return category.Id == Model.SelectedCategoryId
+			? "store-category lp-hub-button is-active"
+			: "store-category lp-hub-button";
+	}
+
+	private string ItemClass( LpStoreItemVm item )
+	{
+		var selected = item.Id == Model.SelectedItemId ? " is-selected" : string.Empty;
+		return "store-item lp-hub-button" + selected;
+	}
+
+	private static string OwnershipClass( LpStoreItemVm item )
+	{
+		if ( item.Owned ) return "store-item-status is-owned";
+		if ( item.Affordable ) return "store-item-status is-available";
+		return "store-item-status is-locked";
+	}
+
+	private static string OwnershipLabel( LpStoreItemVm item )
+	{
+		if ( item.Owned ) return "OWNED";
+		if ( item.Affordable ) return "AVAILABLE";
+		return "INSUFFICIENT FIXTURE BALANCE";
+	}
+
+	private long AfterBalance( LpStoreItemVm item )
+	{
+		if ( item.Owned || !item.Affordable )
+			return Model.LpBalance;
+
+		return Math.Max( 0L, Model.LpBalance - item.PriceLp );
+	}
+
+	protected override int BuildHash()
+	{
+		var hash = new HashCode();
+		hash.Add( Model.IsFixture );
+		hash.Add( Model.LpBalance );
+		hash.Add( Model.SelectedCategoryId );
+		hash.Add( Model.SelectedItemId );
+
+		foreach ( var category in Model.Categories )
+		{
+			hash.Add( category.Id );
+			hash.Add( category.Label );
+			hash.Add( category.Icon );
+			hash.Add( category.OnSelected is not null );
+		}
+
+		foreach ( var item in Model.Items )
+		{
+			hash.Add( item.Id );
+			hash.Add( item.Title );
+			hash.Add( item.Description );
+			hash.Add( item.CategoryId );
+			hash.Add( item.Icon );
+			hash.Add( item.DurationLabel );
+			hash.Add( item.CombatImpact );
+			hash.Add( item.PriceLp );
+			hash.Add( item.Owned );
+			hash.Add( item.Affordable );
+			hash.Add( item.OnSelected is not null );
+		}
+
+		return hash.ToHashCode();
+	}
+}
