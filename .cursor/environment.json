@@ -1,0 +1,7 @@
+{
+  "name": "DXRP",
+  "build": {
+    "dockerfile": "Dockerfile"
+  },
+  "install": "dotnet build dxrp-server.cs --nologo"
+}
