@@ -6,6 +6,8 @@ namespace Dxura.RP.Game;
 public sealed partial class Player : Component, IEquipmentEvents, IDamageEvents, IAreaDamageReceiver, IGameEvents,
 	PlayerController.IEvents, IGameObjectNetworkEvents, ISnapshot
 {
+	private const int MaxEquipmentSnapshotStatePayloadLength = 4096;
+
 	[Property] public required PlayerController Controller { get; set; }
 	public bool IsRunning => Controller.Velocity.Length >= Controller.RunSpeed - 1;
 
@@ -129,10 +131,39 @@ public sealed partial class Player : Component, IEquipmentEvents, IDamageEvents,
 			var ammoCount = ammoComponent.IsValid() ? ammoComponent.Ammo : 0;
 			var reserveAmmoCount = ammoComponent.IsValid() ? ammoComponent.ReserveAmmo : 0;
 
-			data.Equipment.Add( new EquipmentSnapshotData
+			var equipmentData = new EquipmentSnapshotData
 			{
 				ResourcePath = equipment.Resource.PrefabPath(), Ammo = ammoCount, ReserveAmmo = reserveAmmoCount
-			} );
+			};
+
+			foreach ( var snapshotState in equipment.Components.GetAll<IEquipmentSnapshotState>() )
+			{
+				try
+				{
+					var key = snapshotState.SnapshotKey?.Trim();
+					if ( string.IsNullOrWhiteSpace( key ) || equipmentData.ComponentStates.ContainsKey( key ) )
+					{
+						Log.Warning( $"Skipped invalid or duplicate equipment snapshot state key on {equipment.Resource.PrefabPath()}." );
+						continue;
+					}
+
+					if ( !snapshotState.TryCaptureSnapshotState( out var payload )
+					     || string.IsNullOrWhiteSpace( payload )
+					     || payload.Length > MaxEquipmentSnapshotStatePayloadLength )
+					{
+						Log.Warning( $"Skipped invalid equipment snapshot state '{key}' on {equipment.Resource.PrefabPath()}." );
+						continue;
+					}
+
+					equipmentData.ComponentStates.Add( key, payload );
+				}
+				catch ( Exception exception )
+				{
+					Log.Warning( $"Failed to capture equipment snapshot state on {equipment.Resource.PrefabPath()}: {exception.Message}" );
+				}
+			}
+
+			data.Equipment.Add( equipmentData );
 		}
 
 		return data;
@@ -186,6 +217,37 @@ public sealed partial class Player : Component, IEquipmentEvents, IDamageEvents,
 			{
 				ammoComponent.Ammo = equipmentData.Ammo;
 				ammoComponent.ReserveAmmo = equipmentData.ReserveAmmo;
+			}
+
+			if ( equipmentData.ComponentStates is not { Count: > 0 } )
+			{
+				continue;
+			}
+
+			var restoredStateKeys = new HashSet<string>( StringComparer.Ordinal );
+			foreach ( var snapshotState in equipment.Components.GetAll<IEquipmentSnapshotState>() )
+			{
+				try
+				{
+					var key = snapshotState.SnapshotKey?.Trim();
+					if ( string.IsNullOrWhiteSpace( key )
+					     || !restoredStateKeys.Add( key )
+					     || !equipmentData.ComponentStates.TryGetValue( key, out var payload )
+					     || string.IsNullOrWhiteSpace( payload )
+					     || payload.Length > MaxEquipmentSnapshotStatePayloadLength )
+					{
+						continue;
+					}
+
+					if ( !snapshotState.TryRestoreSnapshotState( payload ) )
+					{
+						Log.Warning( $"Rejected equipment snapshot state '{key}' on {equipmentData.ResourcePath}." );
+					}
+				}
+				catch ( Exception exception )
+				{
+					Log.Warning( $"Failed to restore equipment snapshot state on {equipmentData.ResourcePath}: {exception.Message}" );
+				}
 			}
 		}
 	}

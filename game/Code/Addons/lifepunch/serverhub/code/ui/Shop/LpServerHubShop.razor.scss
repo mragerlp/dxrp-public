@@ -1,0 +1,218 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Server Hub - Shop tab. Flex-only s&box SCSS.
+//
+// The buy control is the only place in this hub that carries a solid semantic
+// fill, because it is the only control that spends money. It is flat, small and
+// square-cornered like every other control here - the weight comes from the fill
+// alone, not from size or radius.
+//
+// Green is used strictly as the cash/success colour. A locked or unaffordable row
+// is never given an error colour, because nothing is wrong - the player simply
+// cannot take that action yet. Those states are carried by opacity and a neutral
+// chip instead.
+// -----------------------------------------------------------------------------
+
+@import "../LpServerHubTokens.scss";
+@import "../LpServerHubPrimitives.scss";
+
+.lp-serverhub-shop {
+	flex-grow: 1;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.shop-list {
+	flex-grow: 1;
+	flex-direction: column;
+	overflow-y: scroll;
+	padding-left: $space-6;
+	padding-right: $space-6;
+	padding-top: $space-4;
+	padding-bottom: $space-5;
+}
+
+// --- Group ------------------------------------------------------------------
+
+.shop-group {
+	flex-direction: column;
+	margin-bottom: $space-5;
+}
+
+.shop-group-head {
+	flex-direction: row;
+	align-items: center;
+	height: $chip-h;
+	margin-bottom: $space-2;
+}
+
+.shop-group-name {
+	font-size: $type-chip;
+	font-weight: 700;
+	letter-spacing: $track-eyebrow;
+	color: $text-dim;
+}
+
+.shop-group-count {
+	font-size: $type-chip;
+	color: $text-faint;
+	margin-left: $space-2;
+}
+
+// --- Rows -------------------------------------------------------------------
+
+.shop-rows {
+	flex-direction: column;
+}
+
+.shop-row {
+	flex-direction: row;
+	align-items: center;
+	min-height: $row-h;
+	padding-top: $space-2;
+	padding-bottom: $space-2;
+	padding-left: $space-3;
+	padding-right: $space-3;
+	background-color: $bg-row;
+	border-radius: $radius;
+	margin-bottom: $space-1;
+
+	&:hover {
+		background-color: $bg-raised;
+	}
+
+	// Neither state is an error, so neither takes a status colour - they recede.
+	&.is-unaffordable {
+		opacity: 0.7;
+	}
+
+	&.is-locked {
+		opacity: 0.55;
+	}
+}
+
+.shop-row-copy {
+	flex-grow: 1;
+	flex-direction: column;
+	padding-right: $space-4;
+}
+
+.shop-row-head {
+	flex-direction: row;
+	align-items: center;
+}
+
+.shop-row-name {
+	font-size: $type-sm;
+	font-weight: 500;
+	color: $text-strong;
+}
+
+.shop-row-desc {
+	font-size: $type-xs;
+	color: $text-dim;
+	line-height: 1.4;
+	margin-top: $hairline;
+}
+
+.shop-chip {
+	height: $chip-h;
+	padding-left: $space-2;
+	padding-right: $space-2;
+	margin-left: $space-2;
+	border-radius: $radius;
+	font-size: $type-chip;
+	font-weight: 600;
+	letter-spacing: $track-chip;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+	background-color: $dim-soft;
+	color: $text-dim;
+}
+
+.shop-chip-owned {
+	background-color: $accent-soft-strong;
+	color: $text;
+}
+
+.shop-row-price {
+	width: $col-salary;
+	flex-shrink: 0;
+	flex-direction: row;
+	align-items: center;
+	justify-content: flex-end;
+	font-size: $type-sm;
+	padding-right: $space-4;
+}
+
+// --- Buy control ------------------------------------------------------------
+
+.shop-row-action {
+	width: $col-buy;
+	flex-shrink: 0;
+	flex-direction: row;
+	justify-content: flex-end;
+}
+
+.shop-buy {
+	height: $btn-h;
+	min-width: $col-buy;
+	align-items: center;
+	justify-content: center;
+	border-radius: $radius;
+	font-size: $type-chip;
+	font-weight: 700;
+	letter-spacing: $track-chip;
+	background-color: $dim-soft;
+	color: $text-faint;
+	transition: opacity $ease;
+
+	&.is-ready {
+		background-color: $good;
+		color: $text-strong;
+		opacity: 0.9;
+
+		&:hover {
+			opacity: 1;
+		}
+
+		&:active {
+			transform: scale(0.94);
+		}
+	}
+}
+
+// --- Empty state ------------------------------------------------------------
+
+.shop-empty {
+	flex-grow: 1;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	padding-left: $space-6;
+	padding-right: $space-6;
+}
+
+.shop-empty-icon {
+	font-size: $icon-empty;
+	color: $text-faint;
+	opacity: 0.5;
+	margin-bottom: $space-3;
+}
+
+.shop-empty-title {
+	font-size: $type-lg;
+	font-weight: 500;
+	color: $text;
+	margin-bottom: $space-2;
+}
+
+.shop-empty-copy {
+	font-size: $type-sm;
+	color: $text-dim;
+	line-height: 1.5;
+	text-align: center;
+	max-width: $copy-max;
+}

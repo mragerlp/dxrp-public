@@ -111,6 +111,10 @@ public abstract partial class GameConfig
 	public virtual float PryCooldown { get; set; } = 3;
 	public virtual float PryEffectsCooldown { get; set; } = 1;
 
+	// Lockpick
+	public virtual float LockpickCooldown { get; set; } = 30f;
+	public virtual float LockpickEffectsCooldown { get; set; } = 1f;
+
 	// Hitman
 	public virtual float HitmanRequestCooldown { get; set; } = 60f;
 	public virtual float HitPlayerCooldown { get; set; } = 600f; // 10 minutes

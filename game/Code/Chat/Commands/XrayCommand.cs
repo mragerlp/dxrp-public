@@ -11,9 +11,24 @@ public class XrayCommand : ICommand
 	private long _targetSteamId;
 	private bool _active;
 
+	public bool IsActive => _active;
+
+	private void ClearState()
+	{
+		_active = false;
+		_targetSteamId = 0;
+	}
+
 	public void OnFrame()
 	{
 		if ( !_active ) return;
+
+		var local = Player.Local;
+		if ( !local.IsValid() || !RankSystem.HasPermission( local.SteamId, Permission.CommandXray ) )
+		{
+			ClearState();
+			return;
+		}
 
 		var cam = Sandbox.Game.ActiveScene?.Camera;
 		if ( !cam.IsValid() ) return;
@@ -56,18 +71,21 @@ public class XrayCommand : ICommand
 	public bool ExecuteLocal( string[] args, string raw )
 	{
 		if ( !Player.Local.IsValid() )
+		{
+			ClearState();
 			return false;
+		}
 
 		if ( !RankSystem.HasPermission( Player.Local.SteamId, Permission.CommandXray ) )
 		{
+			ClearState();
 			Player.Local.SendMessage( "#generic.permission" );
 			return true;
 		}
 
 		if ( _active && args.Length == 0 )
 		{
-			_active = false;
-			_targetSteamId = 0;
+			ClearState();
 			Player.Local.Success( Language.GetPhrase( "command.xray.cleared" ) );
 			return true;
 		}
@@ -85,8 +103,7 @@ public class XrayCommand : ICommand
 
 		if ( _active && _targetSteamId == target.SteamId )
 		{
-			_active = false;
-			_targetSteamId = 0;
+			ClearState();
 			Player.Local.Success( Language.GetPhrase( "command.xray.cleared" ) );
 			return true;
 		}

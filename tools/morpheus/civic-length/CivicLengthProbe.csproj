@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <DefineConstants>LIFEPUNCH_LOCAL</DefineConstants>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="CivicLengthProbe.cs" />
+    <Compile Include="..\..\..\game\Code\Addons\lifepunch\lpmorpheus\LpMorpheusSpeech.cs" />
+  </ItemGroup>
+</Project>

@@ -40,7 +40,14 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 		{
 			return;
 		}
-		
+
+		// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+		// Keep the synthetic-actor registry live-scoped by rebuilding it from the pawns present RIGHT
+		// NOW. This runs before any save path and deliberately BEFORE the SnapshotEnabled check,
+		// because the registry also gates the portal, economy, inventory and sanction sinks — not
+		// only snapshots — and those keep running when snapshots are switched off.
+		RefreshSyntheticActors();
+
 		// If any pending snapshot, process it after a short delay to ensure the scene is stable.
 		if ( _pendingSnapshot != null && Time.Now > 5f )
 		{
@@ -67,6 +74,26 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 			Log.Info( $"{LogPrefix} Auto-save interval reached ({_timeSinceStateSave:0}s), saving state" );
 			SaveSnapshot();
 		}
+	}
+
+	/// <summary>
+	/// Rebuild <see cref="SyntheticActorRegistry"/>'s observed set from the synthetic pawns that are
+	/// live this tick. Rebuild-from-truth (not accumulate) is required: StaffMenuTestBots draws its
+	/// rank-preview identities from REAL PUBLIC STEAM ACCOUNTS, so an id that is synthetic now may
+	/// belong to a genuine human who joins later. Accumulating would silently exclude that real
+	/// player from crash recovery.
+	/// </summary>
+	private static void RefreshSyntheticActors()
+	{
+		if ( !GameNetworkManager.Instance.IsValid() )
+		{
+			return;
+		}
+
+		SyntheticActorRegistry.ObserveLive(
+			GameUtils.Players
+				.Where( x => x.IsValid() && x.IsDebugPlayer )
+				.Select( x => x.SteamId ) );
 	}
 
 	private void ProcessCleanupSchedule()
@@ -110,6 +137,8 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 		var savedPlayers = 0;
 		var errors = 0;
 		var moneyExcludedFromSave = 0;
+		var syntheticExcludedFromSave = 0;
+		var syntheticDoorsExcluded = 0;
 
 		await GameTask.MainThread();
 		
@@ -126,6 +155,22 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 			if ( recoverable is MoneyEntity )
 			{
 				moneyExcludedFromSave++;
+				continue;
+			}
+
+			// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+			// Staff test bots and debug pawns occupy Player slots but represent no human being.
+			// Their identities are drawn from REAL PUBLIC STEAM ACCOUNTS (StaffMenuTestBots.RankBots),
+			// so persisting one binds a real third party's SteamId to a position, job, health value
+			// and equipment loadout they never had, on a server they never joined.
+			// IsDebugPlayer already existed on these pawns and was simply never read here — the flag
+			// was present and meaningless downstream. The exclusion is structural and sits in the
+			// snapshot path itself, alongside the money exclusion above, so a future SnapshotType
+			// cannot route around it.
+			if ( recoverable is Player syntheticCandidate
+			     && SyntheticActorRegistry.IsSynthetic( syntheticCandidate.SteamId, syntheticCandidate.IsDebugPlayer ) )
+			{
+				syntheticExcludedFromSave++;
 				continue;
 			}
 
@@ -164,6 +209,16 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 		{
 			if ( door.Owner == 0 )
 			{
+				continue;
+			}
+
+			// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+			// DoorSnapshotData.Owner is a raw SteamId. A door bought or force-assigned to a test bot
+			// would otherwise carry that (real, third-party) account id into the saved payload even
+			// though the bot itself is now excluded above.
+			if ( SyntheticActorRegistry.IsSynthetic( door.Owner ) )
+			{
+				syntheticDoorsExcluded++;
 				continue;
 			}
 
@@ -209,7 +264,7 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 
 			if ( success )
 			{
-				Log.Info( $"{LogPrefix} Saved snapshot (gameObjects={savedGameObjects}, constructs={savedConstructs}, players={savedPlayers}, moneyExcluded={moneyExcludedFromSave}, errors={errors})" );
+				Log.Info( $"{LogPrefix} Saved snapshot (gameObjects={savedGameObjects}, constructs={savedConstructs}, players={savedPlayers}, moneyExcluded={moneyExcludedFromSave}, syntheticExcluded={syntheticExcludedFromSave}, syntheticDoorsExcluded={syntheticDoorsExcluded}, errors={errors})" );
 			}
 			else
 			{
@@ -410,6 +465,17 @@ public class SnapshotSystem : GameObjectSystem<SnapshotSystem>, IGameEvents
 		}
 
 		// Load and prep players
+		// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+		// Reject any rows a PRE-GUARD build already wrote, mirroring the legacy money rejection above:
+		// bytes saved before the save-side exclusion existed must not be re-admitted into live player
+		// state. This is defence in depth and is normally inert — at load time the registry is usually
+		// empty because no synthetic pawn has spawned yet — so it is NOT the primary guard.
+		var syntheticRowsRejected = file.Players.RemoveAll( p => SyntheticActorRegistry.IsSynthetic( p.SteamId ) );
+		if ( syntheticRowsRejected > 0 )
+		{
+			Log.Warning( $"{LogPrefix} Rejected {syntheticRowsRejected} synthetic-actor player row(s) from a pre-guard snapshot" );
+		}
+
 		_playerData = file.Players.ToDictionary( p => p.SteamId, p => p );
 		Log.Info( $"{LogPrefix} Loaded {_playerData.Count} player snapshot entries" );
 

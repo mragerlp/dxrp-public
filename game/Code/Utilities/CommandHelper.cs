@@ -15,13 +15,20 @@ public static class CommandHelper
 		if ( !int.TryParse( input[..^1], out var value ) || value <= 0 )
 			return null;
 
-		return unit switch
+		try
 		{
-			'm' => TimeSpan.FromMinutes( value ),
-			'h' => TimeSpan.FromHours( value ),
-			'd' => TimeSpan.FromDays( value ),
-			_ => null
-		};
+			return unit switch
+			{
+				'm' => TimeSpan.FromMinutes( value ),
+				'h' => TimeSpan.FromHours( value ),
+				'd' => TimeSpan.FromDays( value ),
+				_ => null
+			};
+		}
+		catch ( OverflowException )
+		{
+			return null;
+		}
 	}
 
 	/// <summary>

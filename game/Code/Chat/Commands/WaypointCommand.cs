@@ -1,4 +1,5 @@
 using System.Threading.Tasks;
+using System.Text.Json;
 using Dxura.RP.Shared;
 
 namespace Dxura.RP.Game.Commands;
@@ -81,88 +82,153 @@ public class WaypointCommand : ICommand
 
 	private static async Task SetWaypointAsync( Player caller, string name, WaypointData waypoint )
 	{
-		await ServerApiClient.SetStoreJson( GetWaypointKey( name ), waypoint );
-
-		await GameTask.MainThread();
-		if ( !caller.IsValid() )
+		var callerSteamId = caller.SteamId;
+		var callerConnectionId = caller.ConnectionId;
+		var callerSteamName = caller.SteamName;
+		if ( !CanPersistWaypoint( callerSteamId ) )
 		{
+			caller.Error( "#generic.error" );
 			return;
 		}
 
-		caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.saved" ), name ) );
-		_ = ServerApiClient.Audit( "Waypoint", $"{caller.SteamName} ({caller.SteamId}) set waypoint '{name}'", caller.SteamId );
+		var persisted = await ServerApiClient.TrySetStoreStrict( GetWaypointKey( name ), JsonSerializer.Serialize( waypoint ) );
+
+		await GameTask.MainThread();
+		var callerSessionIsCurrent = IsCurrentCallerSession( caller, callerSteamId, callerConnectionId );
+		if ( !persisted )
+		{
+			if ( callerSessionIsCurrent && RankSystem.HasPermission( callerSteamId, Permission.CommandWaypointEdit ) )
+			{
+				caller.Error( "#generic.error" );
+			}
+			return;
+		}
+
+		if ( callerSessionIsCurrent && RankSystem.HasPermission( callerSteamId, Permission.CommandWaypointEdit ) )
+		{
+			caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.saved" ), name ) );
+		}
+		_ = ServerApiClient.Audit( "Waypoint", $"{callerSteamName} ({callerSteamId}) set waypoint '{name}'", callerSteamId );
 	}
 
 	private static async Task ClearWaypointAsync( Player caller, string name )
 	{
-		if ( await LoadWaypoint( name ) == null )
+		var callerSteamId = caller.SteamId;
+		var callerConnectionId = caller.ConnectionId;
+		var callerSteamName = caller.SteamName;
+		if ( !CanPersistWaypoint( callerSteamId ) )
 		{
-			await GameTask.MainThread();
-			if ( caller.IsValid() )
-			{
-				caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.not_found" ), name ) );
-			}
-
+			caller.Error( "#generic.error" );
 			return;
 		}
 
-		await ServerApiClient.DeleteStore( GetWaypointKey( name ) );
+		var waypointRead = await LoadWaypoint( name );
+		await GameTask.MainThread();
+		if ( !IsCurrentCallerSession( caller, callerSteamId, callerConnectionId ) )
+		{
+			return;
+		}
+
+		if ( !CanPersistWaypoint( callerSteamId ) )
+		{
+			caller.Error( "#generic.error" );
+			return;
+		}
+
+		if ( !waypointRead.Succeeded )
+		{
+			caller.Error( "#generic.error" );
+			return;
+		}
+
+		if ( !waypointRead.Found || waypointRead.Value == null )
+		{
+			caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.not_found" ), name ) );
+			return;
+		}
+
+		var persisted = await ServerApiClient.TryDeleteStoreStrict( GetWaypointKey( name ) );
 
 		await GameTask.MainThread();
-		if ( !caller.IsValid() )
+		var callerSessionIsCurrent = IsCurrentCallerSession( caller, callerSteamId, callerConnectionId );
+		if ( !persisted )
 		{
+			if ( callerSessionIsCurrent && RankSystem.HasPermission( callerSteamId, Permission.CommandWaypointEdit ) )
+			{
+				caller.Error( "#generic.error" );
+			}
 			return;
 		}
 
-		caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.cleared" ), name ) );
-		_ = ServerApiClient.Audit( "Waypoint", $"{caller.SteamName} ({caller.SteamId}) cleared waypoint '{name}'", caller.SteamId );
+		if ( callerSessionIsCurrent && RankSystem.HasPermission( callerSteamId, Permission.CommandWaypointEdit ) )
+		{
+			caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.cleared" ), name ) );
+		}
+		_ = ServerApiClient.Audit( "Waypoint", $"{callerSteamName} ({callerSteamId}) cleared waypoint '{name}'", callerSteamId );
 	}
 
 	private static async Task ListWaypointsAsync( Player caller )
 	{
-		var waypoints = await LoadWaypointNames();
+		var callerSteamId = caller.SteamId;
+		var callerConnectionId = caller.ConnectionId;
+		var waypointRead = await LoadWaypointNames();
 
 		await GameTask.MainThread();
-		if ( !caller.IsValid() )
+		if ( !IsCurrentCallerSession( caller, callerSteamId, callerConnectionId ) )
 		{
 			return;
 		}
 
-		if ( waypoints.Count == 0 )
+		if ( !HasPermission( caller, Permission.CommandWaypointUse ) )
+		{
+			return;
+		}
+
+		if ( !waypointRead.Succeeded )
+		{
+			caller.Error( "#generic.error" );
+			return;
+		}
+
+		if ( waypointRead.Names.Count == 0 )
 		{
 			caller.SendMessage( Language.GetPhrase( "command.waypoint.none" ) );
 			return;
 		}
 
-		var names = waypoints.OrderBy( name => name, StringComparer.OrdinalIgnoreCase );
+		var names = waypointRead.Names.OrderBy( name => name, StringComparer.OrdinalIgnoreCase );
 
 		caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.list" ), string.Join( ", ", names ) ) );
 	}
 
 	private static async Task GoToWaypointAsync( Player caller, string name )
 	{
-		var waypoint = await LoadWaypoint( name );
-		if ( waypoint == null )
+		var callerSteamId = caller.SteamId;
+		var callerConnectionId = caller.ConnectionId;
+		var waypointRead = await LoadWaypoint( name );
+		await GameTask.MainThread();
+		if ( !IsCurrentCallerSession( caller, callerSteamId, callerConnectionId )
+		     || !RankSystem.HasPermission( callerSteamId, Permission.CommandWaypointUse ) )
 		{
-			await GameTask.MainThread();
-			if ( caller.IsValid() )
-			{
-				caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.not_found" ), name ) );
-			}
-
 			return;
 		}
 
-		await GameTask.MainThread();
-		if ( !caller.IsValid() )
+		if ( !waypointRead.Succeeded )
 		{
+			caller.Error( "#generic.error" );
+			return;
+		}
+
+		if ( !waypointRead.Found || waypointRead.Value == null )
+		{
+			caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.not_found" ), name ) );
 			return;
 		}
 
 		var oldPosition = caller.WorldPosition;
 		AdminSystem.Instance.PlayerReturnPositions[caller.SteamId] = (oldPosition, Rotation.LookAt( caller.AimRay.Forward ));
 
-		var transform = new Transform( waypoint.ToPosition(), waypoint.ToRotation() );
+		var transform = new Transform( waypointRead.Value.ToPosition(), waypointRead.Value.ToRotation() );
 		caller.TeleportHost( transform );
 		OcclusionSystem.Current?.BroadcastForceCheckHost( caller.Connection );
 		AdminSystem.Instance?.BroadcastTeleportEffect( caller, oldPosition, transform.Position );
@@ -171,17 +237,35 @@ public class WaypointCommand : ICommand
 		_ = ServerApiClient.Audit( "Waypoint", $"{caller.SteamName} ({caller.SteamId}) teleported to waypoint '{NormalizeName( name )}'", caller.SteamId );
 	}
 
-	private static Task<WaypointData?> LoadWaypoint( string name ) =>
-		ServerApiClient.GetStoreJson<WaypointData>( GetWaypointKey( name ) );
-
-	private static async Task<List<string>> LoadWaypointNames()
+	private static async Task<(bool Succeeded, bool Found, WaypointData? Value)> LoadWaypoint( string name )
 	{
-		var entries = await ServerApiClient.ListStore( StorePrefix );
-		return entries
+		var read = await ServerApiClient.ReadStoreValue( GetWaypointKey( name ) );
+		if ( !read.Succeeded || !read.Found )
+		{
+			return (read.Succeeded, read.Found, null);
+		}
+
+		try
+		{
+			var waypoint = JsonSerializer.Deserialize<WaypointData>( read.Value ?? string.Empty );
+			return waypoint == null ? (false, true, null) : (true, true, waypoint);
+		}
+		catch ( Exception e )
+		{
+			Log.Warning( $"Failed to deserialize waypoint '{NormalizeName( name )}': {e.Message}" );
+			return (false, true, null);
+		}
+	}
+
+	private static async Task<(bool Succeeded, List<string> Names)> LoadWaypointNames()
+	{
+		var read = await ServerApiClient.ReadStoreList( StorePrefix );
+		var names = read.Entries
 			.Select( entry => TryGetWaypointName( entry.Key ) )
 			.Where( name => !string.IsNullOrWhiteSpace( name ) )
 			.Select( name => name! )
 			.ToList();
+		return (read.Succeeded, names);
 	}
 
 	private static bool HasPermission( Player caller, Permission permission )
@@ -194,6 +278,17 @@ public class WaypointCommand : ICommand
 		caller.SendMessage( string.Format( Language.GetPhrase( "command.waypoint.missing_permission" ), permission.ToId() ) );
 		return false;
 	}
+
+	private static bool IsCurrentCallerSession( Player caller, long steamId, Guid connectionId ) =>
+		caller.IsValid()
+		&& caller.IsConnected
+		&& caller.SteamId == steamId
+		&& caller.ConnectionId == connectionId;
+
+	private static bool CanPersistWaypoint( long callerSteamId ) =>
+		ServerApiLink.HasAuthorizationKey
+		&& !SyntheticActorRegistry.IsSynthetic( callerSteamId )
+		&& RankSystem.HasPermission( callerSteamId, Permission.CommandWaypointEdit );
 
 	private static string? ParseName( IEnumerable<string> parts )
 	{

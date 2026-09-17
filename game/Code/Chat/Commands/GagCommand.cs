@@ -20,7 +20,12 @@ public class GagCommand : ICommand
 
 		var targetIdentifier = args[0];
 		var durationStr = args[1];
-		var reason = string.Join( " ", args.Skip( 2 ) );
+		var reason = string.Join( " ", args.Skip( 2 ) ).Trim();
+		if ( string.IsNullOrWhiteSpace( reason ) )
+		{
+			caller.SendMessage( Language.GetPhrase( "command.gag.usage" ) );
+			return true;
+		}
 
 		var duration = CommandHelper.ParseDuration( durationStr );
 		if ( duration == null )
@@ -39,19 +44,47 @@ public class GagCommand : ICommand
 			return true;
 		}
 
-		_ = ServerApiClient.SanctionPlayer( targetPlayer.SteamId, new CreateSanctionDto
+		_ = ApplyGag( caller, targetPlayer, reason, duration.Value, durationStr );
+		return true;
+	}
+
+	private static async global::System.Threading.Tasks.Task ApplyGag(
+		Player caller,
+		Player target,
+		string reason,
+		TimeSpan duration,
+		string durationDisplay )
+	{
+		var callerSteamId = caller.SteamId;
+		var callerSteamName = caller.SteamName;
+		var callerDisplayName = caller.DisplayName;
+		var targetSteamId = target.SteamId;
+		var targetSteamName = target.SteamName;
+		var targetDisplayName = target.DisplayName;
+		var succeeded = await ServerApiClient.SanctionPlayer( targetSteamId, new CreateSanctionDto
 		{
 			Reason = reason,
-			Notes = $"Gagged by {caller.SteamName} ({caller.SteamId}) via chat command for {durationStr}.",
+			Notes = $"Gagged by {callerSteamName} ({callerSteamId}) via chat command for {durationDisplay}.",
 			Type = SanctionType.Gag,
-			Duration = duration.Value
-		} );
+			Duration = duration
+		}, callerSteamId );
 
-		caller.Success( string.Format( Language.GetPhrase( "command.gag.success" ), targetPlayer.DisplayName, durationStr, reason ) );
+		await GameTask.MainThread();
+		if ( !succeeded )
+		{
+			if ( caller.IsValid() )
+			{
+				caller.Error( "#generic.error" );
+			}
+			return;
+		}
 
-		Log.Info( $"[COMMAND] {caller.DisplayName} ({caller.SteamId}) gagged {targetPlayer.DisplayName} ({targetPlayer.SteamId}) for {durationStr}: {reason}" );
-		_ = ServerApiClient.Audit( "Gag", $"{caller.SteamName} ({caller.SteamId}) gagged {targetPlayer.SteamName} ({targetPlayer.SteamId}) for {durationStr}: {reason}", caller.SteamId );
+		if ( caller.IsValid() )
+		{
+			caller.Success( string.Format( Language.GetPhrase( "command.gag.success" ), targetDisplayName, durationDisplay, reason ) );
+		}
 
-		return true;
+		Log.Info( $"[COMMAND] {callerDisplayName} ({callerSteamId}) gagged {targetDisplayName} ({targetSteamId}) for {durationDisplay}: {reason}" );
+		_ = ServerApiClient.Audit( "Gag", $"{callerSteamName} ({callerSteamId}) gagged {targetSteamName} ({targetSteamId}) for {durationDisplay}: {reason}", callerSteamId );
 	}
 }

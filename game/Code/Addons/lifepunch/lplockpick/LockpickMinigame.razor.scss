@@ -1,0 +1,324 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - Copyright 2026 lifepunch.co. All rights reserved.
+// "Lockpick" (addon ident: lplockpick) is sole-owned by lifepunch.co.
+// Presence in this repository or on the DXRP portal grants no additional rights.
+// -----------------------------------------------------------------------------
+
+@import "../../../UI/styles.scss";
+
+LockpickMinigame {
+	position: absolute;
+	top: 0;
+	left: 0;
+	right: 0;
+	bottom: 0;
+	width: 100%;
+	height: 100%;
+	display: flex;
+	align-items: center;
+	justify-content: center;
+	color: $color-tertiary;
+	pointer-events: none;
+	z-index: 900;
+
+	.lockpick-shell {
+		width: $space-8 * 24;
+		height: 82%;
+		max-width: 92%;
+		max-height: $space-8 * 18;
+		display: flex;
+		flex-direction: column;
+		background-color: rgba($color-primary, 0.96);
+		border: 1px solid rgba($color-tertiary, 0.14);
+		border-radius: $rounding;
+		box-shadow: 0 $space-2 $space-8 rgba($color-secondary, 0.72);
+		overflow: hidden;
+		pointer-events: none;
+	}
+
+	.lockpick-header {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		gap: $space-5;
+		padding: $space-4 $space-5;
+		background-color: $color-secondary;
+		border-bottom: 1px solid rgba($color-tertiary, 0.08);
+	}
+
+	.title-stack {
+		display: flex;
+		flex-direction: column;
+		gap: $space-1;
+	}
+
+	.eyebrow {
+		font-size: $text-xs;
+		font-weight: 600;
+		letter-spacing: 1px;
+		color: $color-gray-400;
+	}
+
+	.title {
+		font-size: $text-2xl;
+		font-weight: 700;
+		color: $color-white;
+	}
+
+	.progress-copy {
+		padding: $space-2 $space-3;
+		font-size: $text-sm;
+		font-weight: 700;
+		color: $color-tertiary;
+		background-color: rgba($color-accent, 0.05);
+		border: 1px solid rgba($color-tertiary, 0.08);
+		border-radius: $rounding;
+	}
+
+	.lock-body {
+		min-height: 0;
+		flex: 1 1 0;
+		display: flex;
+		align-items: stretch;
+		gap: $space-5;
+		padding: $space-5;
+		overflow: hidden;
+	}
+
+	.tumbler {
+		min-width: 0;
+		min-height: 0;
+		flex: 1 1 0;
+		display: flex;
+		padding: $space-4;
+		background-color: rgba($color-secondary, 0.74);
+		border: 1px solid rgba($color-tertiary, 0.08);
+		border-radius: $rounding;
+	}
+
+	.pin-bank {
+		min-width: 0;
+		min-height: 0;
+		width: 100%;
+		display: flex;
+		align-items: stretch;
+		gap: $space-3;
+	}
+
+	.pin-column {
+		min-width: 0;
+		min-height: 0;
+		flex: 1 1 0;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		gap: $space-2;
+		padding: $space-3 $space-2;
+		background-color: rgba($color-tertiary, 0.025);
+		border: 1px solid rgba($color-tertiary, 0.06);
+		border-radius: $rounding;
+
+		&.is-selected {
+			background-color: rgba($color-accent, 0.06);
+			border-color: rgba($color-tertiary, 0.16);
+
+			.pin-marker,
+			.pin-state {
+				color: $color-white;
+			}
+		}
+
+		&.is-loose {
+			.pin-state {
+				color: $color-gray-400;
+			}
+		}
+
+		&.is-caught {
+			background-color: rgba($color-good, 0.12);
+			border-color: rgba($color-good, 0.42);
+
+			.pin-cap,
+			.pin-shaft {
+				background-color: $color-good;
+			}
+
+			.pin-marker,
+			.pin-state {
+				color: $color-good;
+			}
+		}
+	}
+
+	.pin-number {
+		font-size: $text-sm;
+		font-weight: 700;
+		color: $color-tertiary;
+	}
+
+	.pin-channel {
+		position: relative;
+		width: 100%;
+		min-height: 0;
+		flex: 1 1 0;
+		overflow: hidden;
+		background-color: rgba($color-secondary, 0.9);
+		border-left: 1px solid rgba($color-tertiary, 0.08);
+		border-right: 1px solid rgba($color-tertiary, 0.08);
+	}
+
+	.sweet-spot {
+		position: absolute;
+		left: $space-2;
+		right: $space-2;
+		background-color: rgba($color-tertiary, 0.06);
+		border-top: 1px solid rgba($color-tertiary, 0.12);
+		border-bottom: 1px solid rgba($color-tertiary, 0.12);
+	}
+
+	.pin-shaft {
+		position: absolute;
+		left: 50%;
+		width: $space-3;
+		height: $space-8 * 2;
+		transform: translateX(-50%);
+		background-color: $color-gray-400;
+		border-radius: $rounding;
+	}
+
+	.pin-cap {
+		position: absolute;
+		left: -$space-2;
+		top: 0;
+		width: $space-7;
+		height: $space-2;
+		background-color: $color-tertiary;
+		border-radius: $rounding;
+	}
+
+	.pin-marker {
+		height: $space-4;
+		font-size: $text-xs;
+		font-weight: 700;
+		color: rgba($color-tertiary, 0.34);
+	}
+
+	.pin-state {
+		font-size: $text-xs;
+		font-weight: 600;
+		color: $color-gray-400;
+	}
+
+	.tension-panel {
+		min-width: $space-8 * 3;
+		flex: 0 1 24%;
+		display: flex;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: $space-4;
+		padding: $space-4;
+		background-color: rgba($color-secondary, 0.74);
+		border: 1px solid rgba($color-tertiary, 0.08);
+		border-radius: $rounding;
+	}
+
+	.tension-label {
+		font-size: $text-xs;
+		font-weight: 700;
+		letter-spacing: 1px;
+		color: $color-gray-400;
+	}
+
+	.tension-wrench {
+		position: relative;
+		width: $space-8 * 3;
+		height: $space-8 * 4;
+		transform: rotate(-10deg);
+		transition: transform 0.08s ease, opacity 0.08s ease;
+		opacity: 0.56;
+
+		&.is-held {
+			transform: rotate(12deg);
+			opacity: 1;
+		}
+	}
+
+	.wrench-head {
+		position: absolute;
+		left: $space-2;
+		top: $space-2;
+		width: $space-8 * 2;
+		height: $space-3;
+		background-color: $color-gray-400;
+		border-radius: $rounding;
+	}
+
+	.wrench-shaft {
+		position: absolute;
+		left: $space-8;
+		top: $space-3;
+		width: $space-3;
+		height: $space-8 * 3;
+		background-color: $color-gray-400;
+	}
+
+	.wrench-grip {
+		position: absolute;
+		left: $space-6;
+		bottom: $space-1;
+		width: $space-7;
+		height: $space-4;
+		background-color: $color-gray-400;
+		border-radius: $rounding;
+	}
+
+	.tension-state {
+		font-size: $text-sm;
+		font-weight: 700;
+		color: $color-tertiary;
+	}
+
+	.status-line {
+		margin: 0 $space-5 $space-4;
+		padding: $space-3 $space-4;
+		font-size: $text-base;
+		color: $color-tertiary;
+		background-color: rgba($color-accent, 0.05);
+	}
+
+	.controls {
+		display: flex;
+		align-items: center;
+		justify-content: space-between;
+		flex-wrap: wrap;
+		gap: $space-3;
+		padding: $space-3 $space-5;
+		background-color: $color-secondary;
+		border-top: 1px solid rgba($color-tertiary, 0.08);
+	}
+
+	.control-row {
+		min-width: 0;
+		display: flex;
+		align-items: center;
+		gap: $space-2;
+		font-size: $text-sm;
+		color: $color-gray-400;
+	}
+
+	.escape-row {
+		padding-left: $space-3;
+		border-left: 1px solid rgba($color-tertiary, 0.08);
+	}
+
+	.escape-key {
+		padding: $space-1 $space-2;
+		font-size: $text-xs;
+		font-weight: 700;
+		color: $color-tertiary;
+		background-color: rgba($color-tertiary, 0.08);
+		border: 1px solid rgba($color-tertiary, 0.16);
+		border-radius: $rounding;
+	}
+}

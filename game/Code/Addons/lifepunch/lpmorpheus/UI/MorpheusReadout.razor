@@ -1,0 +1,41 @@
+@*
+	─────────────────────────────────────────────────────────────────────────────
+	PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+
+	"Morpheus" (addon ident: lpmorpheus) is the sole-owned
+	intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+	sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+	LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+	Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+	Presence in this repository or on the DXRP portal grants no rights to anyone else.
+	─────────────────────────────────────────────────────────────────────────────
+*@
+@using Sandbox
+@using Sandbox.UI
+@inherits PanelComponent
+@namespace LifePunch.DXRP.Addons.Morpheus
+@attribute [StyleSheet]
+
+<root>
+	@if ( Kind != LpMorpheusReadoutKind.Hidden )
+	{
+		<div class="morpheus-readout">
+			<label class="speaker">@Speaker</label>
+			<label class="line">@Line</label>
+		</div>
+	}
+</root>
+
+@code
+{
+	[Property]
+	public string Speaker { get; set; } = LpMorpheusReadout.SpeakerName;
+
+	[Property]
+	public string Line { get; set; } = string.Empty;
+
+	[Property]
+	public LpMorpheusReadoutKind Kind { get; set; } = LpMorpheusReadoutKind.Hidden;
+
+	protected override int BuildHash() => System.HashCode.Combine( Speaker, Line, Kind );
+}

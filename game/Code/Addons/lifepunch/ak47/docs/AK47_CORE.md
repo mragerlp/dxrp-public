@@ -13,9 +13,9 @@ The AK47 starts from the LifePunch foundation, not the old scratch package.
 ## Planned References
 
 ```text
-primaryReference: addons/lifepunch/ak47/equipment/w_ak47/w_ak47.prefab
-secondaryReference: addons/lifepunch/ak47/equipment/vm_ak47/vm_ak47.prefab
-worldModelPath: addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl
+primaryReference: addons/lifepunch/lpweapons/ak47/equipment/w_ak47/w_ak47.prefab
+secondaryReference: addons/lifepunch/lpweapons/ak47/equipment/vm_ak47/vm_ak47.prefab
+worldModelPath: addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl
 ```
 
 ## Core Code
@@ -47,20 +47,20 @@ The scratch S&box project was reviewed as a template/reference only. The current
 Active cleaned model source:
 
 ```text
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/source/ak47.fbx
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/source/ak47.fbx
 ```
 
 Model/material scaffold:
 
 ```text
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/MODEL_BUILD.md
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/material-map.json
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/MODEL_BUILD.md
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/material-map.json
 ```
 
 Model attribution is tracked in:
 
 ```text
-Assets/addons/lifepunch/ak47/ATTRIBUTION.md
+Assets/addons/lifepunch/lpweapons/ak47/ATTRIBUTION.md
 ```
 
 ## Build Order

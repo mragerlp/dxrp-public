@@ -30,6 +30,15 @@ public static partial class ServerApiClient
 			return null;
 		}
 
+		// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+		// Inventory rows are durable and keyed by SteamId. Returning null is the same neutral shape as
+		// the guard above and is already handled by every caller (e.g. ItemEntity.cs:167 null-checks
+		// and shows "#notify.inventory.pickup_failed"), so no caller learns a new failure mode.
+		if ( SyntheticActorRegistry.IsSynthetic( playerId ) )
+		{
+			return null;
+		}
+
 		return await SafeApiCall( async headers =>
 			{
 				var response = await ApiClientBase.RequestJsonAsync<InventoryItemDto>(
@@ -48,11 +57,20 @@ public static partial class ServerApiClient
 			return false;
 		}
 
+		// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+		// A take against a synthetic actor must not mutate a real account's durable inventory.
+		if ( SyntheticActorRegistry.IsSynthetic( playerId ) )
+		{
+			return false;
+		}
+
 		return await SafeApiCall( async headers =>
 			{
-				await ApiClientBase.RequestAsync(
+				var response = await ApiClientBase.RequestAsync(
 					$"{Constants.ApiBaseUrl}/v1/server/inventory/{playerId}/take",
 					"POST", Http.CreateJsonContent( dto ), headers );
+
+				response.EnsureSuccessStatusCode();
 
 				return true;
 			},
@@ -62,6 +80,14 @@ public static partial class ServerApiClient
 	public static async Task<List<InventoryItemDto>?> GetPlayerInventory( long playerId )
 	{
 		if ( !ServerApiLink.HasAuthorizationKey )
+		{
+			return null;
+		}
+
+		// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+		// This is a READ, so it leaks nothing outward — but it would surface a real third party's
+		// private inventory inside the game as though it belonged to the bot wearing their id.
+		if ( SyntheticActorRegistry.IsSynthetic( playerId ) )
 		{
 			return null;
 		}

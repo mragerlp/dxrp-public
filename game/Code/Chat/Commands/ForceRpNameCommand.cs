@@ -61,37 +61,44 @@ public class ForceRpNameCommand : ICommand
 
 	private static async Task SetRpNameAsync( Player caller, Player target, string? name )
 	{
+		var callerSteamId = caller.SteamId;
+		var callerSteamName = caller.SteamName;
 		var targetSteamId = target.SteamId;
 		var targetSteamName = target.SteamName;
 
-		var didSucceed = await ServerApiClient.SetRpName( targetSteamId, name );
+		var didSucceed = await ServerApiClient.SetRpName( targetSteamId, name, callerSteamId );
 		await GameTask.MainThread();
-
-		if ( !caller.IsValid() )
-		{
-			return;
-		}
 
 		if ( !didSucceed )
 		{
-			caller.Error( "#notify.rpname.not_allowed" );
+			if ( caller.IsValid() )
+			{
+				caller.Error( "#notify.rpname.not_allowed" );
+			}
 			return;
 		}
 
-		if ( target.IsValid() )
+		var liveTarget = GameUtils.GetPlayerById( targetSteamId );
+		if ( liveTarget.IsValid() )
 		{
-			target.RpName = name;
+			liveTarget.RpName = name;
 		}
 
 		if ( string.IsNullOrWhiteSpace( name ) )
 		{
-			_ = ServerApiClient.Audit( "ForceRpName", $"{caller.SteamName} ({caller.SteamId}) cleared RP name of {targetSteamName} ({targetSteamId})", caller.SteamId );
-			caller.Success( string.Format( Language.GetPhrase( "notify.rpname.cleared" ) ) );
+			_ = ServerApiClient.Audit( "ForceRpName", $"{callerSteamName} ({callerSteamId}) cleared RP name of {targetSteamName} ({targetSteamId})", callerSteamId );
+			if ( caller.IsValid() )
+			{
+				caller.Success( string.Format( Language.GetPhrase( "notify.rpname.cleared" ) ) );
+			}
 			return;
 		}
 
-		_ = ServerApiClient.Audit( "ForceRpName", $"{caller.SteamName} ({caller.SteamId}) set RP name of {targetSteamName} ({targetSteamId}) to {name}", caller.SteamId );
-		caller.Success( string.Format( Language.GetPhrase( "notify.rpname.set" ), name ) );
+		_ = ServerApiClient.Audit( "ForceRpName", $"{callerSteamName} ({callerSteamId}) set RP name of {targetSteamName} ({targetSteamId}) to {name}", callerSteamId );
+		if ( caller.IsValid() )
+		{
+			caller.Success( string.Format( Language.GetPhrase( "notify.rpname.set" ), name ) );
+		}
 	}
 
 	private static bool IsValidName( string name )

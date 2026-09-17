@@ -56,6 +56,7 @@ public static class StaffMenuTestBots
 
 	private static int _spawnCount;
 	private static readonly List<long> _spawned = new();
+	private static readonly Dictionary<long, Guid> _spawnedGameObjectIds = new();
 
 	// RankSystem.Ranks is host-private — portal init fills this cache (lp_authorize / DxrpPortalDevAuth).
 	private static readonly Dictionary<string, Guid> RankIdByName = new( StringComparer.OrdinalIgnoreCase );
@@ -267,6 +268,12 @@ public static class StaffMenuTestBots
 
 	private static bool TryAssignBotRank( string botName, long steamId, string canonicalRank )
 	{
+		if ( !TryGetSpawnedBot( steamId, out _ ) )
+		{
+			Log.Warning( $"testbot ranks: GUID ownership not proven for '{botName}'; refusing assignment." );
+			return false;
+		}
+
 		var ranks = RankSystem.Instance;
 		if ( !ranks.IsValid() )
 		{
@@ -360,6 +367,124 @@ public static class StaffMenuTestBots
 		}
 	}
 
+	/// <summary>
+	/// Named editor seat (Intellibot GROK / Fred). Replaces only the exact synthetic
+	/// actor this editor lane previously spawned at <paramref name="steamId"/>.
+	/// </summary>
+	public static Player SpawnOrReplaceNamedBot( string name, long steamId, Vector3 position )
+	{
+		if ( !Application.IsEditor || !Networking.IsHost )
+		{
+			Log.Warning( "spawn named bot: editor host-only." );
+			return null;
+		}
+
+		if ( !EnsureBotSlot( steamId, name ) )
+		{
+			return null;
+		}
+
+		return SpawnBot( name, steamId, position );
+	}
+
+	/// <summary>Assign a portal rank to a spawned bot. Needs <c>lp_authorize</c> so the rank table is cached.</summary>
+	public static bool TryAssignNamedBotRank( string botName, long steamId, string canonicalRank )
+	{
+		if ( !TryGetSpawnedNamedBot( steamId, botName, out _ ) )
+		{
+			Log.Warning( $"testbot rank: exact spawned bot '{botName}' identity not proven; refusing assignment." );
+			return false;
+		}
+
+		return TryAssignBotRank( botName, steamId, canonicalRank );
+	}
+
+	/// <summary>
+	/// Resolve only the exact synthetic actor recorded when this spawn lane created
+	/// it. The GameObject GUID is the ownership pin; SteamId and mutable metadata are
+	/// necessary identity checks but are not sufficient by themselves.
+	/// </summary>
+	private static bool TryGetSpawnedBot( long steamId, out Player player )
+	{
+		player = null;
+
+		if ( !_spawned.Contains( steamId )
+			|| !_spawnedGameObjectIds.TryGetValue( steamId, out var gameObjectId ) )
+		{
+			return false;
+		}
+
+		var manager = GameNetworkManager.Instance;
+		if ( !manager.IsValid()
+			|| !manager.Players.TryGetValue( steamId, out var candidate )
+			|| !candidate.IsValid()
+			|| candidate.GameObject.Id != gameObjectId
+			|| candidate.SteamId != steamId
+			|| !candidate.IsDebugPlayer
+			|| candidate.Connection is not null
+			|| !SyntheticActorRegistry.IsSynthetic( steamId, candidate.IsDebugPlayer ) )
+		{
+			return false;
+		}
+
+		player = candidate;
+		return true;
+	}
+
+	/// <summary>
+	/// Resolve a named bot only when it is still the exact editor-owned synthetic
+	/// actor recorded by this spawn lane. Never falls back to a scene/name search.
+	/// </summary>
+	internal static bool TryGetSpawnedNamedBot( long steamId, string exactName, out Player player )
+	{
+		if ( !TryGetSpawnedBot( steamId, out player ) )
+		{
+			return false;
+		}
+
+		if ( !string.Equals( player.SteamName, exactName, StringComparison.Ordinal )
+			|| !string.Equals( player.GameObject.Name, $"TestBot ({exactName})", StringComparison.Ordinal ) )
+		{
+			player = null;
+			return false;
+		}
+
+		return true;
+	}
+
+	/// <summary>
+	/// Destroy and unregister only an exact bot proven by
+	/// <see cref="TryGetSpawnedNamedBot"/>. A human or untracked pawn is refused.
+	/// </summary>
+	internal static bool RemoveSpawnedNamedBot( long steamId, string exactName, string logPrefix )
+	{
+		if ( !TryGetSpawnedNamedBot( steamId, exactName, out var player ) )
+		{
+			Log.Warning( $"{logPrefix}: exact spawned bot identity not proven; refusing removal." );
+			return false;
+		}
+
+		var manager = GameNetworkManager.Instance;
+		var ranks = RankSystem.Instance;
+		var gameObjectName = player.GameObject.Name;
+
+		player.GameObject.Destroy();
+		manager.Players.Remove( steamId );
+		_spawned.Remove( steamId );
+		_spawnedGameObjectIds.Remove( steamId );
+
+		if ( ranks.IsValid() )
+		{
+			ranks.SetPlayerRanks( steamId, new List<Guid>() );
+		}
+
+		var removed = !manager.Players.ContainsKey( steamId )
+			&& !_spawned.Contains( steamId )
+			&& !_spawnedGameObjectIds.ContainsKey( steamId );
+		Log.Info( $"{logPrefix}: destroyed '{gameObjectName}' exact={removed}." );
+		return removed;
+	}
+
 	// Shared spawn path for every bot variant. Mirrors DXRP's own DebugPlayerSpawner: clone the player
 	// prefab, give it the supplied identity, mark it a debug player, kill its controller/physics so it
 	// just stands there, network-spawn it, then DROP OWNERSHIP. Dropping ownership is the critical bit —
@@ -419,6 +544,7 @@ public static class StaffMenuTestBots
 		go.Network.DropOwnership();
 
 		manager.Players[steamId] = player;
+		_spawnedGameObjectIds[steamId] = go.Id;
 
 		// Sane stats so the profile pane renders (bank balance, playtime, level, rp name).
 		player.InitalizeHost( 50000, 6000, 5, name );
@@ -431,28 +557,47 @@ public static class StaffMenuTestBots
 		return player;
 	}
 
-	/// <summary>Drop a prior-session bot occupying a fixed SteamId so rank preview bots can respawn.</summary>
-	private static void EnsureBotSlot( long steamId )
+	/// <summary>
+	/// Free a fixed synthetic slot only when it is empty, stale, or still occupied by
+	/// the exact bot recorded by this spawn lane. Never replaces an unowned pawn.
+	/// </summary>
+	private static bool EnsureBotSlot( long steamId, string exactName )
 	{
 		var manager = GameNetworkManager.Instance;
 		if ( !manager.IsValid() )
 		{
-			return;
+			Log.Warning( $"testbot: player manager unavailable for '{exactName}'." );
+			return false;
 		}
 
+		var ownedBotRemoved = false;
 		if ( manager.Players.TryGetValue( steamId, out var player ) && player.IsValid() )
 		{
+			if ( !TryGetSpawnedNamedBot( steamId, exactName, out var owned )
+				|| !ReferenceEquals( player, owned ) )
+			{
+				Log.Warning( $"testbot: SteamId {steamId} is occupied by an unowned pawn; refusing to replace it with '{exactName}'." );
+				return false;
+			}
+
 			player.GameObject.Destroy();
+			ownedBotRemoved = true;
 		}
 
 		manager.Players.Remove( steamId );
 		_spawned.Remove( steamId );
+		_spawnedGameObjectIds.Remove( steamId );
 
-		var ranks = RankSystem.Instance;
-		if ( ranks.IsValid() )
+		if ( ownedBotRemoved )
 		{
-			ranks.SetPlayerRanks( steamId, new List<Guid>() );
+			var ranks = RankSystem.Instance;
+			if ( ranks.IsValid() )
+			{
+				ranks.SetPlayerRanks( steamId, new List<Guid>() );
+			}
 		}
+
+		return true;
 	}
 
 	[ConCmd( "lifepunch_clear_testbots" )]
@@ -467,14 +612,16 @@ public static class StaffMenuTestBots
 		var ranks = RankSystem.Instance;
 		var removed = 0;
 
-		foreach ( var id in _spawned )
+		foreach ( var id in _spawned.ToArray() )
 		{
-			if ( manager.IsValid() && manager.Players.TryGetValue( id, out var player ) && player.IsValid() )
+			if ( !TryGetSpawnedBot( id, out var player ) )
 			{
-				player.GameObject.Destroy();
+				Log.Warning( $"lifepunch_clear_testbots: GUID ownership not proven for SteamId {id}; refusing pawn and rank mutation." );
+				continue;
 			}
 
-			manager?.Players.Remove( id );
+			player.GameObject.Destroy();
+			manager.Players.Remove( id );
 
 			// Drop any rank we assigned so placeholder ids don't linger in RankSystem between runs.
 			if ( ranks.IsValid() )
@@ -486,6 +633,7 @@ public static class StaffMenuTestBots
 		}
 
 		_spawned.Clear();
+		_spawnedGameObjectIds.Clear();
 		Log.Info( $"lifepunch_clear_testbots: removed {removed} dummy player(s)." );
 	}
 
@@ -666,7 +814,7 @@ public static class StaffMenuTestBots
 		{
 			if ( rankFilter.Contains( def.Rank ) )
 			{
-				EnsureBotSlot( def.SteamId );
+				EnsureBotSlot( def.SteamId, def.Name );
 			}
 		}
 
@@ -864,15 +1012,20 @@ public static class StaffMenuTestBots
 			return;
 		}
 
-		var player = GameUtils.Players.FirstOrDefault( p => p.IsValid() && p.SteamId == steamId );
-		var label = player.IsValid() ? player.DisplayName : botToken;
+		if ( !TryGetSpawnedBot( steamId, out var player ) )
+		{
+			Log.Warning( $"lifepunch_botsay: GUID ownership no longer matches '{botToken}'; refusing." );
+			return;
+		}
+
+		var label = player.DisplayName;
 		chat.BroadcastChat( $"{label}: {message}", MessageType.GlobalChat );
 	}
 
 	// Resolve a spawned bot by raw SteamId or by a case-insensitive substring of its display name.
 	private static long ResolveBotSteamId( string token )
 	{
-		if ( long.TryParse( token, out var rawId ) && _spawned.Contains( rawId ) )
+		if ( long.TryParse( token, out var rawId ) && TryGetSpawnedBot( rawId, out _ ) )
 		{
 			return rawId;
 		}
@@ -885,8 +1038,8 @@ public static class StaffMenuTestBots
 
 		foreach ( var id in _spawned )
 		{
-			if ( manager.Players.TryGetValue( id, out var player ) && player.IsValid() &&
-			     player.DisplayName.Contains( token, StringComparison.OrdinalIgnoreCase ) )
+			if ( TryGetSpawnedBot( id, out var player ) &&
+				 player.DisplayName.Contains( token, StringComparison.OrdinalIgnoreCase ) )
 			{
 				return id;
 			}

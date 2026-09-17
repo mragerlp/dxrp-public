@@ -26,23 +26,37 @@ public class MaterialTool : BaseTool
 		OnMaterialsRefreshed?.Invoke(); // Force refresh to ensure MaterialPicker updates
 	}
 
+	public void OnGameModeUpdated( GameModeDto? before, GameModeDto? after )
+	{
+		RefreshMaterials();
+		ToolMenu.Instance?.UpdateInspector();
+	}
+
+	public static void RefreshFromGameMode( GameModeDto? before, GameModeDto? after )
+	{
+		if ( CurrentTool is MaterialTool tool )
+		{
+			tool.OnGameModeUpdated( before, after );
+		}
+	}
+
 	private void RefreshMaterials()
 	{
 		MaterialOptions.Clear();
 
-		// Use Constants.MaterialWhitelist instead of scanning filesystem
-		foreach ( var materialPath in Config.Current.Game.MaterialWhitelist )
+		// Gamemode building list when present, GameConfig whitelist as fallback
+		foreach ( var materialPath in GameModeBuilding.Materials )
 		{
 			MaterialOptions.Add( materialPath );
 		}
 
-		if ( MaterialOptions.Count > 0 && string.IsNullOrWhiteSpace( SelectedMaterial ) )
-		{
-			SelectedMaterial = MaterialOptions[0];
-		}
-		else if ( MaterialOptions.Count == 0 )
+		if ( MaterialOptions.Count == 0 )
 		{
 			SelectedMaterial = "";
+		}
+		else if ( string.IsNullOrWhiteSpace( SelectedMaterial ) || !MaterialOptions.Contains( SelectedMaterial ) )
+		{
+			SelectedMaterial = MaterialOptions[0];
 		}
 
 		OnMaterialsRefreshed?.Invoke();
@@ -73,6 +87,12 @@ public class MaterialTool : BaseTool
 		if ( string.IsNullOrWhiteSpace( SelectedMaterial ) )
 		{
 			Notify.Error( "#tool.material.no_selection" );
+			return;
+		}
+
+		if ( !GameModeBuilding.IsMaterialAllowed( SelectedMaterial ) )
+		{
+			Notify.Error( "#generic.forbidden" );
 			return;
 		}
 
@@ -119,15 +139,15 @@ public class MaterialTool : BaseTool
 
 		if ( prop.Data is PropData propData && !string.IsNullOrWhiteSpace( propData.Material ) )
 		{
+			if ( !GameModeBuilding.Materials.Contains( propData.Material ) || !GameModeBuilding.IsMaterialAllowed( propData.Material ) )
+			{
+				Notify.Error( "#generic.forbidden" );
+				return;
+			}
+
 			SelectedMaterial = propData.Material;
 			Notify.Success( "#tool.material.copied" );
 			Tool.DoUseEffects( true, tr.HitPosition, tr.Normal );
-
-			if ( !MaterialOptions.Contains( propData.Material ) )
-			{
-				MaterialOptions.Add( propData.Material );
-				OnMaterialsRefreshed?.Invoke();
-			}
 		}
 	}
 

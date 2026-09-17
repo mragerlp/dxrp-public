@@ -76,7 +76,7 @@ public partial class Player
 		if ( Job.IncludeDefaultEquipment )
 		{
 			var defaults = ResolveDefaultEquipment().ToList();
-			
+
 			foreach ( var equipmentResource in defaults )
 			{
 				GiveHost( equipmentResource, isFirst, false );
@@ -95,7 +95,7 @@ public partial class Player
 			GiveHost( equipmentResource, isFirst, false );
 		}
 	}
-	
+
 	private static IEnumerable<GameModeEquipmentDto> ResolveDefaultEquipment()
 	{
 		var ids = Config.Current.GameMode.DefaultEquipmentIds;
@@ -317,7 +317,7 @@ public partial class Player
 			return;
 		}
 
-		if ( weapon.CanDrop )
+		if ( weapon.CanDropNow )
 		{
 			var resource = weapon.Resource;
 			if ( resource == null )
@@ -332,7 +332,7 @@ public partial class Player
 
 			var worldModel = weapon.Resource.GetWorldModel();
 			var position = tr.Hit && worldModel != null
-				? tr.HitPosition + tr.Normal * worldModel.Bounds.Size.Length
+				? tr.HitPosition + tr.Normal * (worldModel.Bounds.Size.Length * resource.WorldModelScale())
 				: AimRay.Position + AimRay.Forward * 32f;
 			var rotation = Rotation.From( 0, Controller.EyeAngles.yaw + 90, 90 );
 
@@ -346,7 +346,7 @@ public partial class Player
 			}
 		}
 
-		if ( weapon.CanDrop || forceRemove )
+		if ( weapon.CanDropNow || forceRemove )
 		{
 			RemoveEquipment( weapon );
 		}
@@ -619,7 +619,7 @@ public partial class Player
 
 	public Equipment? FindEquipment( GameModeEquipmentDto resource )
 	{
-		return Equipment.FirstOrDefault( weapon => weapon.Enabled && weapon.EquipmentId == resource.Id );
+		return Equipment.FirstOrDefault( weapon => weapon.Enabled && weapon.EquipmentId == resource.GameModeAddonContentId );
 	}
 
 	private Equipment? ResolveHandsEquipment()
@@ -669,7 +669,7 @@ public partial class Player
 		if ( Config.Current.Game.DropWeaponOnDeath && !Restricted )
 		{
 			// 50% chance to drop only the currently held weapon
-			if ( Random.Shared.NextSingle() < 0.5f && CurrentEquipment.IsValid() && CurrentEquipment.CanDrop )
+			if ( Random.Shared.NextSingle() < 0.5f && CurrentEquipment.IsValid() && CurrentEquipment.CanDropNow )
 			{
 				DropEquipmentDirectly( CurrentEquipment );
 			}
@@ -683,7 +683,7 @@ public partial class Player
 	{
 		var equipmentToDrop = Equipment.Where( x =>
 			x.IsValid() &&
-			x.CanDrop
+			x.CanDropNow
 		).ToList();
 
 		foreach ( var equipment in equipmentToDrop )
@@ -713,7 +713,7 @@ public partial class Player
 
 		var worldModel = equipment.Resource.GetWorldModel();
 		var position = tr.Hit && worldModel != null
-			? tr.HitPosition + tr.Normal * worldModel.Bounds.Size.Length
+			? tr.HitPosition + tr.Normal * (worldModel.Bounds.Size.Length * resource.WorldModelScale())
 			: AimRay.Position + AimRay.Forward * 32f;
 		var rotation = Rotation.From( 0, Controller.EyeAngles.yaw + 90, 90 );
 
@@ -746,7 +746,7 @@ public partial class Player
 		{
 			return PickupResult.None;
 		}
-		
+
 		if ( CantSwitch )
 		{
 			return PickupResult.None;

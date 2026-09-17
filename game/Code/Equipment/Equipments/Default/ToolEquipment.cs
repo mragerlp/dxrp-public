@@ -7,7 +7,7 @@ public class ToolEquipment : InputWeaponComponent, IEquipmentEvents
 {
 	[Property] [Group( "Sounds" )] private SoundEvent? UseSound { get; set; }
 
-	[Property] [Group( "Prefabs" )] public required GameObject LinePrefab { get; set; }
+	[Property] [Group( "Prefabs" )] public GameObject? LinePrefab { get; set; }
 
 	public BaseTool? CurrentTool;
 

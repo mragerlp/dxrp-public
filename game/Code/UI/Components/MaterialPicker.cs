@@ -2,50 +2,89 @@ using System.Threading.Tasks;
 
 namespace Dxura.RP.Game.UI;
 
-public class MaterialPicker : Panel
+public class MaterialPicker : Panel, IGameEvents
 {
-    private VirtualGrid _grid = null!;
-    private SerializedProperty _property = null!;
-    private bool _initialized;
-    
-    public Action<string>? OnValueChanged { get; set; }
-    protected string Value { get; set; } = string.Empty;
-    
-    public SerializedProperty SerializedProperty
-    {
-        get => _property;
-        set
-        {
-            _property = value;
-            Value = _property.GetValue<string>();
-        }
-    }
-    
-    protected override void OnParametersSet()
-    {
-        if (_initialized) return;
-        
-        _initialized = true;
-        InitializeLayout();
-        PopulateMaterialList();
-    }
-    
-    private void InitializeLayout()
-    {
-        AddClass("modelpicker");
-        
-        AddChild(out _grid, "canvas");
-        _grid.Style.Height = 512;
-        _grid.ItemSize = 64;
-        _grid.AddClass("overflow-y-scroll");
-	    _grid.OnCreateCell = ( panel, o ) =>
-	    {
-		    _ = CreateMaterialCell(panel, o);
-	    };
-    }
-    
+	private static readonly List<MaterialPicker> Live = new();
+
+	private VirtualGrid _grid = null!;
+	private SerializedProperty _property = null!;
+	private bool _initialized;
+	private int _listEpoch;
+
+	public MaterialPicker()
+	{
+		Live.Add( this );
+	}
+
+	public Action<string>? OnValueChanged { get; set; }
+	protected string Value { get; set; } = string.Empty;
+
+	public SerializedProperty SerializedProperty
+	{
+		get => _property;
+		set
+		{
+			_property = value;
+			Value = _property.GetValue<string>();
+		}
+	}
+
+	protected override void OnParametersSet()
+	{
+		if ( !_initialized )
+		{
+			_initialized = true;
+			InitializeLayout();
+		}
+
+		PopulateMaterialList();
+	}
+
+	public void OnGameModeUpdated( GameModeDto? before, GameModeDto? after )
+	{
+		if ( !_initialized )
+		{
+			return;
+		}
+
+		PopulateMaterialList();
+	}
+
+	public static void RefreshLive()
+	{
+		for ( var i = Live.Count - 1; i >= 0; i-- )
+		{
+			var picker = Live[i];
+			if ( picker is null || !picker.IsValid() )
+			{
+				Live.RemoveAt( i );
+				continue;
+			}
+
+			if ( picker._initialized )
+			{
+				picker.PopulateMaterialList();
+			}
+		}
+	}
+
+	private void InitializeLayout()
+	{
+		AddClass("modelpicker");
+
+		AddChild(out _grid, "canvas");
+		_grid.Style.Height = 512;
+		_grid.ItemSize = 64;
+		_grid.AddClass("overflow-y-scroll");
+		_grid.OnCreateCell = ( panel, o ) =>
+		{
+			_ = CreateMaterialCell(panel, o);
+		};
+	}
+
 	private async Task CreateMaterialCell(Panel cell, object data)
 	{
+		var epoch = _listEpoch;
 		var materialPath = (string)data;
 
 		var placeholder = new Panel { Style = { Width = Length.Percent(100), Height = Length.Percent(100), BackgroundColor = Color.Gray.WithAlpha(0.5f) } };
@@ -65,28 +104,29 @@ public class MaterialPicker : Panel
 		try
 		{
 			var finalMaterialPath = materialPath;
-			
-			if (!materialPath.EndsWith(".vmat"))
+
+			if ( GameModeJobDtoExtensions.IsCloudIdent( materialPath ) )
 			{
-				if ( Config.Current.Game.RestrictCloudOrg != null &&
-				     !materialPath.StartsWith( Config.Current.Game.RestrictCloudOrg ) )
+				if ( GameModeBuilding.MaterialCloudOrgRejects( materialPath ) )
 				{
 					return;
 				}
-				
+
 				var package = await Package.FetchAsync(materialPath, true, true);
-				if(package == null) return;
-			
+				if ( epoch != _listEpoch || package == null ) return;
+
 				var materialRef = await package.MountAsync();
-				if (materialRef == null) return;
-				
+				if ( epoch != _listEpoch || materialRef == null ) return;
+
 				finalMaterialPath = package.GetMeta("PrimaryAsset", "");
 				if(string.IsNullOrEmpty(finalMaterialPath)) return;
 			}
-		
+
+			if ( epoch != _listEpoch ) return;
+
 			var material = await Material.LoadAsync( finalMaterialPath );
-			if(material == null) return;
-			
+			if ( epoch != _listEpoch || material == null ) return;
+
 			var texture = ThumbnailCache.Get( material );
 			var image = new Image { Texture = texture, Style = { PointerEvents = PointerEvents.All } };
 
@@ -94,9 +134,9 @@ public class MaterialPicker : Panel
 			{
 				image.Style.BackgroundColor = Color.Gray;
 			}
-			
+
 			placeholder.Delete();
-			
+
 			SetupMaterialPanelInteraction(image, materialPath);
 			cell.AddChild( image );
 		}
@@ -112,15 +152,15 @@ public class MaterialPicker : Panel
 		{
 			return materialPath.Split('.').Last();
 		}
-		
+
 		if (materialPath.Contains("/"))
 		{
 			return materialPath.Split('/').Last().Replace(".vmat", "");
 		}
-		
+
 		return materialPath.Replace(".vmat", "");
 	}
-	
+
 	private void SetupMaterialPanelInteraction(Panel panel, string materialPath)
 	{
 		panel.Tooltip = materialPath;
@@ -130,13 +170,13 @@ public class MaterialPicker : Panel
 			SelectMaterial(materialPath);
 		});
 	}
-    
+
 	private void SelectMaterial(string materialPath)
 	{
 		Value = materialPath;
 		OnValueChanged?.Invoke(Value);
 		_property?.SetValue(Value);
-		
+
 		foreach (var cellPanel in _grid.Children.OfType<Panel>())
 		{
 			var materialPanel = cellPanel.Children.FirstOrDefault();
@@ -144,7 +184,7 @@ public class MaterialPicker : Panel
 			{
 				bool isSelected = materialPanel.Tooltip == materialPath;
 				materialPanel.SetClass("selected", isSelected);
-				
+
 				if (isSelected)
 				{
 					materialPanel.Style.BorderColor = Color.White;
@@ -158,21 +198,27 @@ public class MaterialPicker : Panel
 			}
 		}
 	}
-    
-    private void PopulateMaterialList()
-    {
-        _grid.Clear();
-        
-        foreach (var materialPath in Config.Current.Game.MaterialWhitelist.Distinct())
-        {
-            _grid.AddItem(materialPath);
-        }
 
-        if (Config.Current.Game.MaterialWhitelist.Length == 0)
-        {
-            var label = _grid.AddChild<Label>();
-            label.Text = "No materials available";
-            label.AddClass("empty-message");
-        }
-    }
+	private void PopulateMaterialList()
+	{
+		if ( !_initialized )
+		{
+			return;
+		}
+
+		_listEpoch++;
+		_grid.Clear();
+
+		foreach (var materialPath in GameModeBuilding.Materials.Distinct())
+		{
+			_grid.AddItem(materialPath);
+		}
+
+		if (GameModeBuilding.Materials.Count == 0)
+		{
+			var label = _grid.AddChild<Label>();
+			label.Text = "No materials available";
+			label.AddClass("empty-message");
+		}
+	}
 }

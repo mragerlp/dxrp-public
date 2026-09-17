@@ -21,6 +21,12 @@ public abstract partial class GameConfig
 	public virtual float BreachDuration { get; set; } = 180f; // 3 minutes
 
 	//
+	// Lockpick (lifepunch.lplockpick) -- board 1958 additive-only named exception
+	//
+	public virtual float LockpickDuration { get; set; } = 10.0f;
+	public virtual float LockpickMaxDistance { get; set; } = 150f;
+
+	//
 	// Equipment
 	//
 

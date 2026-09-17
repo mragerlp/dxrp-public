@@ -71,6 +71,7 @@ public class ViewModel : Component, IEquipment, PlayerController.IEvents
 	[Property] [Group( "GameObjects" )] public GameObject? EjectionPort { get; set; }
 
 	[Property] [Group( "Components" )] public SkinnedModelRenderer? ModelRenderer { get; set; }
+	[Property] [Group( "Components" )] public GameObject? AdditionalRendererRoot { get; set; }
 
 	[Property] public bool RenderingEnabled { get; set; } = true;
 
@@ -247,13 +248,25 @@ public class ViewModel : Component, IEquipment, PlayerController.IEvents
 		LocalPosition = _lerpedLocalPosition;
 		LocalRotation = _lerpedlocalRotation;
 
-		if ( Arms.IsValid() && ModelRenderer.IsValid() )
-		{
-			Arms.Tint = Arms.Tint.WithAlpha( RenderingEnabled ? 1f : 0f );
-			ModelRenderer.Tint = ModelRenderer.Tint.WithAlpha( RenderingEnabled ? 1f : 0f );
+		var renderAlpha = RenderingEnabled ? 1f : 0f;
 
+		if ( Arms.IsValid() )
+		{
+			Arms.Tint = Arms.Tint.WithAlpha( renderAlpha );
 		}
 
+		if ( ModelRenderer.IsValid() )
+		{
+			ModelRenderer.Tint = ModelRenderer.Tint.WithAlpha( renderAlpha );
+		}
+
+		if ( AdditionalRendererRoot.IsValid() )
+		{
+			foreach ( var renderer in AdditionalRendererRoot.GetComponentsInChildren<ModelRenderer>( true ) )
+			{
+				renderer.Tint = renderer.Tint.WithAlpha( renderAlpha );
+			}
+		}
 	}
 
 	public void OnFireMode( FireMode currentFireMode )

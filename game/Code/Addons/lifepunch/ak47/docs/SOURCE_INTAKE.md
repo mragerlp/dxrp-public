@@ -106,13 +106,13 @@ Decision:
 Imported model sources:
 
 ```text
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/source/ak47.fbx
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/source/ak47.fbx
 ```
 
 Active model source:
 
 ```text
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/source/ak47.fbx
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/source/ak47.fbx
 ```
 
 `ak47 (1).zip` and `ak47.zip` appear to contain the same source set:
@@ -178,36 +178,36 @@ Decision:
 Imported raw sound sources:
 
 ```text
-Assets/addons/lifepunch/ak47/sounds/source/ak47-1.wav
-Assets/addons/lifepunch/ak47/sounds/source/ak47-1-distant.wav
-Assets/addons/lifepunch/ak47/sounds/source/ak47_01.wav
-Assets/addons/lifepunch/ak47/sounds/source/ak47_boltpull.wav
-Assets/addons/lifepunch/ak47/sounds/source/ak47_clipin.wav
-Assets/addons/lifepunch/ak47/sounds/source/ak47_clipout.wav
-Assets/addons/lifepunch/ak47/sounds/source/ak47_distant.wav
-Assets/addons/lifepunch/ak47/sounds/source/ak47_draw.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/source/ak47-1.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/source/ak47-1-distant.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/source/ak47_01.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/source/ak47_boltpull.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/source/ak47_clipin.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/source/ak47_clipout.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/source/ak47_distant.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/source/ak47_draw.wav
 ```
 
 Normalized sound source copies:
 
 ```text
-Assets/addons/lifepunch/ak47/sounds/ak47_shot.wav
-Assets/addons/lifepunch/ak47/sounds/ak47_shot_distant.wav
-Assets/addons/lifepunch/ak47/sounds/ak47_reload_clipout.wav
-Assets/addons/lifepunch/ak47/sounds/ak47_reload_clipin.wav
-Assets/addons/lifepunch/ak47/sounds/ak47_cock.wav
-Assets/addons/lifepunch/ak47/sounds/ak47_draw.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_shot.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_shot_distant.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipout.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipin.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_cock.wav
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_draw.wav
 ```
 
 Created sound resources:
 
 ```text
-Assets/addons/lifepunch/ak47/sounds/ak47_shot.sound
-Assets/addons/lifepunch/ak47/sounds/ak47_shot_distant.sound
-Assets/addons/lifepunch/ak47/sounds/ak47_reload_clipout.sound
-Assets/addons/lifepunch/ak47/sounds/ak47_reload_clipin.sound
-Assets/addons/lifepunch/ak47/sounds/ak47_cock.sound
-Assets/addons/lifepunch/ak47/sounds/ak47_draw.sound
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_shot.sound
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_shot_distant.sound
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipout.sound
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipin.sound
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_cock.sound
+Assets/addons/lifepunch/lpweapons/ak47/sounds/ak47_draw.sound
 ```
 
 Deferred sound decisions:
@@ -242,55 +242,55 @@ ak47_draw
 Model source target:
 
 ```text
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/source/
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/source/
 ```
 
 Texture source target:
 
 ```text
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/textures/
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/textures/
 ```
 
 Compiled/model resource target:
 
 ```text
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl
 ```
 
 Model/material scaffold:
 
 ```text
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/MODEL_BUILD.md
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/material-map.json
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/MODEL_BUILD.md
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/material-map.json
 ```
 
 World prefab target:
 
 ```text
-Assets/addons/lifepunch/ak47/equipment/w_ak47/w_ak47.prefab
+Assets/addons/lifepunch/lpweapons/ak47/equipment/w_ak47/w_ak47.prefab
 ```
 
 Viewmodel prefab target:
 
 ```text
-Assets/addons/lifepunch/ak47/equipment/vm_ak47/vm_ak47.prefab
+Assets/addons/lifepunch/lpweapons/ak47/equipment/vm_ak47/vm_ak47.prefab
 ```
 
 Sound target:
 
 ```text
-Assets/addons/lifepunch/ak47/sounds/
+Assets/addons/lifepunch/lpweapons/ak47/sounds/
 ```
 
 Planned mounted sound references:
 
 ```text
-addons/lifepunch/ak47/sounds/ak47_shot.sound
-addons/lifepunch/ak47/sounds/ak47_shot_distant.sound
-addons/lifepunch/ak47/sounds/ak47_reload_clipout.sound
-addons/lifepunch/ak47/sounds/ak47_reload_clipin.sound
-addons/lifepunch/ak47/sounds/ak47_cock.sound
-addons/lifepunch/ak47/sounds/ak47_draw.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_shot.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_shot_distant.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipout.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipin.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_cock.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_draw.sound
 ```
 
 Code target:

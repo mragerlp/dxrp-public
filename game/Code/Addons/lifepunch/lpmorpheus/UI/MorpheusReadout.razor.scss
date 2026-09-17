@@ -1,0 +1,51 @@
+// ─────────────────────────────────────────────────────────────────────────────
+// PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved.
+//
+// "Morpheus" (addon ident: lpmorpheus) is the sole-owned
+// intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+// sublicensing, copying, or reuse by ANY person or entity — including DXRP and
+// LifePunch staff, contributors, or community — EXCEPT the owner (lifepunch.co).
+// Author account: mrragerlp · Public alias (in-game · Steam · Discord): Bloodwave
+// Presence in this repository or on the DXRP portal grants no rights to anyone else.
+// ─────────────────────────────────────────────────────────────────────────────
+//
+// Sidecar for MorpheusReadout.razor, applied by its [StyleSheet] attribute.
+// Display-only lower third. The panel root is stretched here because a component
+// root does not cover the screen on its own, and the bar docks to that root; the
+// whole tree stays pointer-transparent so it can never eat a USE press.
+// Terminal look is weight, letter-spacing and color only — no font asset.
+
+MorpheusReadout {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+
+  .morpheus-readout {
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 2px;
+    padding: 8px 14px 10px 14px;
+    background-color: #050505;
+    border-top: 2px solid #00FFFF;
+    font-size: 15px;
+    line-height: 1.35;
+    pointer-events: none;
+
+    .speaker {
+      color: #FFFFFF;
+      font-weight: 700;
+      letter-spacing: 1px;
+    }
+
+    .line {
+      color: #00FFFF;
+    }
+  }
+}

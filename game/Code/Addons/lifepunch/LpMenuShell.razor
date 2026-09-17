@@ -224,12 +224,13 @@
 	[Property] public string Wordmark { get; set; } = string.Empty;
 	[Property] public string AccentColor { get; set; } = "#e87d3e";
 	[Property] public RenderFragment? TopBarControls { get; set; }
+	[Property] public new RenderFragment? ChildContent { get; set; }
 	[Property] public List<NavItem> NavItems { get; set; } = new();
 	[Property] public List<DoorCard> DoorCards { get; set; } = new();
 	[Property] public List<StatRow> SnapshotStats { get; set; } = new();
 	[Property] public List<QuickButton> QuickButtons { get; set; } = new();
 
-	// Non-dashboard pane bodies use ChildContent inherited from Sandbox.UI.Panel.
+	// Non-dashboard pane bodies use the explicit child-content slot above.
 
 	public enum StatusChipVariant { Info, Success, Locked, Count }
 

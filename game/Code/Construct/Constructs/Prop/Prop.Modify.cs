@@ -16,14 +16,14 @@ public partial class Prop
 			return;
 		}
 
-		// Cloud, mount and set correct path
-		if ( !modelPath.EndsWith( ".vmdl" ) && !modelPath.EndsWith( ".vmdl_c" ) )
+		if ( !GameModeBuilding.IsPropAllowed( modelPath ) )
 		{
-			if ( Config.Current.Game.RestrictCloudOrg != null && !modelPath.StartsWith( Config.Current.Game.RestrictCloudOrg ) )
-			{
-				return;
-			}
+			return;
+		}
 
+		// Cloud, mount and set correct path
+		if ( GameModeJobDtoExtensions.IsCloudIdent( modelPath ) )
+		{
 			var package = await Package.Fetch( modelPath, false );
 			if ( package == null )
 			{
@@ -109,7 +109,7 @@ public partial class Prop
 			return;
 		}
 
-		if ( string.IsNullOrWhiteSpace( material ) || !Config.Current.Game.MaterialWhitelist.Contains( material ) )
+		if ( string.IsNullOrWhiteSpace( material ) || !GameModeBuilding.IsMaterialAllowed( material ) )
 		{
 			ModelRenderer.ClearMaterialOverrides();
 			ModelRenderer.SetMaterialOverride( null, "" );
@@ -118,9 +118,9 @@ public partial class Prop
 		}
 
 		// Cloud (FP), mount and set correct path
-		if ( !material.EndsWith( ".vmat" ) )
+		if ( GameModeJobDtoExtensions.IsCloudIdent( material ) )
 		{
-			if ( Config.Current.Game.RestrictCloudOrg != null && !material.StartsWith( Config.Current.Game.RestrictCloudOrg ) )
+			if ( GameModeBuilding.MaterialCloudOrgRejects( material ) )
 			{
 				return;
 			}

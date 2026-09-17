@@ -49,7 +49,7 @@ internal static class ApiClientBase
 		}
 	}
 
-	public static void FireAndForget(
+	public static bool FireAndForget(
 		Func<Task> apiAction,
 		string errorMessage,
 		bool logErrors = true )
@@ -64,7 +64,7 @@ internal static class ApiClientBase
 				Log.Warning( $"{errorMessage}: API request dropped ({MaxQueuedRequests} already queued)" );
 			}
 
-			return;
+			return false;
 		}
 
 		_ = GameTask.RunInThreadAsync( async () =>
@@ -85,6 +85,8 @@ internal static class ApiClientBase
 				Interlocked.Decrement( ref _queuedRequests );
 			}
 		} );
+
+		return true;
 	}
 
 	public static async Task<T?> SafeApiCall<T>(

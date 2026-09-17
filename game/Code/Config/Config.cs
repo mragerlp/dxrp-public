@@ -29,6 +29,7 @@ public partial class Config : GameObjectSystem<Config>
 	
 	[Property]
 	[Sync( SyncFlags.FromHost )]
+	[Change( nameof( OnGameModeChanged ) )]
 	public GameModeDto GameMode { get; private set; }
 
 	public Config( Scene scene ) : base( scene )
@@ -75,6 +76,22 @@ public partial class Config : GameObjectSystem<Config>
 		ClearGameModeConfigCache();
 		GameMode = gameMode;
 		IGameEvents.Post( x => x.OnGameModeUpdated(oldGameMode, gameMode ) );
+	}
+
+	/// <summary>
+	/// Client-visible path for a live gamemode replace (dxrp#273 FIX2).
+	/// Host already posts from <see cref="SetGameMode"/>; skip there so the fan-out
+	/// runs exactly once per peer.
+	/// </summary>
+	private void OnGameModeChanged( GameModeDto before, GameModeDto after )
+	{
+		if ( Networking.IsHost )
+		{
+			return;
+		}
+
+		ClearGameModeConfigCache();
+		IGameEvents.Post( x => x.OnGameModeUpdated( before, after ) );
 	}
 
 	private void OnOverrideConfigJsonChanged( string oldValue, string newValue )

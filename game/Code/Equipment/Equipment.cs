@@ -112,6 +112,14 @@ public class Equipment : Component, IEquipment, IDescription
 	public bool CanDrop { get; set; }
 
 	/// <summary>
+	///     Transient host-side guard for operations that must keep this equipment in the owner's loadout.
+	///     This is deliberately separate from <see cref="CanDrop"/>, which is authored persistence eligibility.
+	/// </summary>
+	internal bool IsDropLocked { get; set; }
+
+	public bool CanDropNow => CanDrop && !IsDropLocked;
+
+	/// <summary>
 	///     A reference to the equipment's ViewModel if it has one.
 	/// </summary>
 	public ViewModel? ViewModel

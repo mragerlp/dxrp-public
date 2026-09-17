@@ -7,17 +7,17 @@ This document tracks the AK47 code/runtime step after both prefabs have been cre
 Created:
 
 ```text
-Assets/addons/lifepunch/ak47/equipment/w_ak47/w_ak47.prefab
-Assets/addons/lifepunch/ak47/equipment/vm_ak47/vm_ak47.prefab
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl
-Assets/addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/materials/ak47_body.vmat
+Assets/addons/lifepunch/lpweapons/ak47/equipment/w_ak47/w_ak47.prefab
+Assets/addons/lifepunch/lpweapons/ak47/equipment/vm_ak47/vm_ak47.prefab
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl
+Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/materials/ak47_body.vmat
 Code/Addons/lifepunch/ak47/AK47Weapon.cs
 ```
 
 Blocking note (2026-05-26):
 
 - `vm_ak47.prefab` still uses `w_ak47.vmdl` as a temporary stand-in. DXRP first person requires a dedicated viewmodel with a `camera` bone (see M4A1 `v_m4a1.vmdl` + `vm_m4a1.prefab`).
-- Do **not** publish another revision for prefab offset tweaks. Complete `Assets/addons/lifepunch/ak47/models/lifepunch/ak47/v_ak47/VIEWMODEL_BUILD.md` in S&box first.
+- Do **not** publish another revision for prefab offset tweaks. Complete `Assets/addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/v_ak47/VIEWMODEL_BUILD.md` in S&box first.
 
 ## Observed Local S&box API
 
@@ -115,7 +115,7 @@ LifePunch AK47 first-pass official target:
 - Add `Equipment`, `TagBinder`, `AmmoComponent`, `ShootWeaponComponent`, `ReloadWeaponComponent`, and `RecoilWeaponComponent` through the editor/prefab, not by copying official source into LifePunch.
 - Use LifePunch-owned asset paths and package identity only.
 - Configure AK47 values from `AK47.cs`: `28` damage, `600` RPM, `30` magazine, `90` reserve, `2.4s` reload, automatic fire.
-- Use LifePunch sounds under `addons/lifepunch/ak47/sounds/`.
+- Use LifePunch sounds under `addons/lifepunch/lpweapons/ak47/sounds/`.
 - Add `Muzzle` and `EjectionPort` child game objects to `w_ak47.prefab` before testing firing effects.
 
 Important correction:
@@ -220,9 +220,9 @@ LifePunch AK47 should translate these into a smaller first-pass config:
 - `DisplayName`: `AK-47`
 - `ClassName` / stable code id: LifePunch-owned AK47 identifier.
 - `Category`: LifePunch weapon/equipment category, not SWB/SWE.
-- `WorldPrefabPath`: `addons/lifepunch/ak47/equipment/w_ak47/w_ak47.prefab`
-- `ViewModelPrefabPath`: `addons/lifepunch/ak47/equipment/vm_ak47/vm_ak47.prefab`
-- `WorldModelPath`: `addons/lifepunch/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl`
+- `WorldPrefabPath`: `addons/lifepunch/lpweapons/ak47/equipment/w_ak47/w_ak47.prefab`
+- `ViewModelPrefabPath`: `addons/lifepunch/lpweapons/ak47/equipment/vm_ak47/vm_ak47.prefab`
+- `WorldModelPath`: `addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl`
 - Clip/ammo/reload/fire-rate values from `AK47.cs`.
 - Fire/distant/reload/cock/draw sounds from LifePunch sound resources.
 
@@ -382,12 +382,12 @@ Initial tuning from `AK47.cs`:
 Sound references:
 
 ```text
-addons/lifepunch/ak47/sounds/ak47_shot.sound
-addons/lifepunch/ak47/sounds/ak47_shot_distant.sound
-addons/lifepunch/ak47/sounds/ak47_reload_clipout.sound
-addons/lifepunch/ak47/sounds/ak47_reload_clipin.sound
-addons/lifepunch/ak47/sounds/ak47_cock.sound
-addons/lifepunch/ak47/sounds/ak47_draw.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_shot.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_shot_distant.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipout.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipin.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_cock.sound
+addons/lifepunch/lpweapons/ak47/sounds/ak47_draw.sound
 ```
 
 ## Current Prefab Wiring
