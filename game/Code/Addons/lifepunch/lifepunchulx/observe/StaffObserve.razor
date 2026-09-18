@@ -326,14 +326,17 @@
 							        tooltip="@StaffFilterTooltip( row.Player.SteamId )">
 								<i class="material-icons">filter_alt</i>
 							</button>
-							@if ( StaffMenuHost.CanViewSanctions( row.Player.SteamId ) )
-							{
-								<button class="o-sanctions-btn"
-								        onclick="@(() => OpenSanctions( row.Player.SteamId, row.Player.Name ))"
-								        tooltip="Read this member's sanctions">
-									<i class="material-icons">gavel</i>
-								</button>
+							@* R-2639-A / R-2640-A per-control parity: this control RENDERS for every rank. Ungranted it
+							   takes the existing control-disabled state and its tooltip names the scope -- the same idiom
+							   the Moderation tiles use. It used to vanish, which is what the ruling forbids. *@
+							@{
+								var rowSanctionsOk = StaffMenuHost.CanViewSanctions( row.Player.SteamId );
 							}
+							<button class="o-sanctions-btn @( rowSanctionsOk ? "" : "control-disabled" )"
+							        onclick="@(() => OpenSanctionsGuarded( row.Player.SteamId, row.Player.Name ))"
+							        tooltip="@( rowSanctionsOk ? "Read this member's sanctions" : SanctionsLockedHint )">
+								<i class="material-icons">gavel</i>
+							</button>
 						</div>
 					}
 					</div>
@@ -493,14 +496,19 @@
 						</div>
 						@if ( subjectMatches.Count == 0 )
 						{
-							<div class="observe-empty">No viewable online player matches this search. Enter an exact SteamID64 to request an offline player's record.</div>
+							<div class="observe-empty">No online player matches this search. Enter an exact SteamID64 to request an offline player's record.</div>
 						}
 						else
 						{
 							<div class="lp-ui-scroll-region observe-subject-list lp-ui-measured-scroll">
 							@foreach ( var player in subjectMatches.Take( DisplayCap ) )
 							{
-								<button class="observe-subject-option" onclick="@(() => OpenSanctions( player.SteamId, player.Name ))">
+								@{
+									var pickSanctionsOk = StaffMenuHost.CanViewSanctions( player.SteamId );
+								}
+								<button class="observe-subject-option @( pickSanctionsOk ? "" : "control-disabled" )"
+								        onclick="@(() => OpenSanctionsGuarded( player.SteamId, player.Name ))"
+								        tooltip="@( pickSanctionsOk ? "" : SanctionsLockedHint )">
 									<i class="material-icons">person</i>
 									<span class="observe-subject-identity">
 										<span class="o-name">@player.Name</span>
@@ -629,7 +637,7 @@
 				}
 			</div>
 			<div class="observe-sanctions-footer">
-				<button class="observe-route-button observe-route-portal" onclick="@CopyPortalSanctionsLink" tooltip="Copy https://dxrp.net/portal/sanctions">
+				<button class="observe-route-button observe-route-portal" onclick="@CopyPortalSanctionsLink" tooltip="@( $"Copy {PortalSanctionsUrl}" )">
 					<i class="material-icons">@( _portalLinkCopied ? "check" : "content_copy" )</i>
 					<span>@( _portalLinkCopied ? "Portal link copied" : "Copy Portal link" )</span>
 				</button>
@@ -713,7 +721,41 @@
 	// holds up to 500 rows and rendering them all drags the whole menu.
 	private const int DisplayCap = 40;
 	private const int HoldingsCap = 15;
-	private const string PortalSanctionsUrl = "https://dxrp.net/portal/sanctions";
+	/// <summary>
+	/// B3 fix. The copied link now derives from the SAME source of truth the API calls use
+	/// (<c>Constants.BaseWebsiteUrl</c>, which switches on <c>ServerApiLink.Endpoint</c>), instead of a
+	/// hardcoded production host. A Local or Staging server previously handed the operator a PRODUCTION
+	/// link. No mapping is invented here: BaseWebsiteUrl is the project's own website-host switch and is
+	/// already used this way by ChangelogPopup, Rules, Motd and LpParityHost ("Portal address").
+	/// Note its shape is deliberately the project's, not ours: only Production maps to dxrp.net and every
+	/// other endpoint (Local included) maps to staging.dxrp.net.
+	/// </summary>
+	private static string PortalSanctionsUrl =>
+#if LIFEPUNCH_LOCAL
+		"https://staging.dxrp.net/portal/sanctions";
+#else
+		$"{Dxura.RP.Game.Constants.BaseWebsiteUrl}/portal/sanctions";
+#endif
+
+	/// <summary>
+	/// Reason shown on a sanctions control greyed by a missing grant. Names the EXISTING scope that
+	/// <see cref="StaffMenuHost.CanViewSanctions"/> already checks -- no new permission id is minted.
+	/// </summary>
+	private const string SanctionsLockedHint = "Requires permission: player.sanctions.view.other";
+
+	/// <summary>
+	/// Click guard for the sanctions controls, which now render even when ungranted. UX gating only --
+	/// StaffMenuHost.RequestSanctions re-checks CanViewSanctions host-side regardless.
+	/// </summary>
+	private void OpenSanctionsGuarded( long steamId, string name )
+	{
+		if ( !StaffMenuHost.CanViewSanctions( steamId ) )
+		{
+			return;
+		}
+
+		OpenSanctions( steamId, name );
+	}
 
 	/// <summary>
 	/// Reason shown when the viewer's ranks do not grant the Observe scope. Names the portal scope id AND
@@ -1048,8 +1090,10 @@
 	private IReadOnlyList<StaffMenuPlayer> SanctionsSubjectMatches()
 	{
 		var query = _sanctionsSearchText?.Trim() ?? "";
+		// R-2639-A / R-2640-A: permission is NOT a filter here. Every online player stays in the list; the
+		// option button renders disabled with its reason when the viewer lacks the scope. Filtering them out
+		// hid the existence of the player, which is what the ruling forbids.
 		return StaffMenuHost.OnlinePlayers()
-			.Where( player => StaffMenuHost.CanViewSanctions( player.SteamId ) )
 			.Where( player => query.Length == 0
 				|| player.Name.Contains( query, StringComparison.OrdinalIgnoreCase )
 				|| player.Role.Contains( query, StringComparison.OrdinalIgnoreCase )
