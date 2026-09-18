@@ -60,7 +60,24 @@
 	}
 
 	<div class="observe-body">
-	@if ( ActiveView == ObserveView.Sentinel )
+	@* R-2639-A / R-2640-A: the menu decides nothing about VISIBILITY. The hub, its head and all five
+	   sub-view tabs render for every rank; the portal decides actionability.
+	   Observe needs a DIFFERENT SHAPE from the StaffMenu tile grid, and this is the honest reason why.
+	   A StaffMenu tile is a static catalogue entry: it can render greyed because it needs no data to
+	   exist. An Observe sub-view is the opposite -- its controls are produced BY the records (rows,
+	   per-subject buttons), so there is no way to draw the controls greyed without first reading the
+	   very records the scope governs. Reading them would BE granting the scope.
+	   So the parity we can honestly offer is at PAGE level: every page that exists is visible and names
+	   what it needs; the records and the controls made from them stay withheld together.
+	   This state is PERMISSION-driven and is deliberately a DIFFERENT SHAPE from the BUILD-driven empty
+	   state in the Ranks view (#if LIFEPUNCH_PACKAGE / RanksScopeNote), which reports that the published
+	   package cannot supply the data at all. A reader must never be able to confuse the two. *@
+	@if ( !StaffObserveHost.CanViewObserve() )
+	{
+		<div class="observe-caveat">@ObserveDeniedReason</div>
+		<div class="observe-empty">@ObserveDeniedDetail</div>
+	}
+	else if ( ActiveView == ObserveView.Sentinel )
 	{
 		<div class="observe-view">
 			<div class="observe-block">
@@ -638,7 +655,12 @@
 				}
 				@if ( LpParityHost.RanksAreAvailable && !LpParityHost.CanViewRanks() )
 				{
-					<div class="observe-empty">You do not have permission to view ranks.</div>
+					@* PERMISSION-driven, and worded so it cannot be mistaken for the BUILD-driven block above.
+					   That one says this package cannot supply ranks AT ALL; this one names the scope to request.
+					   The two are reached by different conditions (RanksAreAvailable vs CanViewRanks) and must
+					   stay worded apart, so "your rank cannot action this" never reads as "this build cannot
+					   supply this". *@
+					<div class="observe-empty">Requires permission: @LpParityHost.RankViewPermissionId</div>
 				}
 				else if ( LpParityHost.RanksAreAvailable )
 				{
@@ -691,6 +713,24 @@
 	private const int DisplayCap = 40;
 	private const int HoldingsCap = 15;
 	private const string PortalSanctionsUrl = "https://dxrp.net/portal/sanctions";
+
+	/// <summary>
+	/// Reason shown when the viewer's ranks do not grant the Observe scope. Names the portal scope id AND
+	/// the rank-order floor, because CanViewObserve() requires both -- an operator told only "no access"
+	/// cannot tell which of the two they are missing.
+	/// PERMISSION-driven. Distinct by construction from <see cref="LpParityHost.RanksScopeNote"/>, which is
+	/// BUILD-driven and reports what the published parent package cannot supply at all.
+	/// </summary>
+	private static string ObserveDeniedReason =>
+		$"Requires permission: {StaffMenuHost.AuditPermissionId} (rank order {StaffObserveHost.SuperadminPlusMinRankOrder}+)";
+
+	/// <summary>
+	/// Says plainly that the pages are listed but the records are withheld, so an empty Observe hub is never
+	/// misread as "the server has no records".
+	/// </summary>
+	private const string ObserveDeniedDetail =
+		"Every Observe page is listed above so you can see what exists. The records themselves stay withheld "
+		+ "until your rank is granted this scope. This is a permission state, not a claim that the data is empty.";
 	private static readonly string[] SanctionTypeFilters =
 	{
 		"All", "Automatic", "Warning", "Jail", "Ban", "Kick", "Note", "Gag"
