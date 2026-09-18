@@ -24,7 +24,8 @@
 	@if ( SanctionsOnly )
 	{
 		@* The profile route mounts this renderer in SanctionsOnly mode with per-subject
-		   CanViewSanctions access. The full Observe hub retains the stricter CanViewObserve gate. *@
+		   CanViewSanctions access. The full Observe hub still consults the stricter CanViewObserve,
+		   but since R9 that decides only whether its RECORDS are supplied, never whether it renders. *@
 		<div class="observe-head observe-head-sanctions">
 			<i class="material-icons">gavel</i>
 			<span class="observe-title">Sanctions</span>
@@ -739,7 +740,8 @@
 	public Action<long>? OnManagePlayer { get; set; }
 
 	// SanctionsOnly is the profile mount: no Observe header or tabs, and only per-subject
-	// CanViewSanctions access. StaffMenu applies the stricter CanViewObserve gate to the full hub.
+	// CanViewSanctions access. The full hub still consults the stricter CanViewObserve, but since R9
+	// it decides only whether the records are supplied -- the hub itself renders for every rank.
 	public bool SanctionsOnly { get; set; }
 
 	// Return path offered only when the parent seeded this view from a profile.

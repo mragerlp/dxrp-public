@@ -618,7 +618,8 @@
 		{
 			@* StaffObserve owns the sanction subject and request. The profile route seeds it and
 			   provides a return path; per-subject CanViewSanctions applies inside the child.
-			   The full Observe hub retains the stricter CanViewObserve gate. *@
+			   The full Observe hub below still CONSULTS the stricter CanViewObserve, but since R9 it no
+			   longer gates whether that hub renders -- only whether its records are supplied. *@
 			<StaffObserve SanctionsOnly="@true"
 			              SubjectSeedSteamId="@_sanctionsSteamId"
 			              SubjectSeedVersion="@_sanctionsSeedVersion"
