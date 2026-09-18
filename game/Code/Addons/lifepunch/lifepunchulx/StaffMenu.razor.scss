@@ -3661,4 +3661,12 @@ $tone-gold: #a16207;
 		color: $amber;
 	}
 
+	// Active toggle tiles (R2 P1). The severity and tone hover rules paint the glyph the same blue as the
+	// toggle-on hover fill; these standalone rules sit last so glyph and label stay $text on hover.
+	.action-toggle-on:hover .material-icons,
+	.action-toggle-on:hover .action-label,
+	.action-toggle-on:hover .action-description {
+		color: $text;
+	}
+
 }
