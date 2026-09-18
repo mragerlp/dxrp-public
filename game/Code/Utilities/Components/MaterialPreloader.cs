@@ -1,37 +1,79 @@
+using System.Threading;
 using System.Threading.Tasks;
+using Dxura.RP.Game.Tools;
+using Dxura.RP.Game.UI;
 
 namespace Dxura.RP.Game;
 
 /// <summary>
 /// Preloads materials when players join the game
 /// </summary>
-public class MaterialPreloader : Component
+public class MaterialPreloader : Component, IGameEvents
 {
+	private CancellationTokenSource? _preloadCts;
+	private int _preloadEpoch;
+
 	protected override void OnStart()
 	{
-		_ = PreloadMaterialsAsync();
+		StartPreload();
 	}
-	private async Task PreloadMaterialsAsync()
-	{
 
+	public void OnGameModeUpdated( GameModeDto? before, GameModeDto? after )
+	{
+		StartPreload();
+		MaterialTool.RefreshFromGameMode( before, after );
+		MaterialPicker.RefreshLive();
+	}
+
+	protected override void OnDestroy()
+	{
+		CancelPreload();
+	}
+
+	private void StartPreload()
+	{
+		CancelPreload();
+		_preloadCts = new CancellationTokenSource();
+		var epoch = ++_preloadEpoch;
+		_ = PreloadMaterialsAsync( _preloadCts.Token, epoch );
+	}
+
+	private void CancelPreload()
+	{
+		_preloadCts?.Cancel();
+		_preloadCts?.Dispose();
+		_preloadCts = null;
+	}
+
+	private async Task PreloadMaterialsAsync( CancellationToken cancellationToken, int epoch )
+	{
 		try
 		{
-			foreach ( var materialPath in Config.Current.Game.MaterialWhitelist )
+			foreach ( var materialPath in GameModeBuilding.Materials )
 			{
+				if ( cancellationToken.IsCancellationRequested || epoch != _preloadEpoch || !this.IsValid() )
+				{
+					return;
+				}
+
 				if ( string.IsNullOrEmpty( materialPath ) )
 				{
 					continue;
 				}
 
-				if ( !materialPath.EndsWith( ".vmat" ) )
+				if ( GameModeJobDtoExtensions.IsCloudIdent( materialPath ) )
 				{
-					if ( Config.Current.Game.RestrictCloudOrg != null &&
-					     !materialPath.StartsWith( Config.Current.Game.RestrictCloudOrg ) )
+					if ( GameModeBuilding.MaterialCloudOrgRejects( materialPath ) )
 					{
 						continue;
 					}
 
 					var package = await Package.FetchAsync( materialPath, true, true );
+
+					if ( cancellationToken.IsCancellationRequested || epoch != _preloadEpoch )
+					{
+						return;
+					}
 
 					if ( package == null )
 					{
@@ -39,6 +81,11 @@ public class MaterialPreloader : Component
 					}
 
 					await package.MountAsync();
+
+					if ( cancellationToken.IsCancellationRequested || epoch != _preloadEpoch )
+					{
+						return;
+					}
 
 					if ( !package.IsMounted() )
 					{
@@ -59,6 +106,9 @@ public class MaterialPreloader : Component
 					await Material.LoadAsync( materialPath );
 				}
 			}
+		}
+		catch ( OperationCanceledException )
+		{
 		}
 		catch ( Exception )
 		{

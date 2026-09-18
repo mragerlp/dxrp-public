@@ -114,8 +114,38 @@ public static class LifePunchUiScrollPolicy
 			panel.ScrollOffset = new Vector2( 0f, y );
 	}
 
+	/// <summary>
+	/// Native Razor scroll range measured from laid-out child edges. The span includes row gaps
+	/// and remains stable when the children translate during scrolling. Opted-in lists use the
+	/// measured screen-space travel directly instead of the legacy ScaleFromScreen conversion.
+	/// </summary>
+	public static float GetMeasuredScrollMaxY( Panel panel )
+	{
+		if ( panel is null || !panel.IsValid || panel.Box.Rect.Height <= 1f )
+			return 0f;
+
+		var hasContent = false;
+		var top = 0f;
+		var bottom = 0f;
+
+		foreach ( var child in panel.Children )
+		{
+			if ( !child.IsValid || child.Box.Rect.Height <= 0f )
+				continue;
+
+			top = hasContent ? Math.Min( top, child.Box.Top ) : child.Box.Top;
+			bottom = hasContent ? Math.Max( bottom, child.Box.Bottom ) : child.Box.Bottom;
+			hasContent = true;
+		}
+
+		return hasContent ? Math.Max( 0f, bottom - top - panel.Box.Rect.Height ) : 0f;
+	}
+
 	private static float GetManualScrollMaxY( Panel panel )
 	{
+		if ( panel.HasClass( "lp-ui-measured-scroll" ) )
+			return GetMeasuredScrollMaxY( panel );
+
 		var viewHeight = panel.Box.Rect.Height;
 		if ( viewHeight <= 1f )
 			return 0f;

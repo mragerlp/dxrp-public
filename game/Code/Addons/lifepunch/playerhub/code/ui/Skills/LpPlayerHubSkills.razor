@@ -39,16 +39,16 @@
 	<div class="skills-workspace">
 		<div class="skills-track-list">
 			<div class="skills-list-label"><span>TRACKS</span><span>5</span></div>
-			@foreach ( var track in Model.Tracks )
+			@foreach ( var trackRow in Model.Tracks )
 			{
-				<button class="@TrackClass( track )" onclick="@track.OnSelected">
-					<i class="material-icons skills-track-icon">@track.Icon</i>
+				<button class="@TrackClass( trackRow )" onclick="@trackRow.OnSelected">
+					<i class="material-icons skills-track-icon">@trackRow.Icon</i>
 					<div class="skills-track-copy">
-						<div class="skills-track-label">@track.Label</div>
-						<div class="skills-track-description">@track.Description</div>
+						<div class="skills-track-label">@trackRow.Label</div>
+						<div class="skills-track-description">@trackRow.Description</div>
 						<div class="skills-track-meta">
-							<span>@TrackProgressText( track )</span>
-							<span>@KeystoneShortLabel( track )</span>
+							<span>@TrackProgressText( trackRow )</span>
+							<span>@KeystoneShortLabel( trackRow )</span>
 						</div>
 					</div>
 				</button>
@@ -65,24 +65,24 @@
 			</div>
 
 			<div class="skills-skill-list">
-				@foreach ( var skill in SkillsForSelectedTrack() )
+				@foreach ( var skillRow in SkillsForSelectedTrack() )
 				{
-					<button class="@SkillClass( skill )" onclick="@skill.OnSelected">
-						<i class="material-icons skills-skill-icon">@SkillIcon( skill )</i>
+					<button class="@SkillClass( skillRow )" onclick="@skillRow.OnSelected">
+						<i class="material-icons skills-skill-icon">@SkillIcon( skillRow )</i>
 						<div class="skills-skill-copy">
-							<div class="skills-skill-title">@skill.Title</div>
-							<div class="skills-skill-description">@skill.Description</div>
+							<div class="skills-skill-title">@skillRow.Title</div>
+							<div class="skills-skill-description">@skillRow.Description</div>
 						</div>
 						<div class="skills-skill-progress">
-							<div class="skills-skill-rank">@SkillRankText( skill )</div>
+							<div class="skills-skill-rank">@SkillRankText( skillRow )</div>
 							<div class="skills-tier-track">
-							@foreach ( var tier in skill.Tiers )
+							@foreach ( var tier in skillRow.Tiers )
 							{
 								<span class="@TierClass( tier )">@tier.Label</span>
 							}
 							</div>
 						</div>
-						<div class="@SkillStateClass( skill )">@SkillStateLabel( skill )</div>
+						<div class="@SkillStateClass( skillRow )">@SkillStateLabel( skillRow )</div>
 					</button>
 				}
 			</div>

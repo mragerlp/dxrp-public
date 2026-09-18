@@ -84,23 +84,44 @@ public partial class Player
 	}
 
 
-	public async Task<bool> ChargeHost( uint amount, string reason, bool useBank = false )
+	// Preserve the original CLR signature for already-compiled economy callers.
+	public Task<bool> ChargeHost( uint amount, string reason, bool useBank = false )
+		=> ChargeHost( amount, reason, useBank, null );
+
+	public async Task<bool> ChargeHost( uint amount, string reason, bool useBank, long? auditActorSteamId )
 	{
 		Assert.True( Networking.IsHost );
 
 		if ( !Config.Current.Game.MoneyEnabled )
 		{
-			return true;
+			return !auditActorSteamId.HasValue;
 		}
 
-		if ( amount == 0 )
+		// Every mutation below eventually converts the unsigned amount (or one of its portions)
+		// to int. Reject values outside that domain before any balance or API mutation; otherwise
+		// the cast can wrap and turn a charge into a credit.
+		if ( amount == 0 || amount > int.MaxValue )
 		{
-			return true;
+			return amount == 0;
 		}
 
 		await _transactionLock.WaitAsync();
 		try
 		{
+			if ( !Config.Current.Game.MoneyEnabled )
+			{
+				return !auditActorSteamId.HasValue;
+			}
+
+			if ( auditActorSteamId is long actorSteamId
+			     && (SyntheticActorRegistry.IsSynthetic( SteamId )
+			         || SyntheticActorRegistry.IsSynthetic( actorSteamId )
+			         || !RankSystem.HasPermission( actorSteamId, Permission.ManageEconomy )
+			         || !RankSystem.CanTarget( actorSteamId, SteamId )) )
+			{
+				return false;
+			}
+
 			bool didCharge;
 
 			if ( useBank )
@@ -152,7 +173,7 @@ public partial class Player
 				WalletBalance -= amount;
 				didCharge = true;
 				this.Money( -(int)amount );
-				_ = ServerApiClient.Audit( "WalletCharge", $"{SteamName} ({SteamId}) charged ${amount} from wallet: {reason}", SteamId );
+				_ = ServerApiClient.Audit( "WalletCharge", $"{SteamName} ({SteamId}) charged ${amount} from wallet: {reason}", auditActorSteamId ?? SteamId );
 			}
 
 			if ( !didCharge )
@@ -169,9 +190,52 @@ public partial class Player
 		}
 	}
 
-	public async Task<bool> PayHost( uint amount, string reason, bool inBank = false )
+	internal async Task<bool> RestoreWalletAfterFailedBankAll( uint amount, long auditActorSteamId )
 	{
 		Assert.True( Networking.IsHost );
+
+		if ( amount == 0 || amount > int.MaxValue )
+		{
+			return amount == 0;
+		}
+
+		await _transactionLock.WaitAsync();
+		try
+		{
+			if ( uint.MaxValue - WalletBalance < amount )
+			{
+				return false;
+			}
+
+			WalletBalance += amount;
+			this.Money( (int)amount );
+			_ = ServerApiClient.Audit(
+				"BankAllRollback",
+				$"{SteamName} ({SteamId}) had ${amount} restored to wallet after BankAll could not complete.",
+				auditActorSteamId );
+			return true;
+		}
+		finally
+		{
+			_transactionLock.Release();
+		}
+	}
+
+	// Keep the original three-argument CLR signature for already-compiled addons. Optional
+	// parameters are only source-compatible; replacing this method would break them at runtime.
+	public Task<bool> PayHost( uint amount, string reason, bool inBank = false )
+		=> PayHost( amount, reason, inBank, null );
+
+	public async Task<bool> PayHost( uint amount, string reason, bool inBank, long? auditActorSteamId )
+	{
+		Assert.True( Networking.IsHost );
+
+		// Every durable balance and notification path below crosses an Int32 boundary. Reject values
+		// that cannot be represented instead of allowing the cast to wrap into a negative mutation.
+		if ( amount > int.MaxValue )
+		{
+			return false;
+		}
 
 		if ( !Config.Current.Game.MoneyEnabled )
 		{
@@ -201,6 +265,7 @@ public partial class Player
 					didPay = true;
 					BankBalance += amount;
 					this.Money( (int)amount, true );
+					_ = ServerApiClient.Audit( "BankDeposit", $"{SteamName} ({SteamId}) received ${amount} into bank: {reason}", auditActorSteamId ?? SteamId );
 				}
 			}
 			else // Pay into wallet
@@ -214,7 +279,7 @@ public partial class Player
 				WalletBalance += amount;
 				didPay = true;
 				this.Money( (int)amount );
-				_ = ServerApiClient.Audit( "WalletDeposit", $"{SteamName} ({SteamId}) received ${amount} into wallet: {reason}", SteamId );
+				_ = ServerApiClient.Audit( "WalletDeposit", $"{SteamName} ({SteamId}) received ${amount} into wallet: {reason}", auditActorSteamId ?? SteamId );
 			}
 
 			if ( !didPay )
@@ -224,6 +289,78 @@ public partial class Player
 			}
 
 			return true;
+		}
+		finally
+		{
+			_transactionLock.Release();
+		}
+	}
+
+	/// <summary>
+	/// Staff/admin grant path whose success means the linked server rail was still available after
+	/// entering the target's transaction lock. Ordinary gameplay PayHost keeps its historical neutral
+	/// offline semantics; this stricter seam is what UI confirmations and bulk staff banking require.
+	/// </summary>
+	internal async Task<StrictMoneyMutationResult> PayHostStrictAudited( uint amount, string reason, bool inBank, long auditActorSteamId )
+	{
+		Assert.True( Networking.IsHost );
+
+		if ( amount == 0 || amount > int.MaxValue )
+		{
+			return StrictMoneyMutationResult.Rejected;
+		}
+
+		await _transactionLock.WaitAsync();
+		try
+		{
+			if ( !Config.Current.Game.MoneyEnabled
+			     || !ServerApiLink.HasAuthorizationKey
+			     || SyntheticActorRegistry.IsSynthetic( SteamId )
+			     || SyntheticActorRegistry.IsSynthetic( auditActorSteamId )
+			     || !RankSystem.HasPermission( auditActorSteamId, Permission.ManageEconomy )
+			     || !RankSystem.CanTarget( auditActorSteamId, SteamId ) )
+			{
+				return StrictMoneyMutationResult.Rejected;
+			}
+
+			if ( inBank )
+			{
+				if ( uint.MaxValue - BankBalance < amount )
+				{
+					return StrictMoneyMutationResult.Rejected;
+				}
+
+				var bankResult = await ServerApiClient.ModifyPlayerBalanceStrict( SteamId, (int)amount, reason );
+				if ( bankResult != StrictMoneyMutationResult.Applied )
+				{
+					return bankResult;
+				}
+
+				BankBalance += amount;
+				this.Money( (int)amount, true );
+				_ = ServerApiClient.Audit( "BankDeposit", $"{SteamName} ({SteamId}) received ${amount} into bank: {reason}", auditActorSteamId );
+				return StrictMoneyMutationResult.Applied;
+			}
+
+			if ( uint.MaxValue - WalletBalance < amount )
+			{
+				return StrictMoneyMutationResult.Rejected;
+			}
+
+			var auditDescription = $"{SteamName} ({SteamId}) received ${amount} into wallet: {reason}";
+			if ( !ServerApiClient.TryQueueAuditStrict( "WalletDeposit", auditDescription, auditActorSteamId ) )
+			{
+				return StrictMoneyMutationResult.Rejected;
+			}
+
+			WalletBalance += amount;
+			this.Money( (int)amount );
+			return StrictMoneyMutationResult.Applied;
+		}
+		catch ( Exception e )
+		{
+			Log.Warning( $"Strict money mutation became indeterminate for {SteamName} ({SteamId}): {e.Message}" );
+			return StrictMoneyMutationResult.Unknown;
 		}
 		finally
 		{
@@ -291,7 +428,13 @@ public partial class Player
 		try
 		{
 			var amount = WalletBalance;
-			this.Money( -(int)WalletBalance );
+			var remaining = amount;
+			while ( remaining > 0 )
+			{
+				var chunk = (int)Math.Min( remaining, (uint)int.MaxValue );
+				this.Money( -chunk );
+				remaining -= (uint)chunk;
+			}
 			WalletBalance = 0;
 			return amount;
 		}

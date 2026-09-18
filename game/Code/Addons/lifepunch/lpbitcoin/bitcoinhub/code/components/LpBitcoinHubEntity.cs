@@ -1214,24 +1214,25 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 	[Rpc.Host]
 	private void SendHubWalletHost( long targetSteamId, float amount )
 	{
-		if ( !CanOperateTerminal( Rpc.CallerId ) )
-			return;
-
-		if ( !HasLinkedTerminal() )
-			return;
-
-		if ( targetSteamId <= 0 || amount <= 0f || amount > HubWalletBtc )
-			return;
-
-		if ( Owner != 0 && Owner == targetSteamId )
-			return;
-
 		var target = FindHubByOwnerSteamId( targetSteamId, exclude: this );
-		if ( target is null || !target.IsValid() )
+		var reject = LpBitcoinHubSendRules.EvaluateHost(
+			CanOperateTerminal( Rpc.CallerId ),
+			HasLinkedTerminal(),
+			targetSteamId,
+			amount,
+			HubWalletBtc,
+			Owner,
+			target is not null && target.IsValid() );
+		if ( reject != LpBitcoinHubSendReject.Accepted || target is null || !target.IsValid() )
 			return;
 
-		HubWalletBtc -= amount;
-		target.HubWalletBtc += amount;
+		var senderWallet = HubWalletBtc;
+		var recipientWallet = target.HubWalletBtc;
+		if ( !LpBitcoinHubSendRules.TryApplyAcceptedTransfer( ref senderWallet, ref recipientWallet, amount ) )
+			return;
+
+		HubWalletBtc = senderWallet;
+		target.HubWalletBtc = recipientWallet;
 
 		var recipientLabel = LifePunchEntityOwnership.GetOwnerLabel( targetSteamId );
 		if ( string.IsNullOrWhiteSpace( recipientLabel ) )

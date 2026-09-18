@@ -9,9 +9,7 @@
 // Presence in this repository or on the DXRP portal grants no rights to anyone else.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Warm deep blue-gray, never pure black. Three depths carry panel structure so
-// boundaries are FELT as tone rather than drawn as lines:
-//   shell (darkest chrome) -> surface (sidebar) -> surface-raised (cards)
+// Panel depths: shell, surface, then raised cards.
 $canvas: #0f1011;
 $shell: #17181a;
 $surface: #1e1f21;
@@ -19,29 +17,33 @@ $surface-raised: #272829;
 $border: #343536;
 $text: #e4e6e8;
 $muted: #8d8f90;
+$setjob-form-gap: 4px;
+$setjob-form-bottom-padding: 16px;
+$money-amount-width: 180px;
+$money-reason-height: 64px;
+$money-reason-spacing: 4px;
+$money-form-bottom-padding: 16px;
 
-	// Four accents, four fixed roles, each present at rest and small in area:
-	//   blue = light / interactive   green = cash / positive
-	//   red  = severe / warning      amber = medium / caution
-// Selection and state carry the saturation, so no fourth accent is needed.
+	// Semantic accents: blue for light actions, green for money,
+	// red for severe actions and amber for caution or observation.
 $blue: #1689ff;
 $blue-highlight: #55aaff;
-// The brand blue stays as a glyph/border colour. Solid FILLS use this washed-back
-// tint instead, so a filled control sits at the same visual weight as everything else.
+// Use a quieter blue for fills; glyphs and borders retain the brand blue.
 $blue-fill: #1d4b78;
-// DXRP's own $color-good (Code/UI/styles.scss:7). Law 17 puts cash in green; the earlier
-// sage reading washed out to near-white on the stat rows and stopped carrying meaning.
+// Cash uses DXRP's $color-good (Code/UI/styles.scss).
 $success: #199c3b;
 $danger: #c05f5f;
 	// Medium action severity and observation / inspection tone.
 	// Deliberately NOT used for privilege badges.
 $amber: #d99a3f;
-// HUD-CANONICAL. DXRP paints the armour shield with $counter-terror-color
-// (Code/UI/styles.scss:23) in PlayerInfo/PartyMemberCard (.armor-icon, .armor-fill).
-// Health is NOT a token -- it comes from UiUtils.HealthColorHex() via StaffMenuHost, so the
-// ramp itself can never drift. These two deliberately keep full HUD saturation: item 11b
-// ("do not approximate, do not invent") outranks the desaturation pass for vitals only.
+// Armor follows DXRP's $counter-terror-color in Code/UI/styles.scss and PlayerInfo/PartyMemberCard.
+// Health comes from UiUtils.HealthColorHex through StaffMenuHost. Keep both aligned with the HUD.
 $armor-hud: #08b2e3;
+// Native CloakStatus.Color (Code/Player/Status/Statuses/CloakStatus.cs).
+$cloak-hud: #9e9e9e;
+$cloak-hud-icon: #ffffff;
+// Native FreezeStatus.Color (Code/Player/Status/Statuses/FreezeStatus.cs).
+$freeze-hud: #00bcd4;
 // Portal Audit action-pill tones (dxrp.net/portal/audit). Data color, not chrome.
 // Names are words — s&box SCSS treats `$tone-0` as subtraction.
 $tone-teal: #0f766e;
@@ -57,7 +59,7 @@ $tone-rust: #9a3412;
 $tone-slate: #334155;
 $tone-gold: #a16207;
 
-@import "LifePunchUiFooter.razor.scss";
+@import "../lifepunchcore/LifePunchUiFooter.razor.scss";
 
 .lifepunchulx {
 	position: absolute;
@@ -72,11 +74,7 @@ $tone-gold: #a16207;
 	font-family: "Roboto Mono", "Courier New", monospace;
 	color: $text;
 
-	// A Material Icons ligature needs an explicit font-size or the glyph falls
-	// back to a missing-character box. Every icon that renders in this panel had
-	// a size rule; .close, .tp-btn, .icon-btn and .copy-btn had none and drew as
-	// blank squares. This floor covers every icon; the rules below override it
-	// where a specific size is wanted.
+	// Material Icons ligatures require an explicit font size to avoid missing-glyph boxes.
 	.material-icons {
 		font-family: Material Icons;
 		font-weight: normal;
@@ -85,10 +83,6 @@ $tone-gold: #a16207;
 		letter-spacing: normal;
 		line-height: 1;
 		font-size: 18px;
-	}
-
-	&.ulx-v2 {
-		background-color: rgba($canvas, 0.88);
 	}
 
 	.window {
@@ -104,7 +98,7 @@ $tone-gold: #a16207;
 		box-shadow: 0 18px 44px rgba($canvas, 0.64);
 	}
 
-	.header {
+	.ulx-shell-header {
 		flex-direction: row;
 		align-items: center;
 		justify-content: space-between;
@@ -115,12 +109,12 @@ $tone-gold: #a16207;
 		background-color: $shell;
 	}
 
-	.title,
+	.ulx-shell-title,
 	.title-stack,
 	.header-actions,
 	.online-status,
-	.tabs,
-	.body,
+	.ulx-shell-tabs,
+	.ulx-shell-body,
 	.pane-label,
 	.search-row,
 	.player-row,
@@ -142,9 +136,9 @@ $tone-gold: #a16207;
 	.audit-filter,
 	.audit-action-btn,
 	.audit-action-cloud,
+	.audit-scope,
 	.audit-row,
 	.settings-head,
-	.panel-size-row,
 	.settings-bar,
 	.settings-current,
 	.wp-head,
@@ -174,6 +168,7 @@ $tone-gold: #a16207;
 	.audit-table,
 	.audit-scroll,
 	.audit-action-pop,
+	.audit-window-pop,
 	.settings,
 	.settings-group,
 	.waypoints,
@@ -183,7 +178,7 @@ $tone-gold: #a16207;
 		flex-direction: column;
 	}
 
-	.title {
+	.ulx-shell-title {
 		align-items: center;
 		gap: 18px;
 		min-width: 0;
@@ -259,7 +254,6 @@ $tone-gold: #a16207;
 	.expand-btn,
 	.profile-preview-btn,
 	.tp-btn,
-	.panel-size-opt,
 	.settings-btn,
 	.wp-btn,
 	.wp-go-row,
@@ -290,9 +284,7 @@ $tone-gold: #a16207;
 	}
 
 	.lp-ui-chrome-btn,
-	// Dismiss controls need to read as buttons at rest, not as bare glyphs that
-	// only appear on hover. A hairline border plus a faint fill gives them an
-	// edge without competing with the content they sit beside.
+	// Give dismiss controls a visible edge at rest.
 	.icon-btn {
 		width: 32px;
 		height: 32px;
@@ -316,8 +308,12 @@ $tone-gold: #a16207;
 		border-color: rgba($blue, 0.34);
 	}
 
-	.lp-ui-chrome-btn.cog .material-icons,
-	.lp-ui-chrome-btn.close .material-icons {
+	.chrome-cog:hover .material-icons {
+		color: $text;
+	}
+
+	.chrome-cog .material-icons,
+	.chrome-close .material-icons {
 		font-size: 22px;
 	}
 
@@ -332,21 +328,20 @@ $tone-gold: #a16207;
 		font-size: 15px;
 	}
 
-	// Colour arrives at REST so the control announces itself; hover adds
-	// emphasis to something already distinct rather than revealing it.
-	.lp-ui-chrome-btn.close,
+	// Resting color identifies the control; hover adds emphasis.
+	.chrome-close,
 	.clear-target,
 	.wp-clear {
 		color: rgba($danger, 0.82);
 	}
 
-	.lp-ui-chrome-btn.close .material-icons,
+	.chrome-close .material-icons,
 	.clear-target .material-icons,
 	.wp-clear .material-icons {
 		color: rgba($danger, 0.82);
 	}
 
-	.lp-ui-chrome-btn.close:hover,
+	.chrome-close:hover,
 	.clear-target:hover,
 	.wp-clear:hover {
 		background-color: rgba($danger, 0.16);
@@ -354,16 +349,13 @@ $tone-gold: #a16207;
 		color: $danger;
 	}
 
-	.lp-ui-chrome-btn.close:hover .material-icons,
+	.chrome-close:hover .material-icons,
 	.clear-target:hover .material-icons,
 	.wp-clear:hover .material-icons {
 		color: $danger;
 	}
 
-	// ── 2. Teleport trio: three actions, three tints, all at rest.
-	// go/bring move the target toward or to you (active blue); return reverts
-	// a prior move, so it reads neutral.
-	// Role at rest: crosshair yanks (destructive), hand restrains (caution), arrow restores (safe).
+	// Teleport role colors distinguish moving, restraining and restoring a player.
 	.tp-go .material-icons {
 		color: $danger;
 	}
@@ -380,21 +372,7 @@ $tone-gold: #a16207;
 		color: $text;
 	}
 
-	// Disabled must READ as unavailable, not as broken. The role colour survives at reduced
-	// opacity -- a blank or gray-void glyph looks like a rendering fault, not a locked control.
-	.tp-go.control-disabled .material-icons {
-		color: rgba($danger, 0.40);
-	}
-
-	.tp-bring.control-disabled .material-icons {
-		color: rgba($amber, 0.40);
-	}
-
-	.tp-return.control-disabled .material-icons {
-		color: rgba($success, 0.40);
-	}
-
-	.tabs {
+	.ulx-shell-tabs {
 		align-items: center;
 		flex-shrink: 0;
 		gap: 18px;
@@ -421,8 +399,7 @@ $tone-gold: #a16207;
 		color: $text;
 	}
 
-	// Air-style: bolder text plus an accent underline. No fill block -- a filled
-	// rectangle in a tab strip shouts where it should murmur.
+	// Active tabs use an accent underline without a filled background.
 	.tab-sel {
 		color: $text;
 		font-weight: 700;
@@ -430,7 +407,7 @@ $tone-gold: #a16207;
 	}
 
 	.ulx-workspace,
-	.body,
+	.ulx-shell-body,
 	.main,
 	.actions,
 	.players,
@@ -452,7 +429,7 @@ $tone-gold: #a16207;
 		overflow: hidden;
 	}
 
-	.body {
+	.ulx-shell-body {
 		flex: 1 1 0;
 		overflow: hidden;
 	}
@@ -590,9 +567,11 @@ $tone-gold: #a16207;
 		color: $text;
 	}
 
+	// Use scroll for this top-level list inside the clipped sidebar.
+	// The nested job list uses auto so short lists pass wheel input to their parent.
 	.player-scroll {
 		flex: 1 1 auto;
-		overflow-y: auto;
+		overflow-y: scroll;
 		padding: 2px 10px 0;
 	}
 
@@ -600,10 +579,14 @@ $tone-gold: #a16207;
 		min-height: 0;
 	}
 
+	// End clearance compensates for s&box wrap-flex measurement and keeps final rows off the frame.
+	// Full width places the clearance on its own row in wrapped grids.
 	.player-scroll-tail,
 	.profile-fields-tail,
-	.arg-form-tail,
-	.job-list-tail {
+	.action-scroll-tail,
+	.wp-list-tail,
+	.wp-events-tail,
+	.audit-cloud-tail {
 		flex-shrink: 0;
 		width: 100%;
 		height: 26px;
@@ -641,12 +624,7 @@ $tone-gold: #a16207;
 		background-color: rgba($text, 0.03);
 	}
 
-	// The EXPANDED section is the one you are in, so it carries the accent.
-	// This was previously applied to the collapsed state, which read backwards.
-	// A light wash OR an accent line -- never both, or the header outshouts the row beneath it.
-	// Measured at 2560x1440 the blue wash composited to ~25% and outshouted the selected row.
-	// Blue now belongs to the SELECTION only; the section header takes a neutral light wash and
-	// keeps its accent on the chevron alone.
+	// Expanded sections use a neutral wash and accent chevron; selection colors belong to rows.
 	.parent-label-open {
 		color: $text;
 		background-color: $canvas;
@@ -701,11 +679,7 @@ $tone-gold: #a16207;
 		background-color: $surface;
 	}
 
-	// The ONE saturated element in the sidebar: a confident filled pill, inset
-	// from the column edges. Everything else stays quiet, which is what lets
-	// this read instantly as "you are here".
-	// A selected list row is not a state worth shouting -- outline only, base background,
-	// text unchanged. Full fills stay reserved for the active tab and genuinely-ON toggles.
+	// Selected roster rows keep the base fill and use an outline. Active toggles retain their state colors.
 	.player-row-selected {
 		margin-left: 6px;
 		margin-right: 6px;
@@ -786,33 +760,22 @@ $tone-gold: #a16207;
 
 	.actions {
 		flex: 1 1 auto;
-		overflow-y: scroll;
-		padding: 16px 0;
+		overflow-y: hidden;
+		padding: 12px 0;
 	}
 
-	// Profile mode: the card is meant to FILL the workspace, but a scrolling
-	// parent sizes its children to content, so flex-grow never takes effect and
-	// the card floats above dead space. Turning the scroll off in this mode lets
-	// the card stretch; the fields inside keep their own scroll region.
+	// Disable pane scrolling in profile mode so the card stretches to the workspace.
+	// Bounded collections inside the profile retain their own scrolling.
 	.actions-profile {
 		overflow-y: hidden;
-	}
-
-	// Scroll slack: the last action row must clear the bottom edge. s&box
-	// under-measures a wrap-flex grid, so without this the final row sits
-	// against the frame and reads as cut off.
-	.action-scroll-tail {
-		flex-shrink: 0;
-		height: 18px;
-		width: 100%;
 	}
 
 	.target-identity {
 		align-items: center;
 		gap: 14px;
 		flex-shrink: 0;
-		margin: 0 16px 14px;
-		padding: 14px;
+		margin: 0 16px 10px;
+		padding: 11px;
 		border: 1px solid $border;
 		border-radius: 9px;
 		background-color: $surface;
@@ -887,8 +850,8 @@ $tone-gold: #a16207;
 	}
 
 	.target-frozen {
-		border-color: rgba($blue, 0.36);
-		color: $blue-highlight;
+		border-color: rgba($freeze-hud, 0.36);
+		color: $freeze-hud;
 	}
 
 	.target-identity-actions {
@@ -915,12 +878,18 @@ $tone-gold: #a16207;
 
 	.arg-form {
 		flex-shrink: 0;
-		gap: 11px;
+		gap: 8px;
 		margin: 0 16px 14px;
-		padding: 14px;
+		padding: 11px;
 		border: 1px solid $border;
 		border-radius: 9px;
 		background-color: $surface;
+	}
+
+	// Keep a small inset above the footer when the Set Job picker is expanded.
+	.arg-form-setjob {
+		gap: $setjob-form-gap;
+		padding-bottom: $setjob-form-bottom-padding;
 	}
 
 	.arg-form-head {
@@ -953,14 +922,24 @@ $tone-gold: #a16207;
 		color: $text;
 	}
 
+	.arg-money-label {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+	}
+
+	.arg-money-label-text {
+		font-size: 13px;
+		color: $text;
+	}
+
 	.arg-required {
 		margin-left: 5px;
 		color: $blue-highlight;
 		font-size: 12px;
 	}
 
-	// U1c: a satisfied required field clears its marker. Drop the gap with it, so the
-	// label does not carry 5px of dead space where the word used to be.
+	// Remove the gap when a satisfied field clears its required marker.
 	.arg-required-off {
 		margin-left: 0;
 	}
@@ -971,6 +950,70 @@ $tone-gold: #a16207;
 		border: 1px solid $border;
 		border-radius: 6px;
 		background-color: rgba($canvas, 0.26);
+	}
+
+	.arg-form-money > .arg-form-head {
+		flex-shrink: 0;
+	}
+
+	// Preserve field labels and chip height instead of compressing editable rows.
+	.arg-form-money > .arg-row {
+		flex-shrink: 0;
+	}
+
+	// Size the number field for digits and give the explanation a short paragraph box.
+	.money-amount-controls {
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+	}
+
+	.money-amount-presets {
+		align-items: center;
+	}
+
+	.arg-input-money-amount {
+		width: $money-amount-width;
+		flex-shrink: 0;
+	}
+
+	.arg-row-money-reason {
+		gap: $money-reason-spacing;
+		margin-top: 4px;
+	}
+
+	.arg-input-money-reason {
+		width: 100%;
+		align-self: flex-start;
+		height: $money-reason-height;
+		min-height: $money-reason-height;
+		max-height: $money-reason-height;
+		padding: $money-reason-spacing 9px;
+	}
+
+	.arg-form-money > .confirm-btn,
+	.arg-form-money > .confirm-btn-inert {
+		margin-top: 4px;
+	}
+
+	.arg-form-money {
+		flex-grow: 1;
+		flex-shrink: 1;
+		min-height: 0;
+		margin-bottom: 0;
+		padding-bottom: $money-form-bottom-padding;
+		overflow-y: scroll;
+	}
+
+	// Submitted receipts size to their content; editable grant forms retain their reserved space.
+	.arg-form-money-receipt {
+		flex-grow: 0;
+		margin-bottom: 14px;
+	}
+
+	.arg-form-money-receipt .grant-status-lane {
+		flex-grow: 0;
+		min-height: 0;
 	}
 
 	.chips {
@@ -1031,18 +1074,63 @@ $tone-gold: #a16207;
 		color: $muted;
 	}
 
+	// Fixed shell keeps Confirm stationary across zero, one and many search results.
+	// Authored content needs 30 + 3 + 136 + 3 + 18 = 190px. The measured native
+	// pre-cue span is 305 physical pixels at 1.75 scale, or 174.286 logical pixels;
+	// adding the 18px cue needs 192.286px. Reserve 194px to contain native rounding.
+	// Filter, four-row viewport and end clearance retain their existing sizes.
+	.job-dropdown-shell {
+		flex-direction: column;
+		flex-shrink: 0;
+		gap: 3px;
+		height: 194px;
+		min-height: 194px;
+		max-height: 194px;
+		overflow: hidden;
+	}
+
 	.job-dropdown-list {
-		max-height: 200px;
-		overflow-y: auto;
-		padding: 5px;
+		flex-direction: column;
+		flex-shrink: 0;
+		padding: 3px;
 		border: 1px solid $border;
 		border-radius: 7px;
 		background-color: $shell;
 	}
 
+	// Override arg-input height with selector specificity, not source order alone.
 	.job-filter {
 		flex-shrink: 0;
-		margin-bottom: 5px;
+		height: 30px;
+		min-height: 30px;
+		max-height: 30px;
+		margin-bottom: 0;
+	}
+
+	// max-height, not height: the viewport is four complete 30px rows plus 8px, and a shorter list closes
+	// the box around its rows instead of leaving an oversized empty one. At the END of a longer list the
+	// 8px is the tail (clearance under the last row); at offset 0 it shows the top 8px of row five, which
+	// is the scroll affordance itself. Still lp-ui-scroll-region, so the manual clamp measures it and the
+	// wheel reaches the pane when short.
+	.job-option-scroll {
+		flex-direction: column;
+		flex-shrink: 0;
+		max-height: 128px;
+		overflow-y: scroll;
+	}
+
+	// End clearance inside the scroller: the last row never sits flush against the frame.
+	.job-option-tail {
+		flex-shrink: 0;
+		width: 100%;
+		height: 8px;
+	}
+
+	.job-empty {
+		flex-shrink: 0;
+		padding: 8px;
+		color: $muted;
+		font-size: 12px;
 	}
 
 	.job-option {
@@ -1051,7 +1139,10 @@ $tone-gold: #a16207;
 		gap: 8px;
 		flex-shrink: 0;
 		width: 100%;
-		padding: 8px;
+		height: 30px;
+		min-height: 30px;
+		max-height: 30px;
+		padding: 0 8px;
 		border: 0;
 		border-radius: 5px;
 		background-color: transparent;
@@ -1065,6 +1156,38 @@ $tone-gold: #a16207;
 	.job-option-active {
 		background-color: rgba($blue, 0.11);
 		color: $blue-highlight;
+	}
+
+	// Always emitted; fixed so the shell height holds whether or not the hint text is showing.
+	.job-scroll-cue {
+		flex-direction: row;
+		align-items: center;
+		justify-content: flex-end;
+		flex-shrink: 0;
+		gap: 4px;
+		padding-right: 4px;
+		height: 18px;
+		min-height: 18px;
+		max-height: 18px;
+		color: $muted;
+		font-size: 11px;
+	}
+
+	.job-scroll-cue .material-icons {
+		font-size: 14px;
+		line-height: 1;
+	}
+
+	// The explicit label outranks the generic argument-row label typography.
+	.job-scroll-cue .job-scroll-cue-text {
+		flex-shrink: 0;
+		height: 14px;
+		min-height: 14px;
+		max-height: 14px;
+		color: $muted;
+		font-size: 11px;
+		line-height: 1.25;
+		white-space: nowrap;
 	}
 
 	.confirm-btn {
@@ -1088,11 +1211,31 @@ $tone-gold: #a16207;
 		background-color: $blue;
 	}
 
-	// One alignment axis: both primary actions span the card width, so their left AND right
-	// edges match the stat block above. A centred stack of differing widths aligns to nothing.
+	// Primary actions span the card to align with the profile columns.
 	.confirm-btn {
 		align-self: stretch;
 		width: 100%;
+	}
+
+	// The disabled Confirm replaces the base class, preserving geometry while preventing
+	// confirm-btn:hover from matching.
+	.confirm-btn-inert,
+	.confirm-btn-inert:hover {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		align-self: stretch;
+		width: 100%;
+		gap: 7px;
+		min-height: 38px;
+		padding: 0 12px;
+		border: 1px solid rgba($muted, 0.20);
+		border-radius: 7px;
+		background-color: rgba($muted, 0.07);
+		color: $muted;
+		font-size: 13px;
+		font-weight: 700;
+		cursor: default;
 	}
 
 	.confirm-btn-secondary {
@@ -1117,10 +1260,9 @@ $tone-gold: #a16207;
 		padding: 0 16px;
 	}
 
-	// Four columns. s&box under-measures a wrap-flex grid, so overflow-y never
-	// engages on it -- the grid has to FIT rather than rely on scrolling. At 3
-	// columns Commands (14 cards) needed 5 rows / ~535px against a ~479px
-	// workspace and clipped; 4 columns is 4 rows / ~428px.
+	// Four proportional columns beside the expanded roster. The editor's rendered
+	// workspace is not the design-time pixel budget, so fixed tracks leave a whole
+	// column unused and force Commands into a clipped fifth row.
 	.action-btn,
 	.action-spacer {
 		flex-basis: 22%;
@@ -1130,12 +1272,18 @@ $tone-gold: #a16207;
 	}
 
 	.action-spacer {
-		height: 0;
+		height: 92px;
+		min-height: 92px;
+		max-height: 92px;
 	}
 
-	// Fixed height, not min-height: in a scrolling grid an uneven row edge is
-	// the first thing the eye catches. Every card is the same box; content is
-	// centred within it and clipped rather than allowed to push the row taller.
+	// Collapsing the roster creates room for a fifth column rather than oversized cards.
+	.action-grid-wide .action-btn,
+	.action-grid-wide .action-spacer {
+		flex-basis: 17.5%;
+	}
+
+	// Use equal fixed card heights so wrapped content does not shift row alignment.
 	.action-btn {
 		flex-direction: column;
 		align-items: center;
@@ -1149,17 +1297,26 @@ $tone-gold: #a16207;
 		border: 1px solid $border;
 		border-radius: 9px;
 		background-color: $surface-raised;
-		color: $text;
+		color: $blue;
 		cursor: pointer;
 		transition: background-color 140ms ease-out, border-color 140ms ease-out;
 	}
 
 	.action-btn .material-icons {
 		font-size: 26px;
-		color: $blue;
+		color: inherit;
+	}
+
+	.xray-skull {
+		width: 26px;
+		height: 26px;
+		min-width: 26px;
+		min-height: 26px;
+		background-tint: currentColor;
 	}
 
 	.action-label {
+		color: $text;
 		font-size: 14px;
 		font-weight: 700;
 		text-align: center;
@@ -1178,9 +1335,7 @@ $tone-gold: #a16207;
 		color: $muted;
 	}
 
-	// Unavailable is a quiet state, not an error: the reason sits below the
-	// description at a lower weight than $muted so the card reads as inert
-	// rather than alarming. Red stays reserved for destructive intent.
+	// Unavailable cards stay quiet; red is reserved for destructive actions.
 	.action-disabled-reason {
 		color: $muted;
 	}
@@ -1190,22 +1345,18 @@ $tone-gold: #a16207;
 		background-color: rgba($blue, 0.09);
 	}
 
-	// ---- Action severity --------------------------------------------------------
-	// Every catalog tile carries exactly one persistent tier. Display-tone overrides follow
-	// the tier blocks so they can change the tile's look without changing severity data.
+	// Action severity colors appear on hover; armed confirmations retain their color.
+	// Display tones override hover colors without changing severity. Active toggles keep
+	// state colors at rest because they represent current native state.
 
-	.action-severity-light {
-		border-color: rgba($blue, 0.48);
-		background-color: rgba($blue, 0.09);
-	}
-
-	.action-severity-light .material-icons {
-		color: $blue;
-	}
-
-	.action-severity-light:hover {
+	.action-severity-light:hover,
+	.profile-footer .profile-flag-light {
 		border-color: rgba($blue, 0.68);
 		background-color: rgba($blue, 0.16);
+	}
+
+	.action-severity-light:hover .material-icons {
+		color: $blue;
 	}
 
 	.action-severity-light:active {
@@ -1213,18 +1364,14 @@ $tone-gold: #a16207;
 		background-color: rgba($blue, 0.24);
 	}
 
-	.action-severity-medium {
-		border-color: rgba($amber, 0.48);
-		background-color: rgba($amber, 0.09);
-	}
-
-	.action-severity-medium .material-icons {
-		color: $amber;
-	}
-
-	.action-severity-medium:hover {
+	.action-severity-medium:hover,
+	.profile-footer .profile-flag-medium {
 		border-color: rgba($amber, 0.65);
 		background-color: rgba($amber, 0.16);
+	}
+
+	.action-severity-medium:hover .material-icons {
+		color: $amber;
 	}
 
 	.action-severity-medium:active {
@@ -1232,18 +1379,14 @@ $tone-gold: #a16207;
 		background-color: rgba($amber, 0.24);
 	}
 
-	.action-severity-severe {
-		border-color: rgba($danger, 0.50);
-		background-color: rgba($danger, 0.10);
-	}
-
-	.action-severity-severe .material-icons {
-		color: $danger;
-	}
-
-	.action-severity-severe:hover {
+	.action-severity-severe:hover,
+	.profile-footer .profile-flag-severe {
 		border-color: rgba($danger, 0.68);
 		background-color: rgba($danger, 0.18);
+	}
+
+	.action-severity-severe:hover .material-icons {
+		color: $danger;
 	}
 
 	.action-severity-severe:active {
@@ -1251,18 +1394,13 @@ $tone-gold: #a16207;
 		background-color: rgba($danger, 0.26);
 	}
 
-	.action-tone-money {
-		border-color: rgba($success, 0.50);
-		background-color: rgba($success, 0.10);
-	}
-
-	.action-tone-money .material-icons {
-		color: $success;
-	}
-
 	.action-tone-money:hover {
 		border-color: rgba($success, 0.68);
 		background-color: rgba($success, 0.18);
+	}
+
+	.action-tone-money:hover .material-icons {
+		color: $success;
 	}
 
 	.action-tone-money:active {
@@ -1270,8 +1408,35 @@ $tone-gold: #a16207;
 		background-color: rgba($success, 0.26);
 	}
 
-	// TOGGLE ON -- a real runtime state, not a click echo. Held fully coloured for as long as
-	// StaffMenuHost reports the status live, so the card and the HUD indicator cannot disagree.
+	// Armor keeps DXRP's native HUD cyan; its Severe classification still guards confirmation.
+	.action-tone-armor:hover {
+		border-color: rgba($armor-hud, 0.68);
+		background-color: rgba($armor-hud, 0.18);
+	}
+
+	.action-tone-armor:hover .material-icons {
+		color: $armor-hud;
+	}
+
+	.action-tone-armor:active {
+		border-color: $armor-hud;
+		background-color: rgba($armor-hud, 0.26);
+	}
+
+	// Freeze follows its native Frozen HUD cyan and white snowflake.
+	.action-tone-freeze:hover,
+	.profile-footer .profile-flag-freeze {
+		border-color: $freeze-hud;
+		background-color: rgba($freeze-hud, 0.20);
+	}
+
+
+	.action-tone-freeze:active {
+		border-color: $freeze-hud;
+		background-color: rgba($freeze-hud, 0.26);
+	}
+
+	// Active toggle colors follow StaffMenuHost state, not local click history.
 	.action-toggle-on {
 		border-color: $blue;
 		background-color: $blue-fill;
@@ -1287,6 +1452,48 @@ $tone-gold: #a16207;
 	.action-toggle-on:hover {
 		border-color: $blue-highlight;
 		background-color: $blue;
+	}
+
+	.action-freeze-on {
+		border-color: $freeze-hud;
+		background-color: rgba($freeze-hud, 0.20);
+	}
+
+	.action-freeze-on:hover {
+		border-color: $freeze-hud;
+		background-color: rgba($freeze-hud, 0.30);
+	}
+
+	.action-tone-freeze:hover .material-icons,
+	.action-freeze-on .material-icons {
+		color: #ffffff;
+	}
+
+	// Cloak keeps its native HUD gray border, translucent fill and white icon.
+	.action-tone-cloak:hover,
+	.profile-footer .profile-flag-cloak {
+		border-color: $cloak-hud;
+		background-color: rgba($cloak-hud, 0.20);
+	}
+
+	.action-tone-cloak:hover .material-icons,
+	.action-cloak-on .material-icons {
+		color: $cloak-hud-icon;
+	}
+
+	.action-tone-cloak:active {
+		border-color: $cloak-hud;
+		background-color: rgba($cloak-hud, 0.26);
+	}
+
+	.action-cloak-on {
+		border-color: $cloak-hud;
+		background-color: rgba($cloak-hud, 0.20);
+	}
+
+	.action-cloak-on:hover {
+		border-color: $cloak-hud;
+		background-color: rgba($cloak-hud, 0.30);
 	}
 
 	.empty {
@@ -1333,10 +1540,18 @@ $tone-gold: #a16207;
 		overflow: hidden;
 	}
 
+	.profile-identity-row {
+		align-items: center;
+		flex-direction: row;
+		flex-shrink: 0;
+		width: 100%;
+		gap: 8px;
+	}
+
 	.profile-tp {
-		position: absolute;
-		top: 12px;
-		right: 12px;
+		align-items: center;
+		flex-shrink: 0;
+		margin-left: auto;
 		gap: 6px;
 	}
 
@@ -1354,14 +1569,14 @@ $tone-gold: #a16207;
 		background-color: rgba($blue, 0.10);
 	}
 
-	// Avatar and identity read as ONE header row -- avatar left, name and role beside it.
-	// Previously the avatar floated centred above a stat wall, which read as three stacked regions.
+	// Keep avatar, name and rank on one header row.
 	.profile-identity {
 		flex-direction: row;
 		align-items: center;
-		flex-shrink: 0;
+		flex: 1 1 auto;
+		min-width: 0;
 		gap: 11px;
-		padding-right: 108px;
+		padding-right: 0;
 	}
 
 	.profile-identity-copy {
@@ -1385,27 +1600,260 @@ $tone-gold: #a16207;
 		color: $text;
 	}
 
-	// The grouping panel: one step lighter than the card it sits in, so the stat
-	// block reads as a unit without a single border line.
-	// Nothing in this console is lighter than its parent: the card sits above the shell,
-	// the stat block sits BELOW the card. The old rgba($text,.035) wash read as light gray.
-	// ONE scroll region for the card body. The stat block, Recent actions and Sanctions are
-	// plain stacked children of it -- nesting a scroller inside a scroller is what clipped rows.
-	// flex-direction is NOT inherited and this class is not in the shared column blocks above:
-	// left as the default row, the children stretch on the CROSS axis (height) and the stat block
-	// swallowed the whole card while the sections were pushed off the width. State it explicitly.
+	.pocket-request-rail {
+		display: none;
+	}
+
+	.profile-links {
+		flex-direction: row;
+		flex-shrink: 0;
+		width: 100%;
+		gap: 7px;
+	}
+
+	.profile-links .confirm-btn {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+
+	.profile-data-trigger {
+		align-items: center;
+		gap: 4px;
+		padding: 0 6px;
+		border: 0;
+		background-color: transparent;
+		color: $blue-highlight;
+		font-size: 11px;
+		cursor: pointer;
+	}
+
+	.profile-data-trigger .material-icons {
+		font-size: 15px;
+	}
+
+	.profile-data-trigger:hover {
+		color: $text;
+	}
+
+	.pocket-modal-layer {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		align-items: center;
+		justify-content: center;
+		z-index: 30;
+		pointer-events: none;
+	}
+
+	.pocket-modal-scrim {
+		position: absolute;
+		top: 0;
+		right: 0;
+		bottom: 0;
+		left: 0;
+		background-color: rgba($canvas, 0.86);
+		pointer-events: all;
+	}
+
+	.pocket-modal {
+		position: relative;
+		flex-direction: column;
+		width: 620px;
+		gap: 12px;
+		padding: 16px;
+		border: 1px solid $border;
+		border-radius: 8px;
+		background-color: $surface-raised;
+		color: $text;
+		z-index: 31;
+		pointer-events: all;
+	}
+
+	.pocket-modal-head {
+		align-items: center;
+		flex-direction: row;
+	}
+
+	.pocket-modal-title {
+		flex-direction: column;
+		gap: 3px;
+		font-size: 15px;
+		font-weight: 700;
+	}
+
+	.pocket-modal-subtitle,
+	.pocket-empty-state {
+		color: $muted;
+		font-size: 11px;
+		font-weight: 400;
+	}
+
+	.pocket-modal-close {
+		margin-left: auto;
+	}
+
+	.pocket-slots {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 8px;
+	}
+
+	.pocket-slot {
+		position: relative;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		flex: 1 1 30%;
+		min-width: 0;
+		height: 72px;
+		gap: 4px;
+		padding: 8px;
+		border-radius: 8px;
+		background-color: $canvas;
+		color: $text;
+	}
+
+	.pocket-slot-empty,
+	.pocket-slot-loading {
+		color: $muted;
+	}
+
+	.pocket-slot-fallback {
+		flex-shrink: 0;
+		width: 24px;
+		height: 24px;
+		align-items: center;
+		justify-content: center;
+		text-align: center;
+	}
+
+	.pocket-slot .material-icons {
+		font-size: 20px;
+		color: $blue;
+	}
+
+	.pocket-slot-empty .material-icons,
+	.pocket-slot-loading .material-icons {
+		color: $muted;
+	}
+
+	.pocket-slot-number {
+		position: absolute;
+		top: 6px;
+		right: 8px;
+		color: $muted;
+		font-size: 10px;
+	}
+
+	.pocket-slot-label {
+		width: 100%;
+		max-width: 100%;
+		justify-content: center;
+		font-size: 12px;
+		text-align: center;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	.pocket-empty-state {
+		text-align: center;
+	}
+
+	.inventory-modal {
+		max-height: 520px;
+	}
+
+	.inventory-modal-list {
+		flex-direction: column;
+		min-height: 0;
+		max-height: 360px;
+		gap: 8px;
+		overflow-y: scroll;
+		padding-right: 4px;
+	}
+
+	.inventory-modal-row {
+		align-items: center;
+		flex-direction: row;
+		flex-shrink: 0;
+		min-height: 54px;
+		gap: 12px;
+		padding: 8px 12px;
+		border: 0;
+		border-radius: 2px;
+		background-color: $canvas;
+	}
+
+	.inventory-item-icon {
+		flex-shrink: 0;
+		font-size: 21px;
+		color: $blue;
+	}
+
+	.inventory-item-copy {
+		flex-direction: column;
+		flex: 1 1 auto;
+		min-width: 0;
+		gap: 2px;
+	}
+
+	.inventory-item-name {
+		color: $text;
+		font-size: 13px;
+		font-weight: 700;
+		white-space: nowrap;
+		overflow: hidden;
+	}
+
+	.inventory-item-meta {
+		color: $muted;
+		font-size: 11px;
+		text-transform: capitalize;
+	}
+
+	.inventory-item-quantity {
+		flex-shrink: 0;
+		color: $text;
+		font-size: 13px;
+		font-weight: 700;
+	}
+
+	.inventory-modal-state {
+		align-items: center;
+		justify-content: center;
+		min-height: 150px;
+		gap: 8px;
+		padding: 16px;
+		border: 0;
+		border-radius: 2px;
+		background-color: $canvas;
+		color: $muted;
+		font-size: 12px;
+		text-align: center;
+	}
+
+	.inventory-modal-state .material-icons {
+		font-size: 22px;
+		color: $blue;
+	}
+
+	.inventory-modal-unavailable .material-icons {
+		color: $amber;
+	}
+
+	// The profile body fits as ordinary card content. Scrolling belongs only to bounded lists
+	// and dropdowns, never to the whole player profile.
 	.profile-body {
 		flex-direction: column;
 		flex: 1 1 auto;
 		min-height: 0;
 		width: 100%;
 		gap: 8px;
-		overflow-y: scroll;
 	}
 
-	// 16a -- three escalation cards in one row, destructive at rest because every one of them
-	// takes something away. Sized by flex so all three always fit without wrapping.
-	// 17f -- the restated grant, immediately above the button that executes it.
+	// Confirmation restatement above the action button.
 	.grant-confirm {
 		flex-direction: column;
 		flex-shrink: 0;
@@ -1421,12 +1869,8 @@ $tone-gold: #a16207;
 		font-size: 13px;
 	}
 
-	// U1b / LAW 15 Separator Law: a literal run sitting between two value nodes is a
-	// discrete element carrying its own spacing -- never a bare text node, which Razor
-	// splits off and collapses ("Give$100toBloodwave, into theircash?"). Same 5px the
-	// .arg-required marker above and the HASHD .lp-chip-sep already use. -lead pads on
-	// the right only, because its left edge must hug the value before it (or the line
-	// start); -mid pads both sides, because it sits between two values.
+	// Use explicit separator elements: Razor can collapse bare text between value nodes.
+	// Leading separators pad only on the right; middle separators pad both sides.
 	.grant-word-lead {
 		margin-right: 5px;
 	}
@@ -1451,6 +1895,42 @@ $tone-gold: #a16207;
 		font-size: 11px;
 	}
 
+	.grant-result {
+		flex-direction: row;
+		align-items: center;
+		gap: 7px;
+		padding: 8px 10px;
+		border: 1px solid $border;
+		border-radius: 7px;
+		background-color: rgba($canvas, 0.22);
+		color: $text;
+		font-size: 12px;
+	}
+
+	.grant-result .material-icons {
+		font-size: 18px;
+	}
+
+	.grant-result-success,
+	.grant-result-success .material-icons {
+		border-color: rgba($success, 0.52);
+		color: $success;
+	}
+
+	.grant-result-pending,
+	.grant-result-pending .material-icons,
+	.grant-result-unknown,
+	.grant-result-unknown .material-icons {
+		border-color: rgba($amber, 0.52);
+		color: $amber;
+	}
+
+	.grant-result-rejected,
+	.grant-result-rejected .material-icons {
+		border-color: rgba($danger, 0.52);
+		color: $danger;
+	}
+
 	.confirm-btn-danger {
 		border-color: $danger;
 		background-color: rgba($danger, 0.30);
@@ -1460,6 +1940,76 @@ $tone-gold: #a16207;
 		background-color: rgba($danger, 0.44);
 	}
 
+	.confirm-btn-armor {
+		border-color: $armor-hud;
+		background-color: rgba($armor-hud, 0.30);
+	}
+
+	.confirm-btn-armor:hover {
+		background-color: rgba($armor-hud, 0.44);
+	}
+
+	.confirm-btn-freeze {
+		border-color: $freeze-hud;
+		background-color: rgba($freeze-hud, 0.30);
+	}
+
+	.confirm-btn-freeze:hover {
+		background-color: rgba($freeze-hud, 0.44);
+	}
+
+	// Reserve status space before submission so validation, confirmation and results
+	// do not move the inputs. Use min-height to allow wrapped messages.
+	.grant-status-lane {
+		flex-direction: column;
+		justify-content: center;
+		flex-grow: 1;
+		flex-shrink: 0;
+		min-height: 56px;
+	}
+
+	// Read-only receipt of the payload that was sent, shown in place of the inputs while a grant is
+	// Pending, Unknown or Succeeded (the frozen instance). Rows are the profile's .field family.
+	.grant-receipt {
+		flex-direction: column;
+		flex-shrink: 0;
+		gap: 2px;
+		padding: 6px 4px;
+		border: 1px solid $border;
+		border-radius: 7px;
+		background-color: rgba($canvas, 0.26);
+	}
+
+	.grant-receipt .field {
+		min-height: 26px;
+	}
+
+	.grant-receipt .v {
+		min-width: 0;
+	}
+
+	.grant-receipt .k {
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	.grant-receipt-reason {
+		white-space: normal;
+		max-height: 52px;
+		overflow: scroll;
+	}
+
+	// The successful receipt keeps its success tone; the terminal Close action uses the close role.
+	.grant-close-btn {
+		border-color: rgba($danger, 0.55);
+		background-color: rgba($danger, 0.18);
+	}
+
+	.grant-close-btn:hover {
+		background-color: rgba($danger, 0.30);
+	}
+
+	// Fit all three quick-sanction cards in one row.
 	.quick-sanctions {
 		flex-direction: row;
 		flex-shrink: 0;
@@ -1467,10 +2017,7 @@ $tone-gold: #a16207;
 		width: 100%;
 	}
 
-	// Neutral at REST: the card is a surface like any other and the ICON carries the
-	// destructive role. A red field on three resting cards made the quick-sanction row
-	// the loudest thing on the profile, ahead of the player it describes. The fill
-	// arrives on hover, where it means "this is what you are about to do".
+	// Keep the resting card neutral with a destructive icon; add the red fill on hover.
 	.quick-sanction {
 		flex-direction: column;
 		align-items: center;
@@ -1506,11 +2053,7 @@ $tone-gold: #a16207;
 		background-color: rgba($danger, 0.30);
 	}
 
-	// 16e -- an illegitimate flag must be impossible to miss; a legitimate one must read calm.
-	.flags-field {
-		align-items: flex-start;
-	}
-
+	// Unauthorized active flags retain a distinct warning treatment.
 	.flags-list {
 		flex-direction: row;
 		flex-wrap: wrap;
@@ -1537,10 +2080,22 @@ $tone-gold: #a16207;
 		color: $danger;
 	}
 
+	// Permitted profile chips share the catalog hover palette; unauthorized chips keep the warning.
+	.profile-footer .profile-flag-light,
+	.profile-footer .profile-flag-medium,
+	.profile-footer .profile-flag-severe,
+	.profile-footer .profile-flag-cloak,
+	.profile-footer .profile-flag-freeze {
+		color: $text;
+	}
+
+	// Stretch profile columns equally and let their sections absorb spare height.
+	// Keep min-height zero so they fit the workspace without pane scrolling.
 	.profile-columns {
 		flex-direction: row;
-		align-items: flex-start;
-		flex-shrink: 0;
+		align-items: stretch;
+		flex: 1 1 auto;
+		min-height: 0;
 		gap: 10px;
 		width: 100%;
 	}
@@ -1573,7 +2128,78 @@ $tone-gold: #a16207;
 		background-color: $canvas;
 	}
 
+	// Grow each section with its column. Four fixed-height rows align across columns;
+	// the always-present footer keeps controls and flags on a shared baseline.
+	.profile-col .profile-section {
+		flex-grow: 1;
+		justify-content: flex-start;
+		gap: 0;
+		padding: 6px 6px 0;
+	}
+
+	.profile-rows {
+		flex-direction: column;
+		flex: 1 1 0;
+		min-height: 0;
+		justify-content: space-evenly;
+		gap: 1px;
+		width: 100%;
+	}
+
+	// Fixed, not min: a long job name or a wrapped value must not make one column's baselines drift.
+	// Values ellipsize instead (the Audit tab shows the full text where it matters).
+	.profile-col .field {
+		height: 32px;
+		min-height: 32px;
+		max-height: 32px;
+		padding: 6px 10px;
+	}
+
+	.profile-rows .v {
+		min-width: 0;
+		white-space: nowrap;
+		overflow: hidden;
+		text-overflow: ellipsis;
+	}
+
+	// Emit equal footer lanes even when a control is unavailable. Named chips use the
+	// full width; 46px fits two 17px rows with a 4px gap. Single controls remain centered.
+	.profile-footer {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		flex-shrink: 0;
+		gap: 8px;
+		width: 100%;
+		height: 46px;
+		min-height: 46px;
+		max-height: 46px;
+		padding: 0 6px;
+		border-top: 1px solid $border;
+		overflow: hidden;
+	}
+
+	.profile-footer .k {
+		flex-shrink: 0;
+	}
+
+	.profile-footer .flags-list {
+		flex: 0 1 auto;
+		justify-content: center;
+	}
+
+	.profile-footer .flag-chip {
+		padding: 1px 5px;
+		font-size: 10px;
+	}
+
+	.profile-col .k,
+	.profile-col .profile-data-trigger {
+		font-size: 13px;
+	}
+
 	.section-empty {
+		flex-shrink: 0;
 		padding: 8px 8px;
 		color: $muted;
 		font-size: 12px;
@@ -1588,6 +2214,7 @@ $tone-gold: #a16207;
 		min-height: 24px;
 	}
 
+	// Reserve 110px for the 16-character yyyy-MM-dd HH:mm fallback at 11px Roboto Mono.
 	.event-when {
 		flex-shrink: 0;
 		width: 110px;
@@ -1602,11 +2229,18 @@ $tone-gold: #a16207;
 		font-weight: 700;
 	}
 
+	// s&box has no multiline line-clamp. Use single-line ellipsis to mark truncation;
+	// min-width zero lets the flex cell shrink enough for it to appear.
+	// The Audit tab displays the same description with uncapped wrapping.
 	.event-what {
 		flex: 1 1 0;
 		min-width: 0;
 		color: $muted;
 		font-size: 12px;
+		line-height: 1.25;
+		white-space: nowrap;
+		text-overflow: ellipsis;
+		overflow: hidden;
 	}
 
 	// An ACTIVE sanction is the most important thing on this card -- it gets the red row.
@@ -1640,12 +2274,17 @@ $tone-gold: #a16207;
 		color: $danger;
 	}
 
+	// Automatic sanctions are machine-issued by Sentinel or the Steam language filter
+	// and need inspection. Amber avoids implying a confirmed punishment.
 	.sanction-warning,
-	.sanction-gag {
+	.sanction-gag,
+	.sanction-automatic {
 		color: $amber;
 	}
 
-	.sanction-kick {
+	// Notes are records rather than punishments and use the light-action color.
+	.sanction-kick,
+	.sanction-note {
 		color: $blue-highlight;
 	}
 
@@ -1656,22 +2295,9 @@ $tone-gold: #a16207;
 		font-size: 12px;
 	}
 
-	.sanction-meta {
-		flex-shrink: 0;
-		color: $muted;
-		font-size: 11px;
-	}
+	// StaffObserve reuses the sanction row and type styles above.
 
-	// 7e: lets the final row clear the viewport edge instead of being sliced mid-row.
-	.profile-fields-tail {
-		flex-shrink: 0;
-		width: 100%;
-		height: 14px;
-	}
-
-	// No rules between rows. The group sits in a slightly lighter rounded panel
-	// and spacing alone does the separating -- a divider per row reads as noise
-	// once the container already states the boundary.
+	// Separate rows with spacing inside the group container.
 	.field {
 		align-items: center;
 		justify-content: space-between;
@@ -1693,11 +2319,8 @@ $tone-gold: #a16207;
 		text-align: right;
 	}
 
-	// Values carry meaning-colour; the .k labels beside them stay $muted. That
-	// contrast is what makes a dense table scannable. Role and Job take a live
-	// portal colour inline when one exists and fall back to these.
-	// Rank keeps its live portal colour inline when one exists; the fallback is
-	// plain value-text. Two text levels only -- no third accent for privilege.
+	// Keep labels muted and values semantic. Role and job may use live portal colors;
+	// rank falls back to ordinary value text when no portal color is available.
 	.v-role {
 		color: $text;
 	}
@@ -1742,15 +2365,92 @@ $tone-gold: #a16207;
 		background-color: rgba($blue, 0.08);
 	}
 
+	// The clickable Steam ID uses the same value edge and row padding as its neighbors.
+	.steamid-value {
+		align-items: center;
+		flex-shrink: 0;
+		padding: 0;
+		border: 0;
+		background-color: transparent;
+		color: inherit;
+		white-space: nowrap;
+		font-size: 12px;
+		justify-content: flex-end;
+		cursor: pointer;
+	}
+
+	.profile-stat-value {
+		align-items: center;
+		justify-content: flex-end;
+		padding: 0;
+		border: 0;
+		background-color: transparent;
+		cursor: pointer;
+	}
+
+	.steamid-value:hover {
+		color: $blue-highlight;
+	}
+
 	.settings {
 		flex: 1 1 auto;
 		gap: 13px;
 		padding: 16px;
 	}
 
-	// The list and the Return card sit SIDE BY SIDE. Stacked, the list rows spanned the whole
-	// workspace so a short waypoint name sat a long way from its own Go button, and the space
-	// beneath the card was empty. Two columns shorten the rows and use the width.
+	// Settings fills its available height; Appearance uses the space below Network.
+	// Cards retain their content floors without introducing a pane-level scroll surface.
+	.settings-cols {
+		flex-direction: row;
+		align-items: stretch;
+		flex: 1 1 0;
+		min-height: 0;
+		gap: 13px;
+	}
+
+	.settings-col {
+		flex-direction: column;
+		min-width: 0;
+		gap: 13px;
+	}
+
+	// Keep the Settings column shares and gutter stable so Diagnostics retains its width.
+	.settings-col-network {
+		flex: 6.6 1 13px;
+	}
+
+	.settings-col-diagnostics {
+		flex: 3.6 1 0;
+	}
+
+	.settings-appearance {
+		flex: 1 1 0;
+		min-height: 0;
+	}
+
+
+	// Management sits beneath Diagnostics in the right column; the copy takes the slack and the
+	// Open button keeps its width, so a narrower column wraps the hint rather than the control.
+	.settings-management {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		width: 100%;
+		gap: 12px;
+	}
+
+	.settings-management-copy {
+		flex-direction: column;
+		flex: 1 1 auto;
+		min-width: 0;
+		gap: 4px;
+	}
+
+	.settings-management-btn {
+		flex-shrink: 0;
+	}
+
+	// Place the waypoint list and Return card side by side to keep names near their controls.
 	.waypoints {
 		flex-direction: row;
 		align-items: stretch;
@@ -1775,10 +2475,13 @@ $tone-gold: #a16207;
 		overflow: hidden;
 	}
 
+	// s&box compares render order between siblings. Raise the toolbar above the audit table;
+	// raising only its nested popovers cannot change that parent-level hit-test order.
 	.audit-toolbar {
 		align-items: center;
 		gap: 8px;
 		flex-shrink: 0;
+		z-index: 20;
 	}
 
 	.audit-filters {
@@ -1798,6 +2501,123 @@ $tone-gold: #a16207;
 	.audit-filter-action {
 		flex: 0 0 188px;
 		position: relative;
+	}
+
+	// Give the player field extra width for its scope pills and SteamID.
+	// Keep the action and time-window pickers at their fixed widths.
+	.audit-filter-player {
+		flex: 3 1 0;
+	}
+
+	.audit-filter-window {
+		flex: 0 0 158px;
+		position: relative;
+	}
+
+	// Keep actor/target scope controls inside the player filter they qualify.
+	.audit-scope {
+		flex-shrink: 0;
+		gap: 2px;
+	}
+
+	.audit-scope-pill {
+		flex-shrink: 0;
+		padding: 2px 7px;
+		border: 0;
+		border-radius: 4px;
+		background-color: transparent;
+		color: $muted;
+		font-size: 11px;
+		cursor: pointer;
+	}
+
+	.audit-scope-pill:hover {
+		color: $text;
+	}
+
+	// Use the standalone audit-scope-sel class; compound state selectors are unreliable in s&box.
+	.audit-scope-sel {
+		background-color: $blue-fill;
+		color: $text;
+	}
+
+	.audit-window-value {
+		color: $text;
+	}
+
+	.audit-window-pop {
+		position: absolute;
+		top: 40px;
+		left: 0;
+		width: 158px;
+		gap: 2px;
+		padding: 6px;
+		border: 1px solid $border;
+		border-radius: 8px;
+		background-color: $surface-raised;
+		overflow: hidden;
+		z-index: 20;
+		pointer-events: all;
+	}
+
+	.audit-window-option {
+		flex-shrink: 0;
+		align-items: center;
+		height: 26px;
+		padding: 0 8px;
+		border: 0;
+		border-radius: 4px;
+		background-color: transparent;
+		color: $text;
+		font-size: 12px;
+		text-align: left;
+		cursor: pointer;
+	}
+
+	.audit-window-option:hover {
+		background-color: rgba($text, 0.06);
+	}
+
+	.audit-window-sel {
+		background-color: $blue-fill;
+	}
+
+	.audit-clear-btn {
+		flex-shrink: 0;
+		align-items: center;
+		justify-content: center;
+		height: 36px;
+		padding: 0 11px;
+		border: 1px solid $border;
+		border-radius: 8px;
+		background-color: $surface;
+		color: $muted;
+		font-size: 12px;
+		cursor: pointer;
+	}
+
+	.audit-clear-btn:hover {
+		color: $blue-highlight;
+		border-color: rgba($blue, 0.48);
+	}
+
+	// Offered inside the empty state, where the operator is already looking when a filter set
+	// returns nothing — the toolbar button is for the general case.
+	.audit-clear-inline {
+		flex-shrink: 0;
+		align-self: flex-start;
+		margin: 0 0 16px 16px;
+		padding: 4px 10px;
+		border: 1px solid $border;
+		border-radius: 6px;
+		background-color: $surface-raised;
+		color: $blue-highlight;
+		font-size: 12px;
+		cursor: pointer;
+	}
+
+	.audit-clear-inline:hover {
+		border-color: rgba($blue, 0.48);
 	}
 
 	.audit-action-btn {
@@ -1832,16 +2652,11 @@ $tone-gold: #a16207;
 		pointer-events: all;
 	}
 
-	.audit-action-search {
-		flex-shrink: 0;
-		margin-bottom: 6px;
-	}
-
 	.audit-action-cloud {
 		flex-wrap: wrap;
 		align-content: flex-start;
 		gap: 6px;
-		flex: 1 1 auto;
+		flex: 1 1 0;
 		min-height: 0;
 		overflow-y: scroll;
 	}
@@ -1872,7 +2687,7 @@ $tone-gold: #a16207;
 	}
 
 	.audit-table {
-		flex: 1 1 auto;
+		flex: 1 1 0;
 		border: 1px solid $border;
 		border-radius: 8px;
 		background-color: $surface;
@@ -1880,7 +2695,7 @@ $tone-gold: #a16207;
 	}
 
 	.audit-scroll {
-		flex: 1 1 auto;
+		flex: 1 1 0;
 		overflow-y: scroll;
 	}
 
@@ -1946,6 +2761,29 @@ $tone-gold: #a16207;
 		box-shadow: 0 0 0 2px $text;
 	}
 
+	// A name that would return nothing under the other filters. Dimmed, not hidden: the portal's
+	// vocabulary stays visible and complete, and the operator can see it is empty before clicking.
+	.audit-action-cloud .is-empty {
+		opacity: 0.38;
+	}
+
+	// Separate name and count child elements so the count cannot merge into the label text.
+	.audit-action-chip {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	// Show nonzero facet counts in their own badges; zero-count actions retain only their names.
+	.audit-action-count {
+		flex-shrink: 0;
+		margin-left: 6px;
+		padding: 0 4px;
+		border-radius: 4px;
+		background-color: rgba($canvas, 0.45);
+		color: rgba($text, 0.72);
+		font-size: 10px;
+	}
+
 	.action-pill-teal { background-color: $tone-teal; }
 	.action-pill-maroon { background-color: $tone-maroon; }
 	.action-pill-purple { background-color: $tone-purple; }
@@ -1961,6 +2799,7 @@ $tone-gold: #a16207;
 
 	.audit-empty,
 	.audit-overflow,
+	.audit-coverage,
 	.wp-empty {
 		padding: 16px;
 		font-size: 13px;
@@ -1968,10 +2807,17 @@ $tone-gold: #a16207;
 	}
 
 	// Cap notice, not an error: quieter than a row so the table stays the subject.
-	.audit-overflow {
+	.audit-overflow,
+	.audit-coverage {
 		flex-shrink: 0;
 		padding: 10px 11px;
 		font-size: 11px;
+	}
+
+	// Reach note under a windowed view. Dimmer still than the cap notice: it qualifies the result,
+	// it does not report a problem.
+	.audit-coverage {
+		color: rgba($muted, 0.82);
 	}
 
 	.settings-group {
@@ -1999,27 +2845,6 @@ $tone-gold: #a16207;
 		color: $muted;
 	}
 
-	.panel-size-row {
-		gap: 7px;
-	}
-
-	.panel-size-opt {
-		flex: 1 1 0;
-		height: 33px;
-		border: 1px solid $border;
-		border-radius: 6px;
-		background-color: transparent;
-		color: $muted;
-		font-size: 13px;
-	}
-
-	.panel-size-opt:hover,
-	.panel-size-opt-active {
-		border-color: rgba($blue, 0.50);
-		background-color: rgba($blue, 0.09);
-		color: $blue-highlight;
-	}
-
 	.settings-bar,
 	.wp-bar {
 		padding: 3px 6px;
@@ -2027,8 +2852,7 @@ $tone-gold: #a16207;
 
 	.settings-btn,
 	.wp-btn,
-	// The waypoint NAME is the content; Go is only the affordance. Seven saturated fills down
-	// a column read as seven primary actions, so Go becomes an outline with a blue glyph.
+	// Keep Go secondary to the waypoint name with an outline and the applied accent.
 	.wp-go-row {
 		gap: 5px;
 		min-height: 30px;
@@ -2045,42 +2869,79 @@ $tone-gold: #a16207;
 		color: $blue;
 	}
 
-	.settings-btn:hover,
-	.wp-btn.go:hover,
+	// Only enabled roles receive the active wash; inert accent controls never match.
+	.settings-save-primary:hover,
+	.accent-cancel:hover,
+	.accent-reset:hover,
+	.wp-move-primary:hover,
 	.wp-go-row:hover {
 		border-color: rgba($blue, 0.55);
 		background-color: rgba($blue, 0.10);
 		color: $text;
 	}
 
-	.settings-btn.save,
-	.wp-btn.go {
+	.accent-cancel:hover {
+		border-color: $danger;
+		background-color: rgba($danger, 0.10);
+	}
+
+	.settings-save-primary {
+		flex-direction: row;
+		flex-shrink: 0;
+		white-space: nowrap;
+	}
+
+	.settings-save-primary,
+	.wp-move-primary {
 		background-color: $blue;
 		color: $text;
 	}
 
-	.wp-btn.set {
-		border-color: $border;
-		background-color: transparent;
+	// Management uses the Observe amber. Match the direct settings-group child
+	// so reordering cards or permission-gated controls cannot apply this style to Save.
+	.settings-group > .settings-btn {
 		color: $text;
 	}
 
-	.wp-btn.set:hover {
-		border-color: rgba($blue, 0.48);
-		background-color: rgba($blue, 0.09);
-		color: $blue-highlight;
+	.settings-group > .settings-btn .material-icons {
+		color: $amber;
 	}
 
-	.settings-btn-saved {
-		border-color: rgba($success, 0.55);
-		background-color: $success;
-		color: $shell;
+	.settings-group > .settings-btn:hover {
+		border-color: rgba($amber, 0.55);
+		background-color: rgba($amber, 0.09);
 	}
 
 	.settings-readonly,
 	.settings-current {
 		align-items: center;
 		gap: 6px;
+	}
+
+	.settings-write-result {
+		align-items: center;
+		gap: 6px;
+		min-height: 24px;
+		padding: 4px 7px;
+		border: 1px solid $border;
+		border-radius: 5px;
+		font-size: 11px;
+	}
+
+	.settings-write-result .material-icons {
+		font-size: 15px;
+	}
+
+	.settings-write-pending {
+		color: $amber;
+	}
+
+	.settings-write-success {
+		color: $success;
+	}
+
+	.settings-write-failed {
+		color: $danger;
 	}
 
 	.coming-soon {
@@ -2102,25 +2963,15 @@ $tone-gold: #a16207;
 		color: $text;
 	}
 
-	// .wp-list sits directly in .waypoints now. It was previously wrapped in a
-	// .wp-list-region flex box -- the only scroll surface in this panel with a
-	// second layer between it and its parent. That extra box made the list size
-	// to its own content, so the per-frame clamp measured zero scrollable height
-	// and reset the offset every frame: the list read as locked rather than
-	// unscrollable. Matching the .player-scroll / .audit-scroll shape fixes it.
+	// Keep the list directly inside the waypoint column so the clamp measures its viewport.
+	// A zero flex basis fills the column regardless of list length or filter changes.
 	.wp-list {
-		flex: 1 1 auto;
+		flex: 1 1 0;
 		min-height: 0;
 		border: 1px solid $border;
 		border-radius: 8px;
 		background-color: $surface;
 		overflow-y: scroll;
-	}
-
-	.wp-list-tail {
-		flex-shrink: 0;
-		width: 100%;
-		height: 14px;
 	}
 
 	// Deleting a waypoint removes something -- it takes the destructive colour like any other.
@@ -2171,15 +3022,45 @@ $tone-gold: #a16207;
 		color: $muted;
 	}
 
+	// Stretch the column so the event feed can grow; fixed controls retain their own height.
 	.wp-return-section {
 		flex-direction: column;
-		align-self: flex-start;
 		flex: 1 1 0;
 		min-width: 0;
 		gap: 7px;
 	}
 
-	// 12c -- in-place confirm chips, sized and spaced like the delete control they replace.
+	// Give the extra movement controls their own row so they cannot squeeze the Return input.
+	.wp-move-bar {
+		flex-direction: row;
+		align-self: stretch;
+		flex-shrink: 0;
+		gap: 7px;
+	}
+
+	.wp-move-bar .wp-btn {
+		flex: 1 1 0;
+		justify-content: center;
+		white-space: nowrap;
+	}
+
+	// Match the waypoint list scroll geometry; event rows share the profile row styles.
+	.wp-events {
+		flex-direction: column;
+		flex: 1 1 0;
+		min-height: 0;
+		border: 1px solid $border;
+		border-radius: 8px;
+		background-color: $surface;
+		overflow-y: scroll;
+	}
+
+	// A little air between the bar above and the feed's head.
+	.wp-events-head {
+		margin-top: 6px;
+	}
+
+	// Keep confirmation chips the same size as the delete control they replace.
 	.wp-confirm-yes,
 	.wp-confirm-no {
 		align-items: center;
@@ -2218,8 +3099,7 @@ $tone-gold: #a16207;
 		color: $text;
 	}
 
-	// 12e -- Set here WRITES data, so it carries the primary weight; Go on an empty field
-	// does nothing and should not outrank it.
+	// Set is the primary write action; an empty Go input has no action.
 	.wp-btn-primary {
 		border-color: rgba($blue, 0.55);
 		background-color: $blue-fill;
@@ -2250,16 +3130,13 @@ $tone-gold: #a16207;
 		align-self: stretch;
 	}
 
-	// The input expands to fill the bar; the Return button anchors at the right edge. It was
-	// pinned to 160px, which crammed the button left and left dead space to its right.
+	// Let the input fill the bar while Return stays at the right edge.
 	.wp-return-bar .wp-input {
 		flex: 1 1 auto;
 		width: 100%;
 	}
 
-	// The input takes all the slack (flex: 1 1 auto above), so the button is the thing
-	// that gets squeezed -- and "Return" was breaking mid-word rather than holding its
-	// width. Pin it to its content and forbid the break.
+	// Keep Return at its content width and prevent mid-word wrapping.
 	.wp-return-bar .wp-btn {
 		flex-shrink: 0;
 		white-space: nowrap;
@@ -2277,12 +3154,12 @@ $tone-gold: #a16207;
 		overflow: hidden;
 		border-top: 1px solid $border;
 		background-color: $shell;
-		border-radius: 0 0 10px 10px;
+		border-radius: 0;
 	}
 
 	.lp-window-watermark--rounded,
 	.lp-window-watermark .lp-source-footer {
-		border-radius: 0 0 10px 10px;
+		border-radius: 0;
 	}
 
 	.lp-window-watermark .lp-source-footer {
@@ -2305,9 +3182,7 @@ $tone-gold: #a16207;
 	}
 
 	.lp-window-watermark .lp-url-copy:hover,
-	.lp-window-watermark .lp-url-copy.copied,
-	.lp-source-footer .lp-url-copy:hover,
-	.lp-source-footer .lp-url-copy.copied {
+	.lp-source-footer .lp-url-copy:hover {
 		color: $blue-highlight;
 	}
 
@@ -2321,33 +3196,477 @@ $tone-gold: #a16207;
 		background-color: rgba($amber, 0.09);
 	}
 
+	// The dedicated Sanctions route owns danger treatment; Observe remains amber.
+	.confirm-btn-severe-state {
+		border-color: rgba($danger, 0.55);
+		background-color: rgba($danger, 0.09);
+		color: $text;
+	}
+
+	.confirm-btn-severe-state:hover {
+		border-color: $danger;
+		background-color: rgba($danger, 0.18);
+		color: $text;
+	}
+
+	.confirm-btn-severe-state .material-icons {
+		color: $danger;
+	}
+
 	.control-disabled,
 	.control-disabled:hover {
-		pointer-events: none;
+		pointer-events: all;
 		cursor: default;
 		border-color: rgba($muted, 0.20);
 		background-color: rgba($muted, 0.07);
 		color: $muted;
 	}
 
-	.control-disabled .material-icons {
+	.control-disabled .material-icons,
+	.control-disabled:hover .material-icons {
 		color: $muted;
 	}
 
-	// S/M/L/XL classes are emitted by LifePunchUiScale; the action grid keeps four columns at every size.
-	&.lp-ui-size-s .window { width: 1040px; height: 640px; }
-	&.lp-ui-size-m .window { width: 1100px; height: 670px; }
-	&.lp-ui-size-l .window { width: 1140px; height: 690px; }
-	&.lp-ui-size-xl .window { width: 1160px; height: 700px; }
+	// Standalone state classes are emitted directly by Razor. They intentionally repeat the
+	// disabled surface after role-specific rules so the state remains legible in s&box builds that
+	// do not reliably match same-element compound selectors.
+	.settings-save-disabled,
+	.settings-save-disabled:hover,
+	.wp-go-disabled,
+	.wp-go-disabled:hover,
+	.confirm-disabled-state,
+	.confirm-disabled-state:hover,
+	.tp-disabled-state,
+	.tp-disabled-state:hover,
+	.quick-sanction-disabled-state,
+	.quick-sanction-disabled-state:hover,
+	.action-disabled-state,
+	.action-disabled-state:hover {
+		pointer-events: all;
+		cursor: default;
+		border-color: rgba($muted, 0.20);
+		background-color: rgba($muted, 0.07);
+		color: $muted;
+	}
 
-	&.lp-ui-size-s .action-grid {
+	.settings-save-disabled .material-icons,
+	.wp-go-disabled .material-icons,
+	.accent-action-disabled .material-icons,
+	.confirm-disabled-state .material-icons,
+	.tp-disabled-state .material-icons,
+	.quick-sanction-disabled-state .material-icons,
+	.action-disabled-state .material-icons,
+	.action-disabled-state .action-label {
+		color: $muted;
+	}
+
+	// Disabled profile teleports keep their role legible. These are standalone state classes;
+	// the descendant glyph selector is supported and intentionally follows the generic disabled paint.
+	.tp-goto-disabled-state .material-icons {
+		color: rgba($danger, 0.40);
+	}
+
+	.tp-bring-disabled-state .material-icons {
+		color: rgba($amber, 0.40);
+	}
+
+	.tp-return-disabled-state .material-icons {
+		color: rgba($success, 0.40);
+	}
+
+	// Keep the XL selector emitted by LifePunchUiScale. The console has one fixed size.
+	// Diagnostics rows retain the card's normal spacing without a separate top margin.
+	.diag-grid {
+		flex-direction: column;
+		gap: 8px;
+	}
+
+	.diag-row {
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		min-height: 30px;
+		padding: 0 10px;
+		border: 1px solid $border;
+		border-radius: 6px;
+		background-color: rgba($canvas, 0.26);
+	}
+
+	.diag-key {
+		color: $muted;
+		font-size: 12px;
+	}
+
+	.diag-value {
+		color: $text;
+		font-size: 12px;
+		text-align: right;
+	}
+
+	// Appearance card.
+	.accent-actions > .settings-btn,
+	.accent-secondary-actions > .settings-btn {
+		flex-direction: row;
+		flex-shrink: 0;
+		min-height: 32px;
+		padding: 0 8px;
+		gap: 6px;
+		font-size: 12px;
+		white-space: nowrap;
+	}
+
+	// Values, native color controls, and preview/actions fit the available Settings card.
+	.accent-palette {
+		flex-direction: row;
+		align-items: stretch;
+		flex: 1 1 0;
+		min-height: 0;
+		width: 100%;
+		justify-content: space-between;
+		padding: 16px 0 10px;
+		gap: 14px;
+	}
+
+	.accent-preview-panel {
+		flex-direction: column;
+		flex: 0 0 184px;
+		min-width: 0;
+		gap: 8px;
+	}
+
+	.accent-section-title {
+		position: relative;
+		top: -8px;
+		width: 100%;
+		justify-content: center;
+		text-align: center;
+		font-size: 12px;
+		font-weight: 700;
+		color: $text;
+	}
+
+	.accent-command-preview-area {
+		flex-direction: column;
+		align-items: center;
+		width: 100%;
+		flex-shrink: 0;
+		pointer-events: none;
+	}
+
+	.accent-preview-samples {
+		flex-direction: row;
+		align-items: center;
+		gap: 10px;
+		pointer-events: none;
+	}
+
+	.accent-command-preview {
+		position: relative;
+		flex: 0 0 auto;
+		width: 102px;
+		height: 64px;
+		min-height: 64px;
+		max-height: 64px;
+		padding: 6px;
+		pointer-events: none;
+	}
+
+	.accent-command-preview .material-icons {
+		font-size: 22px;
+	}
+
+	.accent-command-preview .action-label {
+		font-size: 11px;
+	}
+
+	.accent-command-preview,
+	.accent-command-preview:hover {
+		cursor: default;
+		border-color: $border;
+		background-color: $surface-raised;
+	}
+
+	.accent-navigation-preview {
+		flex-direction: column;
+		justify-content: center;
+		flex: 0 0 auto;
+		width: 70px;
+		height: 64px;
+		gap: 6px;
+		pointer-events: none;
+	}
+
+	.accent-navigation-preview-header {
+		flex-direction: row;
+		align-items: center;
 		gap: 10px;
 	}
 
-	&.lp-ui-size-s .action-btn {
-		height: 84px;
-		min-height: 84px;
-		max-height: 84px;
-		padding: 8px 7px;
+	.accent-wordmark-preview {
+		font-size: 18px;
+		font-weight: 800;
 	}
+
+	.accent-navigation-preview-header .material-icons {
+		font-size: 16px;
+	}
+
+	.accent-tab-preview {
+		align-items: center;
+		justify-content: center;
+		align-self: flex-start;
+		height: 25px;
+		width: 70px;
+		border-bottom: 2px solid $blue;
+		font-size: 10px;
+		font-weight: 700;
+		color: $text;
+	}
+
+	.accent-picker-inline {
+		flex-direction: column;
+		flex: 0 0 212px;
+		min-height: 0;
+		gap: 10px;
+	}
+
+	.accent-picker-inline ColorSaturationValueControl {
+		flex: 1 1 0;
+		width: 100%;
+		height: auto;
+		min-height: 0;
+		margin: 0;
+	}
+
+	.accent-picker-inline ColorHueControl {
+		flex: 0 0 14px;
+		width: 100%;
+		height: 14px;
+		margin: 0;
+	}
+
+	.accent-palette-summary {
+		flex-direction: column;
+		flex: 0 0 200px;
+		min-width: 0;
+		gap: 8px;
+	}
+
+	.accent-recent {
+		flex-direction: column;
+		flex-shrink: 0;
+		gap: 4px;
+	}
+
+	.accent-recent-colors {
+		flex-direction: row;
+		flex-wrap: wrap;
+		gap: 4px;
+	}
+
+	.accent-recent-color {
+		width: 16px;
+		height: 16px;
+		flex-shrink: 0;
+		padding: 0;
+		border: 1px solid $border;
+		border-radius: 4px;
+		cursor: pointer;
+	}
+
+	.accent-recent-color:hover {
+		border-color: $text;
+	}
+
+	.accent-hex-field {
+		position: relative;
+		flex-direction: column;
+		flex-shrink: 0;
+		margin-top: auto;
+		gap: 4px;
+	}
+
+	.accent-hex-label {
+		height: 16px;
+		font-size: 12px;
+		letter-spacing: 1px;
+		text-transform: uppercase;
+		color: $muted;
+	}
+
+	.accent-hex-controls {
+		flex-direction: row;
+		align-items: center;
+		gap: 6px;
+	}
+
+	.accent-hex-input {
+		flex: 1 1 0;
+		min-width: 0;
+		height: 32px;
+		min-height: 32px;
+		max-height: 32px;
+	}
+
+	.accent-hex-confirm {
+		flex: 0 0 64px;
+		width: 64px;
+		height: 32px;
+		min-height: 32px;
+		max-height: 32px;
+		padding: 0 7px;
+		font-size: 11px;
+	}
+
+	.accent-hex-invalid {
+		border-color: $danger;
+	}
+
+	.accent-hex-feedback {
+		position: absolute;
+		left: 0;
+		right: 0;
+		bottom: -14px;
+		height: 12px;
+		font-size: 10px;
+		color: $danger;
+	}
+
+	.accent-state-row {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		gap: 10px;
+	}
+
+	.accent-preview-slot {
+		flex-direction: column;
+		align-items: center;
+		flex-shrink: 0;
+		width: 36px;
+	}
+
+	.accent-preview {
+		flex-shrink: 0;
+		width: 36px;
+		height: 36px;
+		border: 1px solid rgba($text, 0.24);
+		border-radius: 7px;
+	}
+
+	.accent-preview-applied {
+		width: 36px;
+		height: 36px;
+	}
+
+	.accent-state-copy {
+		flex-direction: column;
+		min-width: 0;
+		gap: 2px;
+	}
+
+	.accent-state-label {
+		color: $muted;
+		font-size: 12px;
+		text-transform: uppercase;
+		letter-spacing: 1px;
+	}
+
+	// The summary yields width to the native picker and compact preview.
+	.accent-state-value {
+		color: $text;
+		font-size: 13px;
+		white-space: normal;
+	}
+
+	.accent-actions {
+		flex-direction: column;
+		align-items: stretch;
+		flex-shrink: 0;
+		width: 100%;
+		margin-top: auto;
+		gap: 8px;
+	}
+
+	.accent-secondary-actions {
+		flex-direction: row;
+		flex-shrink: 0;
+		gap: 8px;
+	}
+
+	.accent-secondary-actions > .settings-btn {
+		flex: 1 1 0;
+		min-width: 0;
+	}
+
+	.accent-copy-value {
+		align-items: center;
+		justify-content: flex-start;
+		min-width: 0;
+		padding: 0;
+		border: 0;
+		background-color: transparent;
+		cursor: pointer;
+	}
+
+	.accent-copy-value:hover .accent-state-value {
+		color: $blue-highlight;
+	}
+
+	.accent-apply {
+		border-color: rgba($blue, 0.55);
+		background-color: $blue-fill;
+		color: $text;
+	}
+
+	.accent-apply:hover {
+		background-color: $blue;
+	}
+
+	.accent-action-disabled,
+	.accent-action-disabled:hover {
+		pointer-events: all;
+		cursor: default;
+		border-color: rgba($muted, 0.20);
+		background-color: rgba($muted, 0.07);
+		color: $muted;
+	}
+
+	// Website Save feedback as BUTTON STATE. Standalone classes emitted by Razor and placed last so
+	// they win over the shared disabled surface at equal specificity (house convention above).
+	.settings-save-saved,
+	.settings-save-saved:hover {
+		border-color: $success;
+		background-color: $success;
+		color: $text;
+		cursor: default;
+	}
+
+	.settings-save-saved .material-icons {
+		color: $text;
+	}
+
+	.settings-save-failed,
+	.settings-save-failed:hover {
+		border-color: $danger;
+		background-color: rgba($danger, 0.85);
+		color: $text;
+	}
+
+	.settings-save-failed .material-icons {
+		color: $text;
+	}
+
+	.settings-save-pending .material-icons {
+		color: $amber;
+	}
+
+	// Active toggle tiles (R2 P1). The severity and tone hover rules paint the glyph the same blue as the
+	// toggle-on hover fill; these standalone rules sit last so glyph and label stay $text on hover.
+	.action-toggle-on:hover .material-icons,
+	.action-toggle-on:hover .action-label,
+	.action-toggle-on:hover .action-description {
+		color: $text;
+	}
+
 }

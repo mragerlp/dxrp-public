@@ -1,0 +1,196 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   LIFEPUNCH Server Hub - Shop tab.
+
+   This tab is LIVE. Rows are the server's own market catalog, read through
+   LpServerHubData.ReadShop(). There are no fixture rows in this file.
+
+   Buying sends ONE id to the host, which prices the item and debits before it grants.
+   This panel never computes a charge, never grants anything, and never touches a balance.
+   The single outbound call lives in LpServerHubShopActions - read that file's header for
+   why it rides PurchaseMarketItemHost and never PurchaseEntityHost.
+
+   This file is deliberately pure ASCII; display glyphs are HTML entities.
+*@
+@namespace LifePunch.DXRP.Addons.ServerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-serverhub-shop">
+	@if ( Model is null || !Model.IsLive )
+	{
+		<div class="shop-empty">
+			<i class="material-icons shop-empty-icon">storefront</i>
+			<div class="shop-empty-title">Nothing for sale</div>
+			<div class="shop-empty-copy">
+				This server's gamemode has no market items configured, so there is nothing to list.
+				When items are added on the portal they appear here automatically.
+			</div>
+		</div>
+	}
+	else
+	{
+		<div class="shop-list">
+			@foreach ( var group in Model.Groups )
+			{
+				<div class="shop-group">
+					<div class="shop-group-head">
+						<span class="shop-group-name">@group.Name</span>
+						<span class="shop-group-count">@group.Items.Count</span>
+					</div>
+
+					<div class="shop-rows">
+						@foreach ( var item in group.Items )
+						{
+							<div class="@RowClass( item )">
+								<div class="shop-row-copy">
+									<div class="shop-row-head">
+										<span class="shop-row-name">@item.Name</span>
+										@if ( !string.IsNullOrWhiteSpace( item.QuantityText ) )
+										{
+											<span class="shop-chip shop-chip-qty">@item.QuantityText</span>
+										}
+										@if ( !string.IsNullOrWhiteSpace( item.OwnedText ) )
+										{
+											<span class="shop-chip shop-chip-owned">@item.OwnedText</span>
+										}
+									</div>
+									@if ( !string.IsNullOrWhiteSpace( item.Description ) )
+									{
+										<div class="shop-row-desc">@item.Description</div>
+									}
+								</div>
+
+								@if ( Model.MoneyEnabled )
+								{
+									<div class="shop-row-price" tooltip="Price charged by the server">
+										<span class="lp-money-cash">$</span><span class="lp-money-amt">@item.PriceAmount</span>
+									</div>
+								}
+
+								<div class="shop-row-action">
+									<button class="@ButtonClass( item )"
+									        disabled="@(!CanClick( item ))"
+									        tooltip="@ButtonTooltip( item )"
+									        onclick="@( () => Buy( item ) )">
+										@ButtonLabel( item )
+									</button>
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+</root>
+
+@code
+{
+	/// <summary>Positive code-string ID for the shop slice. Exists nowhere else in the tree.</summary>
+	public const string ShopMark = "LP_SERVERHUB_SHOP_LIVE_20260828";
+
+	// s&box Razor binds component parameters through [Property].
+	[Property] public LpServerHubShopVm Model { get; set; }
+
+	/// <summary>
+	/// Enabled only when the server would allow it AND the player can plausibly pay. Both are
+	/// courtesy states: the host re-checks and is the only authority on either question.
+	/// </summary>
+	private bool CanClick( LpServerHubShopItemVm item )
+	{
+		return item.Purchasable && item.Affordable;
+	}
+
+	private static string RowClass( LpServerHubShopItemVm item )
+	{
+		if ( !item.Purchasable )
+		{
+			return "shop-row is-locked";
+		}
+
+		return item.Affordable ? "shop-row" : "shop-row is-unaffordable";
+	}
+
+	private string ButtonClass( LpServerHubShopItemVm item )
+	{
+		return CanClick( item ) ? "shop-buy is-ready" : "shop-buy";
+	}
+
+	private string ButtonLabel( LpServerHubShopItemVm item )
+	{
+		if ( !item.Purchasable )
+		{
+			return "Locked";
+		}
+
+		return item.Affordable ? "Buy" : "Short";
+	}
+
+	private string ButtonTooltip( LpServerHubShopItemVm item )
+	{
+		if ( !item.Purchasable )
+		{
+			return "Your job, a limit, or a restriction blocks this purchase";
+		}
+
+		if ( !item.Affordable )
+		{
+			return "Not enough on hand and in the bank";
+		}
+
+		return "Buy this - the server charges you and delivers it";
+	}
+
+	/// <summary>
+	/// Hands the item id to the one outbound action. Nothing is granted here and no balance is
+	/// touched; the host does both together or neither.
+	/// </summary>
+	private void Buy( LpServerHubShopItemVm item )
+	{
+		if ( !CanClick( item ) )
+		{
+			return;
+		}
+
+		LpServerHubShopActions.RequestPurchase( item.ItemId );
+	}
+
+	protected override int BuildHash()
+	{
+		if ( Model is null )
+		{
+			return 0;
+		}
+
+		var hash = new HashCode();
+		hash.Add( Model.IsLive );
+		hash.Add( Model.MoneyEnabled );
+		hash.Add( Model.ItemCount );
+		hash.Add( Model.GroupCount );
+
+		// Price, ownership and purchasability all move while the menu is open - after a purchase,
+		// a job change, or someone else filling a limit - so they belong in the hash or the list
+		// would freeze at its first paint and keep offering a button that no longer applies.
+		foreach ( var group in Model.Groups )
+		{
+			hash.Add( group.Id );
+
+			foreach ( var item in group.Items )
+			{
+				hash.Add( item.ItemId );
+				hash.Add( item.PriceAmount );
+				hash.Add( item.OwnedText );
+				hash.Add( item.Purchasable );
+				hash.Add( item.Affordable );
+			}
+		}
+
+		return hash.ToHashCode();
+	}
+}

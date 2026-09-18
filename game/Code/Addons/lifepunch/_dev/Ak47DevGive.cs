@@ -28,7 +28,7 @@ public static class Ak47DevGive
 	/// Live <c>GameModeAddonContentId</c> / content <c>Id</c> for AK-47 on
 	/// <c>lifepunch.dxrpdev</c>. <see cref="GameModeEquipments.FindById"/> key.
 	/// </summary>
-	public static readonly Guid AkEquipmentId = new( "baf2ccb8-0ae5-48bd-a763-171064e08d4e" );
+	public static readonly Guid AkEquipmentId = new( "c029bcc7-bcec-4197-a7a4-8558cc3d90e7" );
 
 	[ConCmd( "lp_give_ak" )]
 	public static void GiveAk()
@@ -45,48 +45,100 @@ public static class Ak47DevGive
 			return;
 		}
 
-		var player = Player.Local;
-		if ( !player.IsValid() || !player.WeaponGameObject.IsValid() )
+		GiveAkTo( Player.Local, "lp_give_ak" );
+	}
+
+	/// <summary>Host give onto any valid pawn. Used by the GROK bot seat so Bloodwave stays untouched.</summary>
+	public static bool GiveAkTo( Player player, string logPrefix = "lp_give_ak" )
+	{
+		if ( !Application.IsEditor || !Networking.IsHost )
 		{
-			Log.Warning( "lp_give_ak: no local player / weapon holder." );
-			return;
+			Log.Warning( $"{logPrefix}: editor host only." );
+			return false;
 		}
 
-		var resource = GameModeEquipments.FindById( AkEquipmentId );
-		if ( resource == null || !resource.IsValid() )
+		if ( !player.IsValid() || !player.WeaponGameObject.IsValid() )
 		{
-			Log.Error( $"lp_give_ak: roster miss for EquipmentId={AkEquipmentId}." );
-			return;
+			Log.Warning( $"{logPrefix}: no player / weapon holder." );
+			return false;
 		}
 
 		var prefabPath = Ak47Weapon.WorldPrefabPath;
+		var viewPrefabPath = Ak47Weapon.ViewModelPrefabPath;
+		var contentRows = GameModeEquipments.All
+			.Where( row => row.GameModeAddonContentId == AkEquipmentId )
+			.ToArray();
+		var pathRows = GameModeEquipments.All
+			.Where( row => string.Equals(
+				row.PrefabPath(), prefabPath, StringComparison.OrdinalIgnoreCase ) )
+			.ToArray();
+		var resource = contentRows.Length == 1 ? contentRows[0] : null;
+		var pathResource = pathRows.Length == 1 ? pathRows[0] : null;
+		if ( !resource.IsValid()
+			|| !pathResource.IsValid()
+			|| pathResource!.GameModeAddonContentId != AkEquipmentId
+			|| pathResource.Id != resource!.Id
+			|| !string.Equals( resource.SecondaryPrefabPath(), viewPrefabPath, StringComparison.OrdinalIgnoreCase ) )
+		{
+			Log.Error( $"{logPrefix}: roster miss or ID/world/view mismatch for " +
+				$"EquipmentId={AkEquipmentId} world={prefabPath} view={viewPrefabPath} " +
+				$"contentRows={contentRows.Length} pathRows={pathRows.Length}." );
+			return false;
+		}
+
 		var prefab = GameObject.GetPrefab( prefabPath );
 		if ( !prefab.IsValid() )
 		{
-			Log.Error( $"lp_give_ak: prefab could not load: {prefabPath}" );
-			return;
+			Log.Error( $"{logPrefix}: prefab could not load: {prefabPath}" );
+			return false;
 		}
 
-		RemoveExisting( player );
+		var viewPrefab = GameObject.GetPrefab( viewPrefabPath );
+		if ( !viewPrefab.IsValid() )
+		{
+			Log.Error( $"{logPrefix}: viewmodel prefab could not load: {viewPrefabPath}" );
+			return false;
+		}
+		if ( !viewPrefab.Components.Get<ViewModel>().IsValid() )
+		{
+			Log.Error( $"{logPrefix}: viewmodel prefab has no root ViewModel component: {viewPrefabPath}" );
+			return false;
+		}
 
 		var go = prefab.Clone( new CloneConfig
 		{
 			Transform = new Transform(),
 			Parent = player.WeaponGameObject
 		} );
+		if ( !go.IsValid() )
+		{
+			Log.Error( $"{logPrefix}: prefab clone failed: {prefabPath}" );
+			return false;
+		}
 
 		var equipment = go.Components.Get<Equipment>( FindMode.EverythingInSelfAndDescendants );
 		if ( !equipment.IsValid() )
 		{
-			Log.Error( $"lp_give_ak: prefab has no Equipment component: {prefabPath}" );
+			Log.Error( $"{logPrefix}: prefab has no Equipment component: {prefabPath}" );
 			go.Destroy();
-			return;
+			return false;
 		}
 
 		equipment.EquipmentId = AkEquipmentId;
+		equipment.ViewModelPrefab = viewPrefab;
 		equipment.OwnerId = player.Id;
 		equipment.CanDrop = true;
-		go.NetworkSpawn( player.Network.Owner );
+
+		if ( player.Network.Owner is { } owner )
+		{
+			go.NetworkSpawn( owner );
+		}
+		else
+		{
+			go.NetworkSpawn();
+		}
+
+		RemoveExisting( player, equipment );
 
 		if ( !player.CantSwitch )
 		{
@@ -94,14 +146,16 @@ public static class Ak47DevGive
 		}
 
 		var vm = equipment.Resource?.SecondaryPrefabPath();
-		Log.Info( $"lp_give_ak: equipped AK-47 EquipmentId={equipment.EquipmentId} resourceValid={equipment.Resource.IsValid()} vm={vm} from {prefabPath}" );
+		var active = player.CurrentEquipment == equipment;
+		Log.Info( $"{logPrefix}: created AK-47 on '{player.SteamName}' active={active} EquipmentId={equipment.EquipmentId} resourceValid={equipment.Resource.IsValid()} vm={vm} from {prefabPath}" );
+		return true;
 	}
 
-	private static void RemoveExisting( Player player )
+	private static void RemoveExisting( Player player, Equipment except )
 	{
 		foreach ( var weapon in player.Equipment.ToList() )
 		{
-			if ( !weapon.IsValid() )
+			if ( !weapon.IsValid() || ReferenceEquals( weapon, except ) )
 			{
 				continue;
 			}

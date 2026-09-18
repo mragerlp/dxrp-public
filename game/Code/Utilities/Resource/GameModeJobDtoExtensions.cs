@@ -114,7 +114,7 @@ public static class GameModeJobDtoExtensions
 		return !IsCloudIdent( modelPath ) && IsCitizenModelPath( modelPath );
 	}
 
-	private static bool IsCloudIdent( string path )
+	public static bool IsCloudIdent( string path )
 	{
 		return !path.Contains( '/' ) && path.Contains( '.' );
 	}

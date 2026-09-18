@@ -21,6 +21,18 @@ public class GameModeDto
 	public List<GameModeJobDto> Jobs { get; init; } = [];
 	public List<GameModeJobGroupDto> JobGroups { get; init; } = [];
 
+	/// <summary>
+	/// Prop spawn allowlist. Mixed cloud idents ("facepunch.chair") and local
+	/// paths ("models/example/prop.vmdl"). Empty = legacy RestrictCloudOrg behavior.
+	/// </summary>
+	public List<string> BuildingProps { get; init; } = [];
+
+	/// <summary>
+	/// Material allowlist. Mixed cloud idents and local ".vmat" paths.
+	/// Empty = legacy GameConfig.MaterialWhitelist behavior.
+	/// </summary>
+	public List<string> BuildingMaterials { get; init; } = [];
+
 	public DateTimeOffset Created { get; init; }
 	public DateTimeOffset LastModified { get; init; }
 

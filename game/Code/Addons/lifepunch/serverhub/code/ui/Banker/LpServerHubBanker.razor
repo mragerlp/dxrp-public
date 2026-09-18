@@ -1,0 +1,91 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   LIFEPUNCH Server Hub - Banker tab (RESERVED).
+
+   THIS TAB CONTAINS NO BANKER LOGIC AND IS NOT SUPPOSED TO. It is a designed placeholder:
+   it holds the position in the hub, shows the shape the feature will take, and states
+   plainly that it is not operating. Model is null on every code path today.
+
+   The placeholder rows below are drawn as inert, unlabelled shapes rather than as fake
+   numbers. That is the point: a placeholder showing plausible balances teaches players to
+   read values that are not real, and it is indistinguishable from a broken feature once
+   the real one ships.
+
+   This file is deliberately pure ASCII; display glyphs are HTML entities.
+*@
+@namespace LifePunch.DXRP.Addons.ServerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-serverhub-banker">
+
+	<div class="banker-notice">
+		<i class="material-icons banker-notice-icon">schedule</i>
+		<div class="banker-notice-copy">
+			<div class="banker-notice-title">Not open yet</div>
+			<div class="banker-notice-text">
+				The banker is reserved. This tab is here so its place in the hub is settled before
+				the feature is built - nothing on this screen is live, and no account exists behind it.
+			</div>
+		</div>
+	</div>
+
+	<div class="banker-preview" aria-hidden="true">
+
+		<div class="banker-panel banker-panel-balance">
+			<div class="banker-panel-title">Account</div>
+			<div class="banker-ghost banker-ghost-value"></div>
+			<div class="banker-ghost banker-ghost-label"></div>
+		</div>
+
+		<div class="banker-panel banker-panel-activity">
+			<div class="banker-panel-title">Recent activity</div>
+			<div class="banker-ghost-rows">
+				<div class="banker-ghost-row">
+					<div class="banker-ghost banker-ghost-line"></div>
+					<div class="banker-ghost banker-ghost-amt"></div>
+				</div>
+				<div class="banker-ghost-row">
+					<div class="banker-ghost banker-ghost-line"></div>
+					<div class="banker-ghost banker-ghost-amt"></div>
+				</div>
+				<div class="banker-ghost-row">
+					<div class="banker-ghost banker-ghost-line"></div>
+					<div class="banker-ghost banker-ghost-amt"></div>
+				</div>
+			</div>
+		</div>
+
+	</div>
+
+	<div class="banker-foot">
+		Planned: an account balance separate from cash on hand, a record of recent movements,
+		and transfers between players. Scope is not settled and none of it is promised here.
+	</div>
+
+</root>
+
+@code
+{
+	/// <summary>Positive code-string ID for the banker placeholder. Exists nowhere else in the tree.</summary>
+	public const string BankerMark = "LP_SERVERHUB_BANKER_RESERVED_20260827";
+
+	/// <summary>
+	/// The attach point. Null on every path in v1; see LpServerHubBankerSocket.cs for the
+	/// contract. When the Banker lane supplies this, the reserved state gives way to the real
+	/// one and no other file in the hub changes.
+	/// </summary>
+	[Property] public LpServerHubBankerVm Model { get; set; }
+
+	protected override int BuildHash()
+	{
+		// The reserved state is static, so the only thing that can change this panel is the
+		// socket becoming non-null. Hash exactly that and nothing else.
+		return HashCode.Combine( Model is not null );
+	}
+}

@@ -20,7 +20,12 @@ public class BanCommand : ICommand
 
 		var targetIdentifier = args[0];
 		var durationStr = args[1];
-		var reason = string.Join( " ", args.Skip( 2 ) );
+		var reason = string.Join( " ", args.Skip( 2 ) ).Trim();
+		if ( string.IsNullOrWhiteSpace( reason ) )
+		{
+			caller.SendMessage( Language.GetPhrase( "command.ban.usage" ) );
+			return true;
+		}
 
 		// Parse duration
 		var permanent = IsPermanentDuration( durationStr );
@@ -35,7 +40,7 @@ public class BanCommand : ICommand
 		if ( !targetPlayer.IsValid() )
 			return true;
 
-		if ( !RankSystem.CanTarget( caller.SteamId, targetPlayer.SteamId ) )
+		if ( caller.SteamId == targetPlayer.SteamId || !RankSystem.CanTarget( caller.SteamId, targetPlayer.SteamId ) )
 		{
 			caller.SendMessage( "#command.errors.higher_rank" );
 			return true;
@@ -44,22 +49,54 @@ public class BanCommand : ICommand
 			? Language.GetPhrase( "command.ban.duration_permanent" )
 			: string.Format( Language.GetPhrase( "command.ban.duration_temporary" ), durationStr );
 
-		_ = ServerApiClient.SanctionPlayer( targetPlayer.SteamId, new CreateSanctionDto
+		_ = ApplyBan( caller, targetPlayer, reason, duration, durationDisplay );
+		return true;
+	}
+
+	private static async global::System.Threading.Tasks.Task ApplyBan(
+		Player caller,
+		Player target,
+		string reason,
+		TimeSpan? duration,
+		string durationDisplay )
+	{
+		var callerSteamId = caller.SteamId;
+		var callerSteamName = caller.SteamName;
+		var callerDisplayName = caller.DisplayName;
+		var targetSteamId = target.SteamId;
+		var targetSteamName = target.SteamName;
+		var targetDisplayName = target.DisplayName;
+		var succeeded = await ServerApiClient.SanctionPlayer( targetSteamId, new CreateSanctionDto
 		{
 			Reason = reason,
-			Notes = $"Banned by {caller.SteamName} ({caller.SteamId}) via chat command.",
+			Notes = $"Banned by {callerSteamName} ({callerSteamId}) via chat command.",
 			Type = SanctionType.Ban,
 			Duration = duration
-		} );
+		}, callerSteamId );
 
-		GameNetworkManager.Instance.KickPlayer( targetPlayer.Connection, reason, isBan: true );
+		await GameTask.MainThread();
+		if ( !succeeded )
+		{
+			if ( caller.IsValid() )
+			{
+				caller.Error( "#generic.error" );
+			}
+			return;
+		}
 
-		caller.Success( string.Format( Language.GetPhrase( "command.ban.success" ), targetPlayer.DisplayName, durationDisplay, reason ) );
+		var liveTarget = GameUtils.GetPlayerById( targetSteamId );
+		if ( liveTarget.IsValid() && liveTarget.Connection != null )
+		{
+			GameNetworkManager.Instance.KickPlayer( liveTarget.Connection, reason, isBan: true );
+		}
 
-		Log.Info( $"[COMMAND] {caller.DisplayName} ({caller.SteamId}) banned {targetPlayer.DisplayName} ({targetPlayer.SteamId}) {durationDisplay}: {reason}" );
-		_ = ServerApiClient.Audit( "Ban", $"{caller.SteamName} ({caller.SteamId}) banned {targetPlayer.SteamName} ({targetPlayer.SteamId}) {durationDisplay}: {reason}", caller.SteamId );
+		if ( caller.IsValid() )
+		{
+			caller.Success( string.Format( Language.GetPhrase( "command.ban.success" ), targetDisplayName, durationDisplay, reason ) );
+		}
 
-		return true;
+		Log.Info( $"[COMMAND] {callerDisplayName} ({callerSteamId}) banned {targetDisplayName} ({targetSteamId}) {durationDisplay}: {reason}" );
+		_ = ServerApiClient.Audit( "Ban", $"{callerSteamName} ({callerSteamId}) banned {targetSteamName} ({targetSteamId}) {durationDisplay}: {reason}", callerSteamId );
 	}
 
 	private static bool IsPermanentDuration( string input )

@@ -14,6 +14,59 @@ public class DroppedEquipment : Component, Component.IPressable
 	public Guid MarketItemId { get; private set; }
 	public Rigidbody Rigidbody { get; private set; } = null!;
 
+	private bool _worldModelApplied;
+
+	protected override void OnUpdate()
+	{
+		if ( _worldModelApplied )
+		{
+			return;
+		}
+
+		ApplyWorldModelIfNeeded();
+	}
+
+	private void ApplyWorldModelIfNeeded()
+	{
+		var renderer = Components.Get<ModelRenderer>();
+		if ( !renderer.IsValid() )
+		{
+			return;
+		}
+
+		if ( IsUsableWorldModel( renderer.Model ) )
+		{
+			_worldModelApplied = true;
+			return;
+		}
+
+		if ( Resource is null )
+		{
+			return;
+		}
+
+		var model = Resource.GetWorldModel();
+		if ( !IsUsableWorldModel( model ) )
+		{
+			return;
+		}
+
+		renderer.Model = model;
+		var collider = Components.Get<BoxCollider>();
+		if ( collider.IsValid() && model.Bounds.Size.Length > 0.1f )
+		{
+			collider.Scale = model.Bounds.Size;
+			collider.Center = model.Bounds.Center;
+		}
+
+		_worldModelApplied = true;
+	}
+
+	private static bool IsUsableWorldModel( Model? model )
+	{
+		return model is not null && model.IsValid() && !model.IsError;
+	}
+
 	public bool CanPress( IPressable.Event e )
 	{
 		if ( !e.Source.IsValid() || e.Source is not PlayerController playerController )
@@ -75,6 +128,12 @@ public class DroppedEquipment : Component, Component.IPressable
 
 		if ( existingWeapon != null )
 		{
+			var mergePolicies = Components.GetAll<IDroppedWeaponMergePolicy>();
+			if ( mergePolicies.Any( policy => !policy.CanMergeDuplicate() ) )
+			{
+				return;
+			}
+
 			if ( existingWeapon.GameObject.Network.Owner != player.Connection )
 			{
 				existingWeapon.GameObject.Network.AssignOwnership( player.Connection );
@@ -136,11 +195,13 @@ public class DroppedEquipment : Component, Component.IPressable
 		Equipment? heldWeapon = null, bool networkSpawn = true, Guid marketItemId = default )
 	{
 		Assert.True( Networking.IsHost );
+		var worldModelScale = dto.WorldModelScale();
 
 		var go = new GameObject
 		{
 			WorldPosition = position, WorldRotation = rotation ?? Rotation.Identity, Name = dto.DisplayName()
 		};
+		go.WorldScale = worldModelScale;
 		go.Tags.Add( Constants.HandsInteractTag, Constants.OccludableTag, Constants.PocketItemTag, Constants.EntityTag );
 
 		var droppedWeapon = go.Components.Create<DroppedEquipment>();
@@ -167,15 +228,23 @@ public class DroppedEquipment : Component, Component.IPressable
 
 		droppedWeapon.Rigidbody = go.Components.Create<Rigidbody>();
 
-		IEquipmentEvents.Post( x => x.OnEquipmentDropped( droppedWeapon, heldWeapon?.Owner ) );
-
 		if ( heldWeapon is not null )
 		{
 			foreach ( var state in heldWeapon.Components.GetAll<IDroppedWeaponState>() )
 			{
 				state.CopyToDroppedWeapon( droppedWeapon );
 			}
+
+			foreach ( var presentationSource in heldWeapon.Components.GetAll<IDroppedWeaponPresentationSource>( FindMode.EverythingInSelfAndDescendants ) )
+			{
+				if ( presentationSource.TryCopyPresentationTo( droppedWeapon ) )
+				{
+					break;
+				}
+			}
 		}
+
+		IEquipmentEvents.Post( x => x.OnEquipmentDropped( droppedWeapon, heldWeapon?.Owner ) );
 
 		// Destroy the dropped weapon after a certain time
 		go.DestroyAsync( Config.Current.Game.DroppedEquipmentDestroyTime, true );

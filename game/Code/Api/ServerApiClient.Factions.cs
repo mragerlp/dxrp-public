@@ -103,6 +103,13 @@ public static partial class ServerApiClient
 			return false;
 		}
 
+		// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+		// Faction membership is a durable portal record keyed by SteamId.
+		if ( SyntheticActorRegistry.IsSynthetic( playerId ) )
+		{
+			return false;
+		}
+
 		return await SafeApiCall( async headers =>
 			{
 				var response = await ApiClientBase.RequestAsync(
@@ -118,6 +125,14 @@ public static partial class ServerApiClient
 	public static async Task<bool> AddFactionMember( Guid factionId, AddFactionMemberDto dto )
 	{
 		if ( !ServerApiLink.HasAuthorizationKey )
+		{
+			return false;
+		}
+
+		// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+		// Enrolling a test bot would write a REAL third party's account into this server's faction
+		// roster on the portal, where it persists after the bot is gone.
+		if ( SyntheticActorRegistry.IsSynthetic( dto.PlayerId ) )
 		{
 			return false;
 		}

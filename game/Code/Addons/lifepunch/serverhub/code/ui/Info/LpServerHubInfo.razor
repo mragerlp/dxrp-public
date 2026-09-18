@@ -1,0 +1,132 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   LIFEPUNCH Server Hub - Server info tab.
+
+   Original content, authored for this addon. The two counters at the top are the only
+   live values on this tab and they come from the SAME read as the Jobs tab, so the two
+   tabs cannot disagree about how many jobs this server runs. Everything else here is
+   static copy and is written to stay true regardless of server configuration.
+
+   This file is deliberately pure ASCII; display glyphs are HTML entities.
+*@
+@namespace LifePunch.DXRP.Addons.ServerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-serverhub-info">
+
+	<div class="info-stats">
+		<div class="info-stat">
+			@if ( HasRoster )
+			{
+				<div class="info-stat-value">@JobCountText</div>
+			}
+			else
+			{
+				@* An em dash stands in for a count we genuinely do not have. A zero here would
+				   read as a confident claim that the server has no jobs, which is a different
+				   statement and might be false. *@
+				<div class="info-stat-value info-stat-unknown">&#8212;</div>
+			}
+			<div class="info-stat-label">Jobs on this server</div>
+		</div>
+		<div class="info-stat">
+			@if ( HasRoster )
+			{
+				<div class="info-stat-value">@GroupCountText</div>
+			}
+			else
+			{
+				<div class="info-stat-value info-stat-unknown">&#8212;</div>
+			}
+			<div class="info-stat-label">Job groups</div>
+		</div>
+	</div>
+
+	<div class="info-card">
+		<div class="info-card-title">What this hub is</div>
+		<div class="info-card-copy">
+			One place to read the state of the server you are standing on. It answers questions
+			that otherwise cost a round of asking in chat: which roles exist, what they pay, which
+			ones are full, and what you need before you can take one.
+		</div>
+	</div>
+
+	<div class="info-card">
+		<div class="info-card-title">What is live right now</div>
+		<ul class="info-list">
+			<li class="info-list-item">
+				<i class="material-icons info-list-icon info-list-icon-on">check</i>
+				<span>
+					<span class="info-list-lead">Jobs.</span>
+					Read directly from this server's own configuration. It is not a copy and not a
+					sample - change the roster on the portal and this list follows.
+				</span>
+			</li>
+			<li class="info-list-item">
+				<i class="material-icons info-list-icon info-list-icon-on">check</i>
+				<span>
+					<span class="info-list-lead">Wallet and bank.</span>
+					Shown in the header, read live from your own player, formatted to match the
+					balance already on your HUD.
+				</span>
+			</li>
+			<li class="info-list-item">
+				<i class="material-icons info-list-icon info-list-icon-off">schedule</i>
+				<span>
+					<span class="info-list-lead">Banker.</span>
+					Reserved. The tab exists so the shape is agreed before the feature is built,
+					and it says plainly that it is not operating yet.
+				</span>
+			</li>
+		</ul>
+	</div>
+
+	<div class="info-card">
+		<div class="info-card-title">What this hub will not do</div>
+		<div class="info-card-copy">
+			It does not change anything. No job is applied from here, no money moves, and nothing
+			is sent to the server when you open it. That is a deliberate boundary for this first
+			version: a surface that only reports can be trusted on sight, and it can be opened
+			mid-round without wondering what it might have touched.
+		</div>
+	</div>
+
+	<div class="info-card info-card-quiet">
+		<div class="info-card-title">Opening this hub</div>
+		<div class="info-card-copy">
+			Bind any key to <span class="info-code">serverhub</span> to toggle it - for example
+			<span class="info-code">bind f4 serverhub</span>. The same command closes it, as does
+			the close control in the top right.
+		</div>
+	</div>
+
+</root>
+
+@code
+{
+	/// <summary>Positive code-string ID for the info slice. Exists nowhere else in the tree.</summary>
+	public const string InfoMark = "LP_SERVERHUB_INFO_V1_20260827";
+
+	// s&box Razor binds component parameters through [Property].
+	[Property] public LpServerHubJobsVm Jobs { get; set; }
+
+	private bool HasRoster => Jobs is not null && Jobs.IsLive;
+
+	// Only read when HasRoster is true; the markup guards both call sites. The unknown case
+	// is rendered as an entity in markup rather than returned as a string here, because a
+	// Razor expression is HTML-escaped on output and would print the entity literally.
+	private string JobCountText => Jobs.JobCount.ToString( "N0" );
+
+	private string GroupCountText => Jobs.GroupCount.ToString( "N0" );
+
+	protected override int BuildHash()
+	{
+		return HashCode.Combine( HasRoster, Jobs?.JobCount ?? -1, Jobs?.GroupCount ?? -1 );
+	}
+}

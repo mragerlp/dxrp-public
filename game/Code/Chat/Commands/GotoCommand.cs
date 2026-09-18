@@ -29,6 +29,12 @@ public class GotoCommand : ICommand
 			return true;
 		}
 
+		if ( !RankSystem.CanTarget( caller.SteamId, targetPlayer.SteamId ) )
+		{
+			caller.SendMessage( "#command.errors.higher_rank" );
+			return true;
+		}
+
 		var oldPosition = caller.GameObject.WorldPosition;
 		AdminSystem.Instance.PlayerReturnPositions[caller.SteamId] = (oldPosition, caller.GameObject.WorldRotation);
 

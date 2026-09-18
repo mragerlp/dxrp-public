@@ -22,26 +22,22 @@ public class ClearPropsCommand : ICommand
 				return true;
 			}
 
-			var targetName = string.Join( " ", args );
-			var matchingPlayers = GameUtils.GetPlayersByName( targetName );
-
-			if ( matchingPlayers.Count == 0 )
+			var target = CommandHelper.ResolvePlayer( caller, string.Join( " ", args ) );
+			if ( !target.IsValid() )
 			{
-				caller.Error( string.Format( Language.GetPhrase( "command.clearprops.not_found" ), targetName ) );
 				return true;
 			}
 
-			if ( matchingPlayers.Count > 1 )
+			if ( target.SteamId != caller.SteamId && !RankSystem.CanTarget( caller.SteamId, target.SteamId ) )
 			{
-				var playerNames = string.Join( ", ", matchingPlayers.Select( p => p.DisplayName ) );
-				caller.SendMessage( string.Format( Language.GetPhrase( "command.clearprops.multiple" ), targetName, playerNames ) );
+				caller.SendMessage( "#command.errors.higher_rank" );
 				return true;
 			}
 
-			var target = matchingPlayers[0];
-			CleanupSystem.Current.CleanupConstructs( target.SteamId);
+			CleanupSystem.Current.CleanupConstructs( target.SteamId, ConstructType.Prop );
 			caller.Success( string.Format( Language.GetPhrase( "command.clearprops.cleared_for" ), target.DisplayName ) );
 			Log.Info( $"Staff {caller.DisplayName} cleared props for {target.DisplayName}" );
+			_ = ServerApiClient.Audit( "ClearProps", $"{caller.SteamName} ({caller.SteamId}) cleared props for {target.SteamName} ({target.SteamId})", caller.SteamId );
 
 			return true;
 		}

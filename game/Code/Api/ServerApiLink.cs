@@ -148,8 +148,16 @@ public partial class ServerApiLink : GameObjectSystem<ServerApiLink>, IGameEvent
 	{
 		try
 		{
+			// PRIVACY-INVARIANT: NO SYNTHETIC ACTOR IN HOST PERSISTENCE.
+			// PlayerIds is the portal's roster of who is on this server. Synthetic pawns were already
+			// absent here, but only INCIDENTALLY: StaffMenuTestBots calls Network.DropOwnership() to
+			// fix a permission-cache collision, which happens to null out Connection and drop them
+			// from the filter below. That is a side effect of an unrelated bug fix, not a boundary —
+			// a future synthetic actor holding a real connection would appear in the roster at once.
+			// The registry check makes the exclusion structural and intentional.
 			var playerIds = GameUtils.Players
 				.Where( x => x.IsValid() && x.Connection?.SteamId.Value != null )
+				.Where( x => !SyntheticActorRegistry.IsSynthetic( x.SteamId, x.IsDebugPlayer ) )
 				.Select( x => x.Connection!.SteamId.Value )
 				.ToArray();
 

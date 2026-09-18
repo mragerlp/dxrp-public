@@ -73,6 +73,46 @@ public static class GameModeAddonContents
 		return content;
 	}
 
+	/// <summary>
+	/// Editor-session content row with real prefab paths. Lives only in the
+	/// in-memory placeholder map — never Portal, never shipped.
+	/// </summary>
+	public static GameModeAddonContentDto EnsureEditorContent(
+		Guid id,
+		string name,
+		string primaryReference,
+		string? secondaryReference,
+		string grouping,
+		AddonContentType type = AddonContentType.Equipment )
+	{
+		var key = $"editor:{id:N}";
+		if ( PlaceholderContents.TryGetValue( key, out var existing )
+			&& existing.Id == id
+			&& string.Equals( existing.PrimaryReference, primaryReference, StringComparison.OrdinalIgnoreCase )
+			&& string.Equals( existing.SecondaryReference ?? string.Empty, secondaryReference ?? string.Empty, StringComparison.OrdinalIgnoreCase ) )
+		{
+			return existing;
+		}
+
+		var content = new GameModeAddonContentDto
+		{
+			Id = id,
+			AddonContentId = Guid.Empty,
+			Name = name,
+			Description = string.Empty,
+			Type = type,
+			PrimaryReference = primaryReference,
+			SecondaryReference = secondaryReference,
+			Grouping = grouping,
+			IconPath = string.Empty,
+			WorldModelPath = string.Empty,
+			WorldModelScale = null
+		};
+
+		PlaceholderContents[key] = content;
+		return content;
+	}
+
 	public static string GetLookupKey( GameModeAddonContentDto? content )
 	{
 		if ( content == null )

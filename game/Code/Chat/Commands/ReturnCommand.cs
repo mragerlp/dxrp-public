@@ -29,6 +29,12 @@ public class ReturnCommand : ICommand
 			return true;
 		}
 
+		if ( !RankSystem.CanTarget( caller.SteamId, targetPlayer.SteamId ) )
+		{
+			caller.SendMessage( "#command.errors.higher_rank" );
+			return true;
+		}
+
 		var returnPositions = AdminSystem.Instance.PlayerReturnPositions;
 		if ( !returnPositions.TryGetValue( targetPlayer.SteamId, out var savedTransform ) )
 		{

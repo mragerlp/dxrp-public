@@ -18,4 +18,5 @@ public class EquipmentSnapshotData
 	public string ResourcePath { get; set; } = string.Empty;
 	public int Ammo { get; set; }
 	public int ReserveAmmo { get; set; }
+	public Dictionary<string, string> ComponentStates { get; set; } = new();
 }

@@ -1,0 +1,219 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   LIFEPUNCH Server Hub for DXRP - v1 shell.
+   Jobs tab is bound live and read-only. Info and Banker are honest placeholders.
+   This file is deliberately pure ASCII; display glyphs are HTML entities.
+*@
+@namespace LifePunch.DXRP.Addons.ServerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits PanelComponent
+
+@attribute [StyleSheet]
+
+<root class="lp-serverhub">
+	<div class="hub-shell">
+
+		<div class="hub-header">
+			<div class="hub-brand">
+				<span class="hub-brand-mark">LIFEPUNCH</span>
+				<span class="hub-brand-name">Server hub</span>
+			</div>
+
+			<div class="hub-header-right">
+				@if ( Money.IsAvailable )
+				{
+					<div class="hub-money" tooltip="Cash on hand">
+						<span class="hub-money-label">Wallet</span>
+						<span class="lp-money-cash">$</span><span class="lp-money-amt">@Money.WalletAmount</span>
+					</div>
+
+					<div class="hub-money" tooltip="Held in the bank">
+						<span class="hub-money-label">Bank</span>
+						<span class="lp-money-cash">$</span><span class="lp-money-amt">@Money.BankAmount</span>
+					</div>
+				}
+
+				<button class="hub-close" tooltip="Close server hub" onclick="@Close">
+					<i class="material-icons">close</i>
+				</button>
+			</div>
+		</div>
+
+		<div class="hub-body">
+
+			<div class="hub-sidebar">
+				<div class="hub-nav">
+					@foreach ( var tab in Tabs )
+					{
+						var isReserved = LpServerHubTabInfo.IsReserved( tab );
+						<button class="@NavClass( tab )" onclick="@( () => SetTab( tab ) )">
+							<div class="hub-nav-indicator"></div>
+							<i class="material-icons hub-nav-icon">@LpServerHubTabInfo.Icon( tab )</i>
+							<span class="hub-nav-label">@LpServerHubTabInfo.Label( tab )</span>
+							@if ( isReserved )
+							{
+								<span class="hub-nav-reserved">Soon</span>
+							}
+						</button>
+					}
+				</div>
+
+				<div class="hub-sidebar-note">
+					<div class="hub-sidebar-note-title">READ ONLY</div>
+					<div class="hub-sidebar-note-copy">
+						This hub reports server state. It does not change it - no job is applied and
+						no money moves from here.
+					</div>
+				</div>
+			</div>
+
+			<div class="hub-content">
+				<div class="hub-page-head">
+					<div class="hub-title">@LpServerHubTabInfo.Label( ActiveTab )</div>
+					<div class="hub-blurb">@LpServerHubTabInfo.Blurb( ActiveTab )</div>
+				</div>
+
+				<div class="hub-tabhost">
+					@if ( ActiveTab == LpServerHubTab.Jobs )
+					{
+						<LpServerHubJobs Model="@JobsModel" />
+					}
+					else if ( ActiveTab == LpServerHubTab.Shop )
+					{
+						<LpServerHubShop Model="@ShopModel" />
+					}
+					else if ( ActiveTab == LpServerHubTab.Info )
+					{
+						<LpServerHubInfo Jobs="@JobsModel" />
+					}
+					else if ( ActiveTab == LpServerHubTab.Banker )
+					{
+						@* Model is intentionally not supplied: the Banker socket is empty in v1. *@
+						<LpServerHubBanker />
+					}
+				</div>
+			</div>
+
+		</div>
+
+		<div class="hub-foot">
+			<span class="hub-foot-product">LIFEPUNCH Server Hub</span>
+			<span class="hub-foot-sep">&#183;</span>
+			<span class="hub-foot-note">@FootNote</span>
+		</div>
+
+	</div>
+</root>
+
+@code
+{
+	/// <summary>Positive code-string ID for the shell slice. Exists nowhere else in the tree.</summary>
+	public const string ShellMark = "LP_SERVERHUB_SHELL_V1_20260827";
+
+	// Display order. Independent of the enum's declaration order on purpose, so a tab can be
+	// placed in the nav without renumbering the enum underneath the other tabs.
+	private static readonly LpServerHubTab[] Tabs =
+	{
+		LpServerHubTab.Jobs,
+		LpServerHubTab.Shop,
+		LpServerHubTab.Info,
+		LpServerHubTab.Banker,
+	};
+
+	private LpServerHubTab _activeTab = LpServerHubTab.Jobs;
+
+	private LpServerHubTab ActiveTab => _activeTab;
+
+	// Read fresh on each render pass. These are cheap projections over already-resident
+	// config and the local player, and reading per-pass is what keeps the hub honest when
+	// a job fills up or a balance changes while the menu is open.
+	private LpServerHubJobsVm JobsModel => LpServerHubData.ReadJobs();
+	private LpServerHubMoneyVm Money => LpServerHubData.ReadMoney();
+
+	// Read only while the Shop is the visible tab. Pricing a catalog counts owned items by
+	// walking scene components, so it is the most expensive read in the hub - there is no
+	// reason to pay for it on a tab that is not showing it.
+	private LpServerHubShopVm ShopModel => LpServerHubData.ReadShop();
+
+	private string FootNote => JobsModel.IsLive
+		? BuildRosterNote( JobsModel )
+		: "No job roster is configured on this server.";
+
+	// Composed in C# and rendered as ONE node. A separator written as a bare literal between
+	// two Razor expressions becomes its own text node and the surrounding whitespace collapses.
+	private static string BuildRosterNote( LpServerHubJobsVm jobs )
+	{
+		var jobWord = jobs.JobCount == 1 ? "job" : "jobs";
+		var groupWord = jobs.GroupCount == 1 ? "group" : "groups";
+		return $"{jobs.JobCount} {jobWord} in {jobs.GroupCount} {groupWord}, live from server config.";
+	}
+
+	private string NavClass( LpServerHubTab tab )
+	{
+		var active = tab == _activeTab ? " is-active" : string.Empty;
+		return "hub-nav-item" + active;
+	}
+
+	private void SetTab( LpServerHubTab tab )
+	{
+		if ( _activeTab == tab )
+		{
+			return;
+		}
+
+		_activeTab = tab;
+		StateHasChanged();
+	}
+
+	private void Close() => LpServerHubHost.RequestClose();
+
+	protected override int BuildHash()
+	{
+		var money = Money;
+
+		// Jobs is read on every tab because the footer note reports the roster from every tab.
+		var jobs = JobsModel;
+
+		var hash = new HashCode();
+		hash.Add( (int)_activeTab );
+		hash.Add( jobs.JobCount );
+		hash.Add( jobs.GroupCount );
+		hash.Add( jobs.IsLive );
+		hash.Add( money.WalletAmount );
+		hash.Add( money.BankAmount );
+		hash.Add( money.IsAvailable );
+
+		if ( _activeTab == LpServerHubTab.Shop )
+		{
+			// The Shop child only receives a fresh model when this component rebuilds, so its
+			// live state has to be represented here or the catalog would freeze at first paint.
+			// A purchase already moves the wallet above; this additionally catches changes that
+			// do not touch the caller's balance - a limit filling, a job change altering what is
+			// permitted, an item becoming owned.
+			var shop = ShopModel;
+			hash.Add( shop.ItemCount );
+			hash.Add( shop.GroupCount );
+			hash.Add( shop.IsLive );
+			hash.Add( shop.MoneyEnabled );
+
+			var purchasable = 0;
+			foreach ( var group in shop.Groups )
+			{
+				foreach ( var item in group.Items )
+				{
+					if ( item.Purchasable )
+					{
+						purchasable++;
+					}
+				}
+			}
+
+			hash.Add( purchasable );
+		}
+
+		return hash.ToHashCode();
+	}
+}

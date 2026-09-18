@@ -10,6 +10,12 @@
 //
 // Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): Bloodwave
 // â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+
+// DEV-FENCE (TAGS_RUNTIME_GATES.md): the ENTIRE diagnostic surface compiles only under
+// LIFEPUNCH_LOCAL. Before this fix the fence opened at LpTagEditorChecks, so LpTagPureChecks
+// and its nested helpers compiled into production builds. Sensor: a Roslyn parse of this file
+// under the production profile reported 5 type declarations; it reports 0 after the fix.
+#if LIFEPUNCH_LOCAL
 using System;
 using System.Collections.Generic;
 
@@ -1154,7 +1160,7 @@ internal static class LpTagPureChecks
     }
 }
 
-#if LIFEPUNCH_LOCAL
+// (fence continues -- the file-wide DEV-FENCE above already encloses this section)
 internal static class LpTagEditorChecks
 {
     public static void AppendSchedulerAndPresenterFailures( List<string> failures )

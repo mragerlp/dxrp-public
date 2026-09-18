@@ -1,0 +1,141 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Server Hub - Server info tab. Flex-only s&box SCSS.
+//
+// Cards carry a fill and no divider. The two stat plates at the top are the only
+// elements permitted to read as live, because they are the only ones that are.
+// -----------------------------------------------------------------------------
+
+@import "../LpServerHubTokens.scss";
+@import "../LpServerHubPrimitives.scss";
+
+.lp-serverhub-info {
+	flex-grow: 1;
+	flex-direction: column;
+	overflow-y: scroll;
+	padding-left: $space-6;
+	padding-right: $space-6;
+	padding-top: $space-4;
+	padding-bottom: $space-5;
+}
+
+// --- Live stat plates -------------------------------------------------------
+
+.info-stats {
+	flex-direction: row;
+	margin-bottom: $space-4;
+}
+
+.info-stat {
+	flex-direction: column;
+	background-color: $bg-row;
+	border-radius: $radius;
+	padding-left: $space-4;
+	padding-right: $space-4;
+	padding-top: $space-3;
+	padding-bottom: $space-3;
+	margin-right: $space-2;
+	min-width: $stat-min;
+}
+
+.info-stat-value {
+	font-size: $type-xl;
+	font-weight: 600;
+	color: $text-strong;
+}
+
+.info-stat-unknown {
+	color: $text-faint;
+}
+
+.info-stat-label {
+	font-size: $type-chip;
+	letter-spacing: $track-chip;
+	color: $text-dim;
+	margin-top: $space-1;
+}
+
+// --- Cards ------------------------------------------------------------------
+
+.info-card {
+	flex-direction: column;
+	background-color: $bg-row;
+	border-radius: $radius;
+	padding: $space-4;
+	margin-bottom: $space-2;
+}
+
+.info-card-quiet {
+	background-color: transparent;
+	border: $hairline solid $divider;
+}
+
+.info-card-title {
+	font-size: $type-chip;
+	font-weight: 700;
+	letter-spacing: $track-eyebrow;
+	color: $text-dim;
+	margin-bottom: $space-2;
+}
+
+.info-card-copy {
+	font-size: $type-sm;
+	color: $text;
+	line-height: 1.55;
+}
+
+// --- List -------------------------------------------------------------------
+
+.info-list {
+	flex-direction: column;
+}
+
+.info-list-item {
+	flex-direction: row;
+	align-items: flex-start;
+	margin-bottom: $space-3;
+
+	&:last-child {
+		margin-bottom: 0;
+	}
+}
+
+.info-list-icon {
+	font-size: $type-base;
+	margin-right: $space-3;
+	flex-shrink: 0;
+}
+
+// Success green is permitted here because these mark things that ARE working.
+.info-list-icon-on {
+	color: $good;
+}
+
+// Pending is neutral, never amber or red. Nothing is wrong; it is simply not built.
+.info-list-icon-off {
+	color: $text-faint;
+}
+
+.info-list-lead {
+	color: $text-strong;
+	font-weight: 600;
+	margin-right: $space-1;
+}
+
+.info-list-item span {
+	font-size: $type-sm;
+	color: $text-dim;
+	line-height: 1.55;
+}
+
+// --- Inline code ------------------------------------------------------------
+
+.info-code {
+	background-color: $dim-soft-strong;
+	border-radius: $radius;
+	padding-left: $space-1;
+	padding-right: $space-1;
+	color: $text-strong;
+	font-family: Consolas;
+}

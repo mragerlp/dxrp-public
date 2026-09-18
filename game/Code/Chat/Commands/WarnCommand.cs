@@ -18,7 +18,12 @@ public class WarnCommand : ICommand
 		}
 
 		var targetIdentifier = args[0];
-		var reason = string.Join( " ", args.Skip( 1 ) );
+		var reason = string.Join( " ", args.Skip( 1 ) ).Trim();
+		if ( string.IsNullOrWhiteSpace( reason ) )
+		{
+			caller.SendMessage( Language.GetPhrase( "command.warn.usage" ) );
+			return true;
+		}
 
 		var targetPlayer = CommandHelper.ResolvePlayer( caller, targetIdentifier );
 		if ( !targetPlayer.IsValid() )
@@ -30,18 +35,41 @@ public class WarnCommand : ICommand
 			return true;
 		}
 
-		_ = ServerApiClient.SanctionPlayer( targetPlayer.SteamId, new CreateSanctionDto
+		_ = ApplyWarning( caller, targetPlayer, reason );
+		return true;
+	}
+
+	private static async global::System.Threading.Tasks.Task ApplyWarning( Player caller, Player target, string reason )
+	{
+		var callerSteamId = caller.SteamId;
+		var callerSteamName = caller.SteamName;
+		var callerDisplayName = caller.DisplayName;
+		var targetSteamId = target.SteamId;
+		var targetSteamName = target.SteamName;
+		var targetDisplayName = target.DisplayName;
+		var succeeded = await ServerApiClient.SanctionPlayer( targetSteamId, new CreateSanctionDto
 		{
 			Reason = reason,
-			Notes = $"Warned by {caller.SteamName} ({caller.SteamId}) via chat command.",
+			Notes = $"Warned by {callerSteamName} ({callerSteamId}) via chat command.",
 			Type = SanctionType.Warning
-		} );
+		}, callerSteamId );
 
-		caller.Success( string.Format( Language.GetPhrase( "command.warn.success" ), targetPlayer.DisplayName, reason ) );
+		await GameTask.MainThread();
+		if ( !succeeded )
+		{
+			if ( caller.IsValid() )
+			{
+				caller.Error( "#generic.error" );
+			}
+			return;
+		}
 
-		Log.Info( $"[COMMAND] {caller.DisplayName} ({caller.SteamId}) warned {targetPlayer.DisplayName} ({targetPlayer.SteamId}): {reason}" );
-		_ = ServerApiClient.Audit( "Warn", $"{caller.SteamName} ({caller.SteamId}) warned {targetPlayer.SteamName} ({targetPlayer.SteamId}): {reason}", caller.SteamId );
+		if ( caller.IsValid() )
+		{
+			caller.Success( string.Format( Language.GetPhrase( "command.warn.success" ), targetDisplayName, reason ) );
+		}
 
-		return true;
+		Log.Info( $"[COMMAND] {callerDisplayName} ({callerSteamId}) warned {targetDisplayName} ({targetSteamId}): {reason}" );
+		_ = ServerApiClient.Audit( "Warn", $"{callerSteamName} ({callerSteamId}) warned {targetSteamName} ({targetSteamId}): {reason}", callerSteamId );
 	}
 }

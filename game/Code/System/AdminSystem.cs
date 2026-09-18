@@ -22,6 +22,11 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 			return;
 		}
 
+		if ( string.IsNullOrWhiteSpace( reason ) )
+		{
+			return;
+		}
+
 		var player = GameUtils.GetPlayerByConnectionId( callerId );
 		var kickPlayer = GameUtils.GetPlayerById( steamId );
 
@@ -30,18 +35,48 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 			return;
 		}
 
-		if ( !RankSystem.CanTarget( callerSteamId, kickPlayer.SteamId ) )
+		if ( callerSteamId == kickPlayer.SteamId || !RankSystem.CanTarget( callerSteamId, kickPlayer.SteamId ) )
 		{
 			return;
 		}
 
-		GameNetworkManager.Instance.KickPlayer( kickPlayer.Connection, reason );
+		_ = ApplyKick( player, kickPlayer, reason );
+	}
 
-		_ = ServerApiClient.Audit( "Kick", $"{player.SteamName} ({player.SteamId}) has kicked {kickPlayer.SteamName} ({steamId}) for {reason}", player.SteamId );
-		_ = ServerApiClient.SanctionPlayer( steamId, new CreateSanctionDto
+	private static async Task ApplyKick( Player caller, Player target, string reason )
+	{
+		var callerSteamId = caller.SteamId;
+		var callerSteamName = caller.SteamName;
+		var callerDisplayName = caller.DisplayName;
+		var targetSteamId = target.SteamId;
+		var targetName = target.SteamName;
+		var succeeded = await ServerApiClient.SanctionPlayer( targetSteamId, new CreateSanctionDto
 		{
-			Reason = reason, Notes = $"Kicked by {player.SteamName} ({player.SteamId}) in-game.", Type = SanctionType.Kick
-		} );
+			Reason = reason,
+			Notes = $"Kicked by {callerSteamName} ({callerSteamId}) in-game.",
+			Type = SanctionType.Kick
+		}, callerSteamId );
+
+		await GameTask.MainThread();
+		if ( !succeeded )
+		{
+			if ( caller.IsValid() )
+			{
+				caller.Error( "#generic.error" );
+			}
+			return;
+		}
+
+		// The durable sanction can succeed after the player disconnects. That is still a successful
+		// moderation action and must still be audited; only the live disconnect step becomes unnecessary.
+		var liveTarget = GameUtils.GetPlayerById( targetSteamId );
+		if ( liveTarget.IsValid() && liveTarget.Connection != null )
+		{
+			GameNetworkManager.Instance.KickPlayer( liveTarget.Connection, reason );
+		}
+
+		Log.Info( $"[ADMIN] {callerDisplayName} ({callerSteamId}) kicked {targetName} ({targetSteamId}): {reason}" );
+		_ = ServerApiClient.Audit( "Kick", $"{callerSteamName} ({callerSteamId}) has kicked {targetName} ({targetSteamId}) for {reason}", callerSteamId );
 	}
 
 	[Rpc.Host( NetFlags.Unreliable )]
@@ -105,12 +140,14 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 	[Rpc.Host]
 	public void BankAllHost()
 	{
-		if ( !RankSystem.HasPermission( Rpc.Caller.SteamId, Permission.ManageEconomy ) )
+		var auditActorSteamId = Rpc.Caller.SteamId;
+		if ( SyntheticActorRegistry.IsSynthetic( auditActorSteamId )
+		     || !RankSystem.HasPermission( auditActorSteamId, Permission.ManageEconomy ) )
 		{
 			return;
 		}
 
-		_ = BankAll();
+		_ = BankAll( auditActorSteamId );
 	}
 
 	[Rpc.Host]
@@ -135,6 +172,11 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 
 		var player = GameUtils.GetPlayerById( steamId );
 		if ( !player.IsValid() )
+		{
+			return;
+		}
+
+		if ( !RankSystem.CanTarget( Rpc.Caller.SteamId, player.SteamId ) )
 		{
 			return;
 		}
@@ -171,33 +213,84 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 		} );
 	}
 
-	private async Task BankAll()
+	private async Task BankAll( long auditActorSteamId )
 	{
 		Assert.True( Networking.IsHost );
 
-		var total = 0;
+		long total = 0;
+		var attempted = 0;
+		var banked = 0;
+		var failed = 0;
+		var unknown = 0;
+		var restoreFailed = 0;
 		foreach ( var player in GameUtils.Players.ToList() )
 		{
 			var amount = player.WalletBalance;
-			var didTakeout = await player.ChargeHost( amount, "BankAll" );
-
-			if ( !didTakeout )
+			if ( amount == 0 )
 			{
 				continue;
 			}
 
-			var didBank = await player.PayHost( amount, "BankAll", true );
-
-			if ( !didBank )
+			attempted++;
+			try
 			{
-				await player.PayHost( amount, "BankAll" );
-				continue;
-			}
+				var didTakeout = await player.ChargeHost( amount, "BankAll", false, auditActorSteamId );
 
-			total += (int)amount;
+				if ( !didTakeout )
+				{
+					failed++;
+					continue;
+				}
+
+				var bankResult = await player.PayHostStrictAudited( amount, "BankAll", true, auditActorSteamId );
+
+				if ( bankResult == StrictMoneyMutationResult.Unknown )
+				{
+					unknown++;
+					Log.Warning( $"[ADMIN] BankAll balance outcome is unknown for {player.SteamName} ({player.SteamId}); wallet remains debited pending portal verification." );
+					continue;
+				}
+
+				if ( bankResult == StrictMoneyMutationResult.Rejected )
+				{
+					failed++;
+					if ( !await player.RestoreWalletAfterFailedBankAll( amount, auditActorSteamId ) )
+					{
+						restoreFailed++;
+						Log.Warning( $"[ADMIN] BankAll could not restore {amount:C0} to {player.SteamName} ({player.SteamId}); manual balance review required." );
+					}
+					continue;
+				}
+
+				total += amount;
+				banked++;
+			}
+			catch ( Exception e )
+			{
+				unknown++;
+				Log.Warning( $"[ADMIN] BankAll threw during {player.SteamName} ({player.SteamId}) for {amount:C0}; outcome is unknown and requires portal verification: {e.Message}" );
+			}
 		}
 
-		Chat.Current?.BroadcastSystemText( $"All wallets have been banked (totalling {total:C0})" );
+		if ( attempted == 0 )
+		{
+			Chat.Current?.BroadcastSystemText( "No non-empty wallets needed banking." );
+		}
+		else if ( failed == 0 && unknown == 0 )
+		{
+			Chat.Current?.BroadcastSystemText( $"All {banked} non-empty wallets have been banked (totalling {total:C0})." );
+		}
+		else
+		{
+			var restoreWarning = restoreFailed > 0
+				? $" {restoreFailed} balance restore(s) require manual review."
+				: failed > 0 ? " Rejected transfers kept their wallet balance." : string.Empty;
+			var unknownWarning = unknown > 0
+				? $" {unknown} transfer outcome(s) are unknown; do not retry or restore before portal verification."
+				: string.Empty;
+			Chat.Current?.BroadcastSystemText(
+				$"Wallet banking was partial: {banked} of {attempted} non-empty wallets banked (totalling {total:C0}); {failed} rejected.{restoreWarning}{unknownWarning}" );
+		}
 	}
 
 	[Rpc.Host]
@@ -296,7 +389,7 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 		var caller = Rpc.Caller;
 		var callerSteamId = Rpc.Caller.SteamId;
 
-		if ( !RankSystem.HasPermission( callerSteamId, Permission.Noclip ) )
+		if ( !RankSystem.HasPermission( callerSteamId, Permission.DebugFull ) )
 		{
 			return;
 		}
@@ -322,12 +415,30 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 	{
 		var callerSteamId = Rpc.Caller.SteamId;
 
-		if ( !RankSystem.HasPermission( callerSteamId, Permission.Noclip ) )
+		if ( !RankSystem.HasPermission( callerSteamId, Permission.DebugAccess ) )
 		{
 			return;
 		}
 
 		var caller = GameUtils.GetPlayerByConnectionId( Rpc.CallerId );
+		if ( !caller.IsValid() )
+		{
+			return;
+		}
+
+		statusId = statusId?.Trim() ?? string.Empty;
+		if ( statusId.Length == 0 || Status.Current.GetCachedInstance( statusId ) is null )
+		{
+			caller.Error( $"Status '{statusId}' not found" );
+			return;
+		}
+
+		if ( duration.HasValue && (float.IsNaN( duration.Value ) || float.IsInfinity( duration.Value ) || duration.Value <= 0) )
+		{
+			caller.Error( "Status duration must be greater than zero" );
+			return;
+		}
+
 		var matchingPlayers = GameUtils.GetPlayersByName( playerName );
 
 		if ( matchingPlayers.Count == 0 )
@@ -350,20 +461,27 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 		}
 
 		var target = matchingPlayers[0];
+		if ( target.SteamId != callerSteamId && !RankSystem.CanTarget( callerSteamId, target.SteamId ) )
+		{
+			caller.Error( "#command.errors.higher_rank" );
+			return;
+		}
 
 		Status.Current.AddStatus( target, statusId, duration );
+		if ( !Status.Current.HasStatus( target.SteamId, statusId ) )
+		{
+			caller.Error( "#generic.error" );
+			return;
+		}
 
 		// Notify the caller
-		if ( caller.IsValid() )
-		{
-			var durationText = duration.HasValue ? $" for {duration.Value}s" : "";
-			caller.SendMessage( $"Added status '{statusId}' to {target.DisplayName}{durationText}" );
-		}
+		var durationText = duration.HasValue ? $" for {duration.Value}s" : "";
+		caller.SendMessage( $"Added status '{statusId}' to {target.DisplayName}{durationText}" );
 
 		// Log the action
 		var logDurationText = duration.HasValue ? $" for {duration.Value}s" : "";
-		Log.Info( $"[ADMIN] {caller?.DisplayName} ({callerSteamId}) added status '{statusId}' to {target.DisplayName} ({target.SteamId}){logDurationText}" );
-		_ = ServerApiClient.Audit( "Status", $"{caller?.SteamName} ({callerSteamId}) added status '{statusId}' to {target.SteamName} ({target.SteamId}){logDurationText}", caller?.SteamId );
+		Log.Info( $"[ADMIN] {caller.DisplayName} ({callerSteamId}) added status '{statusId}' to {target.DisplayName} ({target.SteamId}){logDurationText}" );
+		_ = ServerApiClient.Audit( "Status", $"{caller.SteamName} ({callerSteamId}) added status '{statusId}' to {target.SteamName} ({target.SteamId}){logDurationText}", caller.SteamId );
 	}
 
 	[Rpc.Host]
@@ -371,12 +489,24 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 	{
 		var callerSteamId = Rpc.Caller.SteamId;
 
-		if ( !RankSystem.HasPermission( callerSteamId, Permission.Noclip ) )
+		if ( !RankSystem.HasPermission( callerSteamId, Permission.DebugAccess ) )
 		{
 			return;
 		}
 
 		var caller = GameUtils.GetPlayerByConnectionId( Rpc.CallerId );
+		if ( !caller.IsValid() )
+		{
+			return;
+		}
+
+		statusId = statusId?.Trim() ?? string.Empty;
+		if ( statusId.Length == 0 || Status.Current.GetCachedInstance( statusId ) is null )
+		{
+			caller.Error( $"Status '{statusId}' not found" );
+			return;
+		}
+
 		var matchingPlayers = GameUtils.GetPlayersByName( playerName );
 
 		if ( matchingPlayers.Count == 0 )
@@ -399,18 +529,31 @@ public class AdminSystem : SingletonComponent<AdminSystem>
 		}
 
 		var target = matchingPlayers[0];
-
-		Status.Current.RemoveStatus( target, statusId );
-
-		// Notify the caller
-		if ( caller.IsValid() )
+		if ( target.SteamId != callerSteamId && !RankSystem.CanTarget( callerSteamId, target.SteamId ) )
 		{
-			caller.SendMessage( $"Removed status '{statusId}' from {target.DisplayName}" );
+			caller.Error( "#command.errors.higher_rank" );
+			return;
 		}
 
+		if ( !Status.Current.HasStatus( target.SteamId, statusId ) )
+		{
+			caller.Error( $"Status '{statusId}' is not active on {target.DisplayName}" );
+			return;
+		}
+
+		Status.Current.RemoveStatus( target, statusId );
+		if ( Status.Current.HasStatus( target.SteamId, statusId ) )
+		{
+			caller.Error( "#generic.error" );
+			return;
+		}
+
+		// Notify the caller
+		caller.SendMessage( $"Removed status '{statusId}' from {target.DisplayName}" );
+
 		// Log the action
-		Log.Info( $"[ADMIN] {caller?.DisplayName} ({callerSteamId}) removed status '{statusId}' from {target.DisplayName} ({target.SteamId})" );
-		_ = ServerApiClient.Audit( "Status", $"{caller?.SteamName} ({callerSteamId}) removed status '{statusId}' from {target.SteamName} ({target.SteamId})", caller?.SteamId );
+		Log.Info( $"[ADMIN] {caller.DisplayName} ({callerSteamId}) removed status '{statusId}' from {target.DisplayName} ({target.SteamId})" );
+		_ = ServerApiClient.Audit( "Status", $"{caller.SteamName} ({callerSteamId}) removed status '{statusId}' from {target.SteamName} ({target.SteamId})", caller.SteamId );
 	}
 
 	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]

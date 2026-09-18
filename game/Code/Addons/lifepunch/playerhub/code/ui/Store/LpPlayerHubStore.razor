@@ -45,17 +45,17 @@
 				<div class="store-section-note">@VisibleItemCount() fixture items</div>
 			</div>
 			<div class="store-item-list">
-				@foreach ( var item in VisibleItems() )
+				@foreach ( var catalogItem in VisibleItems() )
 				{
-					<button class="@ItemClass( item )" onclick="@item.OnSelected">
-						<div class="store-item-icon"><i class="material-icons">@item.Icon</i></div>
+					<button class="@ItemClass( catalogItem )" onclick="@catalogItem.OnSelected">
+						<div class="store-item-icon"><i class="material-icons">@catalogItem.Icon</i></div>
 						<div class="store-item-copy">
-							<div class="store-item-title">@item.Title</div>
-							<div class="store-item-description">@item.Description</div>
+							<div class="store-item-title">@catalogItem.Title</div>
+							<div class="store-item-description">@catalogItem.Description</div>
 							<div class="store-item-meta">
 								<span class="store-lp-sign">$LP</span>
-								<span class="store-item-price">@item.PriceLp.ToString( "N0" )</span>
-								<span class="@OwnershipClass( item )">@OwnershipLabel( item )</span>
+								<span class="store-item-price">@catalogItem.PriceLp.ToString( "N0" )</span>
+								<span class="@OwnershipClass( catalogItem )">@OwnershipLabel( catalogItem )</span>
 							</div>
 						</div>
 					</button>

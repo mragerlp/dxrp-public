@@ -1,0 +1,160 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   LIFEPUNCH Server Hub - Jobs tab.
+
+   This tab is LIVE. Every row is projected from the active gamemode configuration
+   through LpServerHubData.ReadJobs(). There are no fixture rows in this file and no
+   fallback sample data: if the server has no jobs configured, the tab says so.
+
+   It is also strictly read-only. There is no apply, no request, no RPC. Selecting a
+   job is done where DXRP already does it; this surface reports, it does not act.
+
+   This file is deliberately pure ASCII; display glyphs are HTML entities.
+*@
+@namespace LifePunch.DXRP.Addons.ServerHub
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-serverhub-jobs">
+	@if ( Model is null || !Model.IsLive )
+	{
+		<div class="jobs-empty">
+			<i class="material-icons jobs-empty-icon">badge</i>
+			<div class="jobs-empty-title">No jobs configured</div>
+			<div class="jobs-empty-copy">
+				This server's gamemode has no job roster, so there is nothing to list. When jobs
+				are configured on the portal they appear here automatically - nothing needs to be
+				rebuilt.
+			</div>
+		</div>
+	}
+	else
+	{
+		<div class="jobs-list">
+			@foreach ( var group in Model.Groups )
+			{
+				<div class="jobs-group">
+					<div class="jobs-group-head">
+						@if ( string.IsNullOrEmpty( group.AccentHex ) )
+						{
+							<span class="hub-dot hub-dot-none"></span>
+						}
+						else
+						{
+							<span class="hub-dot" style="background-color: @group.AccentHex"></span>
+						}
+						<span class="jobs-group-name">@group.Name</span>
+						<span class="jobs-group-count">@group.Jobs.Count</span>
+					</div>
+
+					<div class="jobs-rows">
+						@foreach ( var job in group.Jobs )
+						{
+							<div class="@RowClass( job )">
+								<div class="jobs-row-mark">
+									@if ( string.IsNullOrEmpty( job.AccentHex ) )
+									{
+										<span class="hub-dot hub-dot-none"></span>
+									}
+									else
+									{
+										<span class="hub-dot" style="background-color: @job.AccentHex"></span>
+									}
+								</div>
+
+								<div class="jobs-row-copy">
+									<div class="jobs-row-name">@job.Name</div>
+									@if ( !string.IsNullOrWhiteSpace( job.Description ) )
+									{
+										<div class="jobs-row-desc">@job.Description</div>
+									}
+									<div class="jobs-row-req">@job.RequirementText</div>
+								</div>
+
+								<div class="jobs-row-salary" tooltip="Job salary">
+									<span class="lp-money-cash">$</span><span class="lp-money-amt">@job.SalaryAmount</span>
+								</div>
+
+								<div class="jobs-row-slots" tooltip="@SlotsTooltip( job )">
+									<span class="jobs-row-slots-value">@job.OccupancyText</span>
+									@if ( job.AtCapacity )
+									{
+										<span class="jobs-chip jobs-chip-full">Full</span>
+									}
+									else if ( !job.Selectable )
+									{
+										<span class="jobs-chip jobs-chip-locked">Assigned</span>
+									}
+								</div>
+							</div>
+						}
+					</div>
+				</div>
+			}
+		</div>
+	}
+</root>
+
+@code
+{
+	/// <summary>Positive code-string ID for the jobs slice. Exists nowhere else in the tree.</summary>
+	public const string JobsMark = "LP_SERVERHUB_JOBS_LIVE_20260827";
+
+	// s&box Razor binds component parameters through [Property].
+	[Property] public LpServerHubJobsVm Model { get; set; }
+
+	private static string RowClass( LpServerHubJobRowVm job )
+	{
+		var state = job.AtCapacity
+			? " is-full"
+			: ( job.Selectable ? string.Empty : " is-locked" );
+
+		return "jobs-row" + state;
+	}
+
+	private static string SlotsTooltip( LpServerHubJobRowVm job )
+	{
+		if ( job.AtCapacity )
+		{
+			return "This job is at its player limit";
+		}
+
+		return job.Selectable
+			? "Players currently in this job"
+			: "Players currently in this job. It cannot be selected directly.";
+	}
+
+	protected override int BuildHash()
+	{
+		if ( Model is null )
+		{
+			return 0;
+		}
+
+		var hash = new HashCode();
+		hash.Add( Model.IsLive );
+		hash.Add( Model.JobCount );
+		hash.Add( Model.GroupCount );
+
+		// Occupancy changes as players move between jobs while the hub is open, so it has to
+		// be part of the hash or the list would silently freeze at its first paint.
+		foreach ( var group in Model.Groups )
+		{
+			hash.Add( group.Id );
+
+			foreach ( var job in group.Jobs )
+			{
+				hash.Add( job.Id );
+				hash.Add( job.OccupancyText );
+				hash.Add( job.AtCapacity );
+			}
+		}
+
+		return hash.ToHashCode();
+	}
+}

@@ -1,0 +1,131 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// LIFEPUNCH Server Hub - locked token surface.
+//
+// Component styles import these and contain NO raw colour, radius, or spacing
+// literals. Values mirror the native DXRP parity source at
+// game/Code/UI/styles.scss so the hub reads as a sibling of the native UI
+// rather than as a guest in it.
+//
+// Provenance of each mirrored value is noted by native token name only. Do not
+// retune these locally; a value that has no token here is a canon question.
+// -----------------------------------------------------------------------------
+
+// --- Surfaces (mirrors native color-primary / color-secondary) --------------
+$bg: #111111;
+$bg-shell: #191919;
+$bg-sidebar: #141414;
+$bg-raised: #1d1d1d;
+$bg-row: #171717;
+
+// --- Accent (mirrors native color-accent) -----------------------------------
+// Accent is a WASH and a text colour only. It is never a fill, never a border
+// ring, never a backing for an icon.
+$accent: #7170e6;
+$accent-soft: rgba(113, 112, 230, 0.06);
+$accent-soft-strong: rgba(113, 112, 230, 0.10);
+
+// --- Semantic state (mirrors native color-good / color-bad) -----------------
+// Green is reserved for cash and success. It never carries status or power.
+$good: #199c3b;
+$bad: #931010;
+$warn: #b8862b;
+
+// Washes and readable text tints derived from the state colours above. A state
+// colour at full strength is never used as a large fill; it reads as chrome.
+$good-soft: rgba(25, 156, 59, 0.16);
+$bad-soft: rgba(147, 16, 16, 0.16);
+$bad-text: #d06a6a;
+$dim-soft: rgba(255, 255, 255, 0.05);
+$dim-soft-strong: rgba(255, 255, 255, 0.08);
+
+// --- Text (mirrors native text-color / color-white) -------------------------
+$text: #e9e9e9;
+$text-strong: #ffffff;
+$text-dim: #8b8b93;
+$text-faint: #5f5f66;
+
+// --- Structure --------------------------------------------------------------
+$border: rgba(255, 255, 255, 0.055);
+$border-strong: rgba(255, 255, 255, 0.10);
+$divider: rgba(255, 255, 255, 0.04);
+
+// --- Radius (mirrors native rounding) ---------------------------------------
+// Tiny and uniform. Nothing is a pill; true circles use 50% at the call site.
+$radius: 2px;
+$radius-shell: 4px;
+
+// --- Type scale (mirrors native text-xs .. text-xl) -------------------------
+$type-xs: 12px;
+$type-sm: 14px;
+$type-base: 16px;
+$type-lg: 18px;
+$type-xl: 22px;
+
+// --- Spacing scale ----------------------------------------------------------
+$space-1: 4px;
+$space-2: 8px;
+$space-3: 12px;
+$space-4: 16px;
+$space-5: 20px;
+$space-6: 24px;
+
+// --- Metrics ----------------------------------------------------------------
+$shell-w: 1080px;
+$shell-h: 660px;
+$header-h: 56px;
+$sidebar-w: 196px;
+$row-h: 44px;
+$dot: 8px;
+$chip-h: 20px;
+$nav-h: 38px;
+$close-size: 32px;
+$foot-h: 30px;
+$indicator-w: 2px;
+$hairline: 1px;
+
+// Modal ground behind the shell. Dark enough to settle the world back, light
+// enough that the player can still see where they are standing.
+$scrim: rgba(0, 0, 0, 0.55);
+
+// One transition duration for the whole hub, so nothing feels out of step.
+$ease: 0.12s ease-out;
+
+// Fixed measure columns in the jobs list. Numbers align on their right edge, so
+// the column widths are part of the reading grid rather than incidental padding.
+$col-salary: 96px;
+$col-slots: 92px;
+
+// The shop's action column. Sized so the widest label still reads on one line and
+// so every row's control starts at the same x, which is what makes a long list
+// scannable by price rather than by button position.
+$col-buy: 76px;
+$btn-h: 26px;
+
+// Large glyph used only in empty states.
+$icon-empty: 40px;
+
+// Comfortable measure for a paragraph of centred copy.
+$copy-max: 420px;
+
+// Minimum width of a live stat plate, so two plates read as a matched pair even
+// when one holds a single digit and the other holds four.
+$stat-min: 150px;
+
+// Reserved-tab ghost shapes. These stand in for content that does not exist yet,
+// so their sizes are chosen to suggest a layout, never to imply a real value.
+$ghost-panel-w: 260px;
+$ghost-value-w: 140px;
+$ghost-label-w: 84px;
+$ghost-line-w: 180px;
+$ghost-amt-w: 64px;
+
+
+
+// Chip and eyebrow text sit below the native type scale on purpose - they are
+// tracked labels, not prose, and the scale governs readable copy. Tracking is
+// tokenised alongside so the two always travel together.
+$type-chip: 11px;
+$track-chip: 0.4px;
+$track-eyebrow: 0.8px;

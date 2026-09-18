@@ -1,0 +1,270 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Server Hub shell. Flex-only s&box SCSS.
+//
+// Chrome here is structure only - shell, nav, dividers, containers. It never
+// borrows a status colour, and no status element borrows chrome. Accent appears
+// only as a low-opacity wash behind the selected nav row and as the nav
+// indicator, never as a fill or a ring.
+// -----------------------------------------------------------------------------
+
+@import "LpServerHubTokens.scss";
+@import "LpServerHubPrimitives.scss";
+
+.lp-serverhub {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: $scrim;
+	pointer-events: all;
+}
+
+.hub-shell {
+	width: $shell-w;
+	height: $shell-h;
+	max-width: 96%;
+	max-height: 94%;
+	flex-direction: column;
+	background-color: $bg-shell;
+	border: $hairline solid $border-strong;
+	border-radius: $radius-shell;
+	overflow: hidden;
+}
+
+// --- Header -----------------------------------------------------------------
+
+.hub-header {
+	height: $header-h;
+	flex-shrink: 0;
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	padding-left: $space-4;
+	padding-right: $space-3;
+	background-color: $bg;
+	border-bottom: $hairline solid $border;
+}
+
+.hub-brand {
+	flex-direction: row;
+	align-items: baseline;
+}
+
+.hub-brand-mark {
+	font-size: $type-xs;
+	font-weight: 700;
+	letter-spacing: $track-eyebrow;
+	color: $accent;
+	margin-right: $space-2;
+}
+
+.hub-brand-name {
+	font-size: $type-base;
+	font-weight: 500;
+	color: $text-strong;
+}
+
+.hub-header-right {
+	flex-direction: row;
+	align-items: center;
+}
+
+.hub-money {
+	flex-direction: row;
+	align-items: center;
+	margin-right: $space-4;
+}
+
+.hub-money-label {
+	font-size: $type-xs;
+	color: $text-dim;
+	margin-right: $space-2;
+}
+
+.hub-close {
+	width: $close-size;
+	height: $close-size;
+	align-items: center;
+	justify-content: center;
+	border-radius: $radius;
+	color: $text-dim;
+	opacity: 0.7;
+	transition: opacity $ease;
+
+	i {
+		font-size: $type-lg;
+	}
+
+	&:hover {
+		opacity: 1;
+		background-color: $dim-soft;
+		color: $text-strong;
+	}
+}
+
+// --- Body -------------------------------------------------------------------
+
+.hub-body {
+	flex-grow: 1;
+	flex-direction: row;
+	overflow: hidden;
+}
+
+// --- Sidebar ----------------------------------------------------------------
+
+.hub-sidebar {
+	width: $sidebar-w;
+	flex-shrink: 0;
+	flex-direction: column;
+	justify-content: space-between;
+	background-color: $bg-sidebar;
+	border-right: $hairline solid $border;
+	padding-top: $space-3;
+	padding-bottom: $space-3;
+}
+
+.hub-nav {
+	flex-direction: column;
+}
+
+.hub-nav-item {
+	height: $nav-h;
+	flex-direction: row;
+	align-items: center;
+	padding-right: $space-3;
+	color: $text-dim;
+	opacity: 0.7;
+	transition: opacity $ease;
+
+	// Active state is opacity first, wash second. The icon stays neutral.
+	&:hover {
+		opacity: 1;
+		color: $text;
+	}
+
+	&.is-active {
+		opacity: 1;
+		color: $text-strong;
+		background-color: $accent-soft;
+
+		.hub-nav-indicator {
+			background-color: $accent;
+		}
+	}
+}
+
+.hub-nav-indicator {
+	width: $indicator-w;
+	height: 100%;
+	flex-shrink: 0;
+	margin-right: $space-3;
+	background-color: transparent;
+}
+
+.hub-nav-icon {
+	font-size: $type-base;
+	margin-right: $space-2;
+	flex-shrink: 0;
+}
+
+.hub-nav-label {
+	font-size: $type-sm;
+	flex-grow: 1;
+}
+
+.hub-nav-reserved {
+	font-size: $type-chip;
+	letter-spacing: $track-chip;
+	color: $text-faint;
+	flex-shrink: 0;
+}
+
+.hub-sidebar-note {
+	flex-direction: column;
+	padding-left: $space-4;
+	padding-right: $space-3;
+	padding-top: $space-3;
+	margin-top: $space-4;
+	border-top: $hairline solid $divider;
+}
+
+.hub-sidebar-note-title {
+	font-size: $type-chip;
+	font-weight: 700;
+	letter-spacing: $track-eyebrow;
+	color: $text-faint;
+	margin-bottom: $space-1;
+}
+
+.hub-sidebar-note-copy {
+	font-size: $type-xs;
+	color: $text-dim;
+	line-height: 1.45;
+}
+
+// --- Content ----------------------------------------------------------------
+
+.hub-content {
+	flex-grow: 1;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+.hub-page-head {
+	flex-direction: column;
+	flex-shrink: 0;
+	padding-left: $space-6;
+	padding-right: $space-6;
+	padding-top: $space-5;
+	padding-bottom: $space-4;
+	border-bottom: $hairline solid $divider;
+}
+
+.hub-title {
+	font-size: $type-xl;
+	font-weight: 600;
+	color: $text-strong;
+}
+
+.hub-blurb {
+	font-size: $type-sm;
+	color: $text-dim;
+	margin-top: $space-1;
+}
+
+.hub-tabhost {
+	flex-grow: 1;
+	flex-direction: column;
+	overflow: hidden;
+}
+
+// --- Foot -------------------------------------------------------------------
+
+.hub-foot {
+	flex-shrink: 0;
+	flex-direction: row;
+	align-items: center;
+	height: $foot-h;
+	padding-left: $space-4;
+	padding-right: $space-4;
+	background-color: $bg;
+	border-top: $hairline solid $border;
+	font-size: $type-chip;
+	color: $text-faint;
+}
+
+.hub-foot-product {
+	font-weight: 600;
+	letter-spacing: $track-chip;
+}
+
+.hub-foot-sep {
+	margin-left: $space-2;
+	margin-right: $space-2;
+}

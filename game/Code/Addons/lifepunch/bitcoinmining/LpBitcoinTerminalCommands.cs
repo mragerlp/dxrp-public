@@ -251,7 +251,7 @@ internal static class LpBitcoinTerminalCommands
 		if ( !long.TryParse( parts[1], out var steamId ) || steamId <= 0 )
 			return new LpBitcoinCommandResult( false, "ERR invalid steam id — use recipient hub owner's numeric Steam ID" );
 
-		if ( !TryParseSendAmount( hub, parts[2], out var amount, out var amountError ) )
+		if ( !LpBitcoinHubSendRules.TryParseSendAmount( parts[2], hub.HubWalletBtc, out var amount, out var amountError ) )
 			return new LpBitcoinCommandResult( false, amountError );
 
 		if ( hub.Owner != 0 && hub.Owner == steamId )
@@ -270,42 +270,6 @@ internal static class LpBitcoinTerminalCommands
 			label = steamId.ToString();
 
 		return new LpBitcoinCommandResult( true, $"sent {amount:F6} BTC to hub {label} ({steamId})" );
-	}
-
-	private static bool TryParseSendAmount(
-		LpBitcoinHubEntity hub,
-		string token,
-		out float amount,
-		out string error )
-	{
-		amount = 0f;
-		error = string.Empty;
-
-		if ( token.Equals( "all", StringComparison.OrdinalIgnoreCase ) )
-		{
-			amount = hub.HubWalletBtc;
-			if ( amount <= 0f )
-			{
-				error = "ERR hub wallet empty";
-				return false;
-			}
-
-			return true;
-		}
-
-		if ( !float.TryParse( token, out amount ) || amount <= 0f )
-		{
-			error = "ERR invalid amount — use a positive BTC value or all";
-			return false;
-		}
-
-		if ( amount > hub.HubWalletBtc + 0.000001f )
-		{
-			error = $"ERR insufficient hub wallet ({hub.HubWalletBtc:F6} BTC available)";
-			return false;
-		}
-
-		return true;
 	}
 
 	private static LpBitcoinCommandResult MiningStart( LpBitcoinHubEntity hub, int index )

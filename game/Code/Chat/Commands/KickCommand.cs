@@ -18,32 +18,64 @@ public class KickCommand : ICommand
 		}
 
 		var targetIdentifier = args[0];
-		var reason = string.Join( " ", args.Skip( 1 ) );
+		var reason = string.Join( " ", args.Skip( 1 ) ).Trim();
+		if ( string.IsNullOrWhiteSpace( reason ) )
+		{
+			caller.SendMessage( Language.GetPhrase( "command.kick.usage" ) );
+			return true;
+		}
 
 		var targetPlayer = CommandHelper.ResolvePlayer( caller, targetIdentifier );
 		if ( !targetPlayer.IsValid() )
 			return true;
 
-		if ( !RankSystem.CanTarget( caller.SteamId, targetPlayer.SteamId ) )
+		if ( caller.SteamId == targetPlayer.SteamId || !RankSystem.CanTarget( caller.SteamId, targetPlayer.SteamId ) )
 		{
 			caller.SendMessage( "#command.errors.higher_rank" );
 			return true;
 		}
 
-		_ = ServerApiClient.SanctionPlayer( targetPlayer.SteamId, new CreateSanctionDto
+		_ = ApplyKick( caller, targetPlayer, reason );
+		return true;
+	}
+
+	private static async global::System.Threading.Tasks.Task ApplyKick( Player caller, Player target, string reason )
+	{
+		var callerSteamId = caller.SteamId;
+		var callerSteamName = caller.SteamName;
+		var callerDisplayName = caller.DisplayName;
+		var targetSteamId = target.SteamId;
+		var targetSteamName = target.SteamName;
+		var targetDisplayName = target.DisplayName;
+		var succeeded = await ServerApiClient.SanctionPlayer( targetSteamId, new CreateSanctionDto
 		{
 			Reason = reason,
-			Notes = $"Kicked by {caller.SteamName} ({caller.SteamId}) via chat command.",
+			Notes = $"Kicked by {callerSteamName} ({callerSteamId}) via chat command.",
 			Type = SanctionType.Kick
-		} );
+		}, callerSteamId );
 
-		GameNetworkManager.Instance.KickPlayer( targetPlayer.Connection, reason );
+		await GameTask.MainThread();
+		if ( !succeeded )
+		{
+			if ( caller.IsValid() )
+			{
+				caller.Error( "#generic.error" );
+			}
+			return;
+		}
 
-		caller.Success( string.Format( Language.GetPhrase( "command.kick.success" ), targetPlayer.DisplayName, reason ) );
+		var liveTarget = GameUtils.GetPlayerById( targetSteamId );
+		if ( liveTarget.IsValid() && liveTarget.Connection != null )
+		{
+			GameNetworkManager.Instance.KickPlayer( liveTarget.Connection, reason );
+		}
 
-		Log.Info( $"[COMMAND] {caller.DisplayName} ({caller.SteamId}) kicked {targetPlayer.DisplayName} ({targetPlayer.SteamId}): {reason}" );
-		_ = ServerApiClient.Audit( "Kick", $"{caller.SteamName} ({caller.SteamId}) kicked {targetPlayer.SteamName} ({targetPlayer.SteamId}): {reason}", caller.SteamId );
+		if ( caller.IsValid() )
+		{
+			caller.Success( string.Format( Language.GetPhrase( "command.kick.success" ), targetDisplayName, reason ) );
+		}
 
-		return true;
+		Log.Info( $"[COMMAND] {callerDisplayName} ({callerSteamId}) kicked {targetDisplayName} ({targetSteamId}): {reason}" );
+		_ = ServerApiClient.Audit( "Kick", $"{callerSteamName} ({callerSteamId}) kicked {targetSteamName} ({targetSteamId}): {reason}", callerSteamId );
 	}
 }

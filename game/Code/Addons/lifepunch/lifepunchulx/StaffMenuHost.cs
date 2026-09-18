@@ -52,35 +52,39 @@ public readonly record struct StaffPlayerDetail(
 	string Role,
 	string RankColorHex,
 	int PlayTimeMinutes,
+	int Level,
 	string Job,
 	string JobColorHex,
-	int Wallet,
-	int Bank,
+	int BaseSalary,
+	uint Wallet,
+	uint Bank,
 	int Health,
 	int MaxHealth,
 	int Armor,
+	int MaxArmor,
 	int Kills,
 	int Deaths,
 	bool Found );
 
 /// <summary>
-/// One row of the DXRP portal Audit log, define-free so it flows through the Dxura-free razor.
-/// Mirrors the portal Audit page columns 1:1 (<c>When</c> / <c>Action</c> / <c>Player</c> /
-/// <c>Entity</c> / <c>Description</c>). <see cref="When"/> is a pre-formatted, display-ready string
-/// (the host owns timestamp formatting so the razor stays logic-light). <see cref="PlayerSteamId"/>
-/// is the raw SteamID64 (0 when the actor is the server/system) so the UI can resolve an avatar and
-/// match the Player-ID filter without re-parsing <see cref="Player"/>.
+/// One display-safe row from a player's durable Portal inventory. IDs, grant identifiers and
+/// mutation controls deliberately never cross the ULX bridge.
 /// </summary>
+public readonly record struct StaffInventoryItem( string Name, string Type, string Rarity, int Quantity );
+
+/// <summary>The truthful client-side state of a selected-player inventory read.</summary>
+public enum StaffInventoryReadState
+{
+	Idle,
+	Loading,
+	Unavailable,
+	CompletedEmpty,
+	Populated
+}
+
 /// <summary>
-/// One sanction row, projected free of Dxura types so it flows through the Dxura-free razor.
-/// <see cref="TypeClass"/> is the lowercased type ("ban", "warning") used as a CSS class;
-/// <see cref="IsActive"/> drives the prominent red treatment an in-force sanction requires.
-/// </summary>
-/// <summary>
-/// One live state flag on a player. <see cref="Illegitimate"/> is the point of the section: the
-/// flag is ON but the player does not hold the portal permission that grants it, which means
-/// someone is using a command they were never given. A flag a staff member legitimately holds
-/// reads as ordinary state.
+/// One active player flag. <see cref="Illegitimate"/> means the player currently lacks
+/// the permission required for that active power, including when permission was revoked.
 /// </summary>
 public readonly record struct StaffStateFlag( string Label, bool Illegitimate );
 
@@ -90,15 +94,93 @@ public readonly record struct StaffSanction(
 	bool IsActive,
 	string Reason,
 	string Duration,
-	string Created );
+	string Created,
+	string Scope,
+	string State,
+	string Flags,
+	string Notes );
 
+/// <summary>
+/// Distinct sanction-read outcomes. Empty, unavailable and failed reads must remain separate.
+/// A missing or discarded response is indistinguishable from a delayed response and remains
+/// <see cref="Loading"/> until a response or reset changes the client state.
+/// </summary>
+public enum SanctionsReadState
+{
+	/// <summary>Local viewer lacks the portal permission. Nothing was ever asked.</summary>
+	PermissionDenied,
+
+	/// <summary>The backing system is absent in this realm, so nothing can be read at all.</summary>
+	Unavailable,
+
+	/// <summary>Asked for this subject and no answer has landed yet. Also how a silently dropped request presents.</summary>
+	Loading,
+
+	/// <summary>The host ANSWERED by clearing: it declined to disclose this subject's record.</summary>
+	Refused,
+
+	/// <summary>The system holds a different subject; our answer never landed. This is not a clean record.</summary>
+	Unanswered,
+
+	/// <summary>Answered for this subject with zero rows visible to this caller.</summary>
+	CompletedEmpty,
+
+	/// <summary>The host reached the sanction service, but the read failed. No record claim is possible.</summary>
+	Failed,
+
+	/// <summary>The host answered under a permission-limited view; only a visible subset can be claimed.</summary>
+	Filtered,
+
+	/// <summary>Answered for this subject, with rows to show.</summary>
+	Populated
+}
+
+/// <summary>Correlated host result for the staff money-grant form.</summary>
+public enum StaffMoneyGrantState
+{
+	Idle,
+	Pending,
+	Succeeded,
+	Rejected,
+	Unknown
+}
+
+/// <summary>
+/// One audit row as the menu renders it. <see cref="When"/> is the portal-style relative label;
+/// <see cref="WhenUtc"/> is the raw stamp the label was rendered from and is what the time-window
+/// filter compares against — the label alone is unfilterable ("Yesterday" has no ordering).
+/// <see cref="WhenUtc"/> defaults to <c>default</c> for a row whose time is unknown; a row with an
+/// unknown stamp is never hidden by a window, because we cannot prove it falls outside one.
+/// </summary>
 public readonly record struct StaffAuditEntry(
 	string When,
 	string Action,
 	string Player,
 	long PlayerSteamId,
 	string Entity,
-	string Description );
+	string Description,
+	System.DateTimeOffset WhenUtc = default );
+
+/// <summary>
+/// Which side of a row the Audit tab's Player ID box matches.
+///
+/// The feed only ever stores the ACTOR as a field (<see cref="StaffAuditEntry.PlayerSteamId"/> /
+/// <see cref="StaffAuditEntry.Player"/>, both derived from <c>ServerApiClient.Audit</c>'s
+/// <c>cause</c>). A TARGET is never a field — it survives only as interpolated text inside
+/// <see cref="StaffAuditEntry.Description"/>. So <see cref="Target"/> is necessarily a description
+/// substring match, not a field match, and it is only as good as the call site's wording.
+/// </summary>
+public enum AuditPlayerScope
+{
+	/// <summary>Rows this player performed. Field-exact; the default and the old behaviour.</summary>
+	Actor,
+
+	/// <summary>Rows that name this player in the description — usually rows performed ON them.</summary>
+	Target,
+
+	/// <summary>Either side. Matches what a player's profile "Recent actions" card already shows.</summary>
+	Both
+}
 
 /// <summary>
 /// One gamemode job row for the Set Job picker. Define-free so the razor compiles in the editor build.
@@ -107,20 +189,23 @@ public readonly record struct StaffAuditEntry(
 public readonly record struct StaffJobOption( string Token, string Label, string ColorHex );
 
 /// <summary>
-/// Dual-build host bindings for LIFEPUNCH ULX (<c>lifepunchulx</c>).
-///
-/// All DXRP coupling lives here behind <c>#if !LIFEPUNCH_LOCAL</c> so <c>StaffMenu.razor</c> and
-/// <c>StaffMenuActions.cs</c> stay define-free and compile in the standalone s&amp;box editor. On the
-/// dxrp.net build the real branch binds to <c>RankSystem</c> (client-side permission reads),
-/// <c>AdminSystem</c> host RPCs, and <c>Chat.ExecuteCommandHost</c>. The local branch returns
-/// permissive stubs and a dummy roster so the UI renders and clicks log instead of dispatching.
-///
-/// This uses a HUD-mounted host pattern: the engine define
-/// <c>LIFEPUNCH_LOCAL</c> reliably reaches plain .cs files even when the editor's Razor pass
-/// does not honour it.
+/// DXRP host bindings behind <c>#if !LIFEPUNCH_LOCAL</c>, keeping Razor free of Dxura types.
+/// The live branch reads ranks and dispatches through native host or chat interfaces;
+/// the local branch supplies fixtures and logs clicks without dispatching.
+/// The HUD host carries the build split because the editor's Razor pass does not reliably
+/// honor LIFEPUNCH_LOCAL even when plain C# files receive it.
 /// </summary>
 internal static class StaffMenuHost
 {
+	public static string Localize( string key )
+	{
+#if LIFEPUNCH_LOCAL
+		return key ?? string.Empty;
+#else
+		return Language.GetPhrase( key ?? string.Empty );
+#endif
+	}
+
 	private static StaffMenu? _instance;
 
 	/// <summary>Whether the menu is currently mounted/open.</summary>
@@ -133,9 +218,8 @@ internal static class StaffMenuHost
 	public static long LocalSteamId => Sandbox.Game.SteamId;
 
 	/// <summary>
-	/// The local viewer's rank order on the live ladder (Mod=4, Admin=5, Super Admin=10, Owner=69).
-	/// Drives the configurable ban-duration cap. In the editor build we pretend Super Admin so the
-	/// full catalog renders.
+	/// The viewer's configured rank order, used by the ban-duration policy.
+	/// The local fixture build returns order 10.
 	/// </summary>
 	public static int LocalRankOrder
 	{
@@ -144,6 +228,309 @@ internal static class StaffMenuHost
 #else
 		get => RankSystem.Instance.IsValid() ? RankSystem.Instance.GetRankOrder( LocalSteamId ) : 0;
 #endif
+	}
+
+	/// <summary>
+	/// Configured pocket capacity for the read-only player profile. The local UI harness mirrors DXRP's
+	/// default; the live build reads the authoritative game config and guards invalid non-positive values.
+	/// </summary>
+	public static int GetPocketSlotCount()
+	{
+#if LIFEPUNCH_LOCAL
+		return 6;
+#else
+		return System.Math.Max( 1, Config.Current.Game.MaxPocketItems );
+#endif
+	}
+
+	/// <summary>Whether the local viewer may request this online player's read-only pocket.</summary>
+	public static bool CanViewPocket( long steamId )
+	{
+#if LIFEPUNCH_LOCAL
+		return steamId != 0;
+#elif LIFEPUNCH_PACKAGE
+		return false;
+#else
+		if ( steamId == 0 || !RankSystem.HasLocalPermission( Dxura.RP.Shared.Permission.ViewPocket ) )
+		{
+			return false;
+		}
+
+		var target = GameUtils.GetPlayerById( steamId );
+		return target.IsValid() && RankSystem.CanLocalTarget( steamId );
+#endif
+	}
+
+	/// <summary>Start a correlated read through DXRP's existing pocket system.</summary>
+	public static void RequestPocket( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL && !LIFEPUNCH_PACKAGE
+		var system = PocketSystem.Instance;
+		if ( !system.IsValid() || !CanViewPocket( steamId ) )
+		{
+			return;
+		}
+
+		if ( Cooldown.Current.CheckAndStartCooldown( "pocket:view", Config.Current.Game.ActionCooldown ) )
+		{
+			Notify.Cooldown( "pocket:view" );
+			return;
+		}
+
+		var requestId = System.Guid.NewGuid();
+		system.BeginPocketViewClient( steamId, requestId );
+		system.RequestPocketContentsHost( steamId, requestId );
+#endif
+	}
+
+	public static IReadOnlyList<string> GetPocketItems( long steamId )
+	{
+#if LIFEPUNCH_LOCAL
+		return System.Array.Empty<string>();
+#elif LIFEPUNCH_PACKAGE
+		return System.Array.Empty<string>();
+#else
+		var system = PocketSystem.Instance;
+		return system.IsValid() && system.AdminViewPlayerId == steamId
+		       && !system.AdminViewIsLoading && !system.AdminViewIsUnavailable
+			? system.AdminViewItems
+			: System.Array.Empty<string>();
+#endif
+	}
+
+	public static bool PocketIsLoading( long steamId )
+	{
+#if LIFEPUNCH_LOCAL
+		return false;
+#elif LIFEPUNCH_PACKAGE
+		return false;
+#else
+		var system = PocketSystem.Instance;
+		return system.IsValid() && system.AdminViewPlayerId == steamId && system.AdminViewIsLoading;
+#endif
+	}
+
+	public static bool PocketIsUnavailable( long steamId )
+	{
+#if LIFEPUNCH_LOCAL
+		return false;
+#elif LIFEPUNCH_PACKAGE
+		return true;
+#else
+		var system = PocketSystem.Instance;
+		return !system.IsValid() || system.AdminViewPlayerId != steamId || system.AdminViewIsUnavailable;
+#endif
+	}
+
+	public static int PocketClientRevision
+	{
+#if LIFEPUNCH_LOCAL
+		get => 0;
+#elif LIFEPUNCH_PACKAGE
+		get => 0;
+#else
+		get => PocketSystem.Instance.IsValid() ? PocketSystem.Instance.AdminViewRevision : 0;
+#endif
+	}
+
+	public static long PocketAnsweredFor
+	{
+#if LIFEPUNCH_LOCAL
+		get => 0;
+#elif LIFEPUNCH_PACKAGE
+		get => 0;
+#else
+		get => PocketSystem.Instance.IsValid() ? PocketSystem.Instance.AdminViewPlayerId ?? 0 : 0;
+#endif
+	}
+
+	public static void ClearPocketView()
+	{
+#if !LIFEPUNCH_LOCAL && !LIFEPUNCH_PACKAGE
+		PocketSystem.Instance?.ClearPocketViewClient();
+#endif
+	}
+
+	// --- Durable account inventory (read-only, host/API-backed) -----------
+
+	private static readonly List<StaffInventoryItem> _inventoryItems = new();
+	private static System.Guid _inventoryRequestId;
+	private static long _inventorySubjectSteamId;
+	private static long _inventoryAnsweredFor;
+	private static StaffInventoryReadState _inventoryReadState;
+	private static string _inventoryReadMessage = string.Empty;
+
+	/// <summary>Bumped on every inventory transition so the open modal repaints when the host answers.</summary>
+	public static int InventoryClientRevision { get; private set; }
+
+	/// <summary>The subject attached to the most recent correlated host answer, or 0 while unanswered.</summary>
+	public static long InventoryAnsweredFor => _inventoryAnsweredFor;
+
+	/// <summary>Whether the local viewer may request this online player's durable account inventory.</summary>
+	public static bool CanViewInventory( long steamId )
+	{
+#if LIFEPUNCH_LOCAL
+		return steamId != 0;
+#else
+		if ( steamId == 0 || !RankSystem.HasLocalPermission( Dxura.RP.Shared.Permission.ViewInventory ) )
+		{
+			return false;
+		}
+
+		var target = GameUtils.GetPlayerById( steamId );
+		return target.IsValid() && !IsSyntheticPlayer( steamId ) && RankSystem.CanLocalTarget( steamId );
+#endif
+	}
+
+	/// <summary>Begin a correlated, read-only host request for the selected player's Portal inventory.</summary>
+	public static void RequestInventory( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		EnsureServerScope();
+#endif
+		if ( _inventorySubjectSteamId == steamId && _inventoryReadState == StaffInventoryReadState.Loading )
+		{
+			return;
+		}
+
+		ClearInventoryView();
+		_inventorySubjectSteamId = steamId;
+
+		if ( !CanViewInventory( steamId ) )
+		{
+			_inventoryReadState = StaffInventoryReadState.Unavailable;
+			_inventoryReadMessage = "Inventory unavailable: permission or targetability denied.";
+			InventoryClientRevision++;
+			return;
+		}
+
+		_inventoryRequestId = System.Guid.NewGuid();
+		_inventoryReadState = StaffInventoryReadState.Loading;
+		_inventoryReadMessage = "Loading the player's durable inventory through the server API...";
+		InventoryClientRevision++;
+
+#if LIFEPUNCH_LOCAL
+		_inventoryAnsweredFor = steamId;
+		_inventoryReadState = StaffInventoryReadState.CompletedEmpty;
+		_inventoryReadMessage = "No durable inventory items in the local editor preview.";
+		InventoryClientRevision++;
+#else
+		if ( StaffMenuBridgeService.Instance.IsValid() )
+		{
+			StaffMenuBridgeService.Instance.RequestInventoryHost( steamId, _inventoryRequestId );
+		}
+		else
+		{
+			_inventoryReadState = StaffInventoryReadState.Unavailable;
+			_inventoryReadMessage = "Inventory unavailable: the host bridge is not mounted.";
+			InventoryClientRevision++;
+		}
+#endif
+	}
+
+	public static IReadOnlyList<StaffInventoryItem> GetInventoryItems( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		EnsureServerScope();
+#endif
+		return _inventorySubjectSteamId == steamId && _inventoryReadState == StaffInventoryReadState.Populated
+			? _inventoryItems
+			: System.Array.Empty<StaffInventoryItem>();
+	}
+
+	public static StaffInventoryReadState GetInventoryState( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		EnsureServerScope();
+#endif
+		return _inventorySubjectSteamId == steamId ? _inventoryReadState : StaffInventoryReadState.Idle;
+	}
+
+	public static string GetInventoryMessage( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		EnsureServerScope();
+#endif
+		return _inventorySubjectSteamId == steamId ? _inventoryReadMessage : string.Empty;
+	}
+
+#if !LIFEPUNCH_LOCAL
+	/// <summary>Accept one caller-filtered host result only when it matches the active subject/request.</summary>
+	internal static void OnInventoryReceived(
+		System.Guid requestId,
+		long steamId,
+		string[] names,
+		int[] quantities,
+		string[] types,
+		string[] rarities,
+		bool succeeded,
+		string message )
+	{
+		EnsureServerScope();
+		if ( requestId == System.Guid.Empty || requestId != _inventoryRequestId || steamId != _inventorySubjectSteamId )
+		{
+			return;
+		}
+
+		_inventoryItems.Clear();
+		_inventoryAnsweredFor = steamId;
+		if ( !succeeded || !CanViewInventory( steamId ) )
+		{
+			_inventoryReadState = StaffInventoryReadState.Unavailable;
+			_inventoryReadMessage = string.IsNullOrWhiteSpace( message )
+				? "Inventory unavailable: the host could not confirm this read."
+				: message.Trim();
+			InventoryClientRevision++;
+			return;
+		}
+
+		names ??= System.Array.Empty<string>();
+		quantities ??= System.Array.Empty<int>();
+		types ??= System.Array.Empty<string>();
+		rarities ??= System.Array.Empty<string>();
+		var count = System.Math.Min( System.Math.Min( names.Length, quantities.Length ),
+			System.Math.Min( types.Length, rarities.Length ) );
+		for ( var i = 0; i < count; i++ )
+		{
+			var name = names[i]?.Trim() ?? string.Empty;
+			if ( name.Length == 0 || quantities[i] <= 0 )
+			{
+				continue;
+			}
+
+			_inventoryItems.Add( new StaffInventoryItem(
+				name,
+				string.IsNullOrWhiteSpace( types[i] ) ? "Item" : types[i].Trim(),
+				string.IsNullOrWhiteSpace( rarities[i] ) ? "Standard" : rarities[i].Trim(),
+				quantities[i] ) );
+		}
+
+		_inventoryReadState = _inventoryItems.Count == 0
+			? StaffInventoryReadState.CompletedEmpty
+			: StaffInventoryReadState.Populated;
+		_inventoryReadMessage = _inventoryItems.Count == 0
+			? "No durable inventory items are recorded for this player."
+			: string.Empty;
+		InventoryClientRevision++;
+	}
+#endif
+
+	public static void ClearInventoryView()
+	{
+		if ( _inventoryRequestId == System.Guid.Empty && _inventorySubjectSteamId == 0
+		     && _inventoryAnsweredFor == 0 && _inventoryItems.Count == 0
+		     && _inventoryReadState == StaffInventoryReadState.Idle && _inventoryReadMessage.Length == 0 )
+		{
+			return;
+		}
+
+		_inventoryRequestId = System.Guid.Empty;
+		_inventorySubjectSteamId = 0;
+		_inventoryAnsweredFor = 0;
+		_inventoryItems.Clear();
+		_inventoryReadState = StaffInventoryReadState.Idle;
+		_inventoryReadMessage = string.Empty;
+		InventoryClientRevision++;
 	}
 
 	/// <summary>
@@ -192,6 +579,11 @@ internal static class StaffMenuHost
 	/// <summary>Close and tear down the open menu, if any.</summary>
 	public static void RequestClose()
 	{
+		if ( MoneyGrantBlocksMenuClose )
+		{
+			return;
+		}
+
 		if ( _instance.IsValid() )
 		{
 			Close( _instance );
@@ -202,10 +594,8 @@ internal static class StaffMenuHost
 	}
 
 	/// <summary>
-	/// While the menu is open we release the local player's look controls so the cursor frees up and the
-	/// panel becomes clickable. DXRP's <c>Player.LockCamera</c> drives <c>Controller.UseLookControls</c>
-	/// each frame (see <c>Player.Camera.cs</c>) — the same hook the command wheel and camera zoom use, so
-	/// we reuse the engine mechanism rather than touching the cursor directly. No-op in the editor build.
+	/// Release look controls while the menu is open through <c>Player.LockCamera</c>,
+	/// which drives Controller.UseLookControls in Player.Camera.cs. No-op in the local fixture build.
 	/// </summary>
 	private static void SetCursorMode( bool menuOpen )
 	{
@@ -217,12 +607,74 @@ internal static class StaffMenuHost
 #endif
 	}
 
+	public static bool IsGuardedStatusToggle( string actionKey ) =>
+		actionKey is "freeze" or "god" or "cloak" or "incognito";
+
+	/// <summary>Whole-number form limits; native commands remain authoritative at execution.</summary>
+	public static bool TryGetNumberInputBounds( string actionKey, long targetSteamId, out uint minimum, out uint maximum )
+	{
+		minimum = 0;
+		maximum = 0;
+		if ( actionKey == "sethealth" )
+		{
+			minimum = 1;
+			maximum = 1_000_000; // Native SetHealthCommand.MaximumHealth.
+			return true;
+		}
+
+		if ( actionKey != "setarmor" ) return false;
+#if !LIFEPUNCH_LOCAL
+		var target = GameUtils.GetPlayerById( targetSteamId );
+		if ( !target.IsValid() || !target.ArmorComponent.IsValid() ) return false;
+		var limit = target.ArmorComponent.MaxArmor;
+		if ( !float.IsFinite( limit ) || limit < 0f ) return false;
+		maximum = (uint)System.Math.Floor( System.Math.Min( (double)limit, int.MaxValue ) );
+		return true;
+#else
+		return false;
+#endif
+	}
+
 	/// <summary>
-	/// True when a self-toggle action is ACTIVE on the local player right now. Read from live DXRP
-	/// state -- the networked status dictionary for god/cloak/incognito, the controller's noclip mode
-	/// for flight -- so a lit menu card and the HUD indicator can never disagree. A local click flag
-	/// would desync the moment anything else changed the state (death, respawn, another admin,
-	/// reconnect), which is exactly what this exists to avoid. Always false in the editor build.
+	/// Observed state used to describe a toggle's next operation. Match the source the native
+	/// command tests; null means unavailable, not OFF. X-ray is observable for the local player only.
+	/// </summary>
+	public static bool? GetCommandToggleState( string actionKey, long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var player = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == steamId );
+		if ( !player.IsValid() )
+		{
+			return null;
+		}
+
+		switch ( actionKey )
+		{
+			case "xray":
+				return player == Player.Local ? GetLocalXrayState() : null;
+			case "god":
+				return player.HasStatus( Constants.GodStatus );
+			case "cloak":
+				return player.HasStatus( "cloak" );
+			case "incognito":
+				return player.HasStatus( "incognito" );
+			case "freeze":
+				return player.HasStatus( Constants.FreezeStatus );
+			case "noclip":
+				if ( !player.Controller.IsValid() )
+				{
+					return null;
+				}
+				var noclip = player.Controller.Components.Get<MoveModeNoClip>();
+				return noclip.IsValid() ? noclip.IsNoclipping : null;
+		}
+#endif
+		return null;
+	}
+
+	/// <summary>
+	/// Read local toggle state from native health, status and movement components.
+	/// This reflects state changed through other command routes; the local fixture build returns false.
 	/// </summary>
 	public static bool IsSelfToggleOn( string actionKey )
 	{
@@ -230,6 +682,11 @@ internal static class StaffMenuHost
 		if ( !Player.Local.IsValid() )
 		{
 			return false;
+		}
+
+		if ( actionKey == "xray" )
+		{
+			return GetLocalXrayState() == true;
 		}
 
 		if ( actionKey == "noclip" )
@@ -265,7 +722,7 @@ internal static class StaffMenuHost
 	/// Health colour taken from DXRP's OWN HUD function -- <c>UiUtils.HealthColorHex</c>, the one
 	/// <c>PlayerInfo.razor</c> and <c>PartyMemberCard.razor</c> both call. Calling it rather than
 	/// copying its constants is what makes console/HUD drift impossible: if DXRP retunes the ramp,
-	/// this follows. Ramp of record: #f87171 at <=15%, #facc15 mid, #22c55e high, lerped.
+	/// this follows. Ramp of record: #f87171 at &lt;=15%, #facc15 mid, #22c55e high, lerped.
 	/// Empty string in the editor build, where the razor falls back to its own token.
 	/// </summary>
 	public static string HealthColorHex( int health, int maxHealth )
@@ -280,30 +737,138 @@ internal static class StaffMenuHost
 #endif
 	}
 
+
+	/// <summary>Selected player's native HUD health color, including the HUD's upward rounding.</summary>
+	public static string PlayerHealthColorHex( long steamId )
+	{
+#if !LIFEPUNCH_LOCAL
+		var player = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == steamId );
+		if ( player.IsValid() && player.HealthComponent.IsValid() )
+		{
+			return HealthColorHex( player.HealthComponent.Health.CeilToInt(), player.HealthComponent.MaxHealth.CeilToInt() );
+		}
+#endif
+		return "";
+	}
+
 	// --- Sanction history (real DXRP source, not a stub) ------------------
 	// Backed by PlayerSanctionHistorySystem, the same system DXRP's own
 	// UI/Menus/TabMenu/Sections/Components/PlayerSanctionHistory.razor consumes.
 
-	/// <summary>Bumped when a sanction request is issued, so BuildHash re-renders on arrival.</summary>
+	/// <summary>
+	/// Sanction request counter. Responses update <see cref="SanctionsClientRevision"/> separately.
+	/// Hash that revision and <see cref="SanctionsAnsweredFor"/> alongside this counter, following
+	/// DXRP PlayerSanctionHistory.razor, so arriving or mismatched responses repaint correctly.
+	/// </summary>
 	public static int SanctionsVersion { get; private set; }
 
-	public static bool CanViewSanctions() => CanView( "player.sanctions.view.other" );
+#if LIFEPUNCH_PACKAGE
+	private static readonly List<StaffSanction> _packageSanctions = new();
+	private static System.Guid _packageSanctionsRequestId;
+	private static long _packageSanctionsSubjectId;
+	private static long _packageSanctionsAnsweredFor;
+	private static SanctionsReadState _packageSanctionsState = SanctionsReadState.Unanswered;
+	private static int _packageSanctionsClientRevision;
+#endif
 
 	/// <summary>
-	/// Ask the host for a player's sanction history. Idempotent per player: the system already
-	/// tracks CurrentPlayerId, so re-requesting the same player is a no-op and this is safe to
-	/// call from a render path.
+	/// Client response revision, updated for loading, delivered answers and cleared results.
+	/// Returns zero when the backing system is absent.
 	/// </summary>
-	public static void RequestSanctions( long steamId )
+	public static int SanctionsClientRevision
 	{
-#if !LIFEPUNCH_LOCAL
-		if ( steamId == 0 || !CanViewSanctions() )
+#if LIFEPUNCH_PACKAGE
+		get => _packageSanctionsClientRevision;
+#elif !LIFEPUNCH_LOCAL
+		get => PlayerSanctionHistorySystem.Current?.ClientRevision ?? 0;
+#else
+		get => 0;
+#endif
+	}
+
+	/// <summary>
+	/// WHICH subject the system currently holds an answer for, or 0 for none. Hashed beside the
+	/// subject the panel is asking about, so that another player's response cannot satisfy this
+	/// one's wait -- the revision alone ticks for any subject.
+	/// </summary>
+	public static long SanctionsAnsweredFor
+	{
+#if LIFEPUNCH_PACKAGE
+		get => _packageSanctionsAnsweredFor;
+#elif !LIFEPUNCH_LOCAL
+		get => PlayerSanctionHistorySystem.Current?.CurrentPlayerId ?? 0;
+#else
+		get => 0;
+#endif
+	}
+
+	public static bool CanViewSanctions( long subjectSteamId )
+	{
+		if ( subjectSteamId == 0 )
+		{
+			return false;
+		}
+
+		return subjectSteamId == LocalSteamId
+			? CanView( "player.sanctions.view.self" ) || CanView( "player.sanctions.view.other" )
+			: CanView( "player.sanctions.view.other" );
+	}
+
+	/// <summary>
+	/// Ask the host for a player's sanction history. BeginLoadingClient stamps the shared subject
+	/// synchronously, so repeated render calls remain idempotent without a process-static request latch.
+	/// </summary>
+	public static void RequestSanctions( long steamId, bool forceRetry = false )
+	{
+#if LIFEPUNCH_PACKAGE
+		EnsureServerScope();
+		if ( steamId == 0 || !CanViewSanctions( steamId ) )
+		{
+			return;
+		}
+
+		if ( !forceRetry && _packageSanctionsSubjectId == steamId
+		     && _packageSanctionsState == SanctionsReadState.Loading )
+		{
+			return;
+		}
+
+		ClearPackageSanctionsView();
+		_packageSanctionsSubjectId = steamId;
+		_packageSanctionsRequestId = System.Guid.NewGuid();
+		_packageSanctionsState = SanctionsReadState.Loading;
+		_packageSanctionsClientRevision++;
+		SanctionsVersion++;
+		if ( StaffMenuBridgeService.Instance.IsValid() )
+		{
+			StaffMenuBridgeService.Instance.RequestSanctionsHost( steamId, _packageSanctionsRequestId );
+		}
+		else
+		{
+			_packageSanctionsState = SanctionsReadState.Unavailable;
+			_packageSanctionsClientRevision++;
+		}
+#elif !LIFEPUNCH_LOCAL
+		if ( steamId == 0 || !CanViewSanctions( steamId ) )
 		{
 			return;
 		}
 
 		var system = PlayerSanctionHistorySystem.Current;
-		if ( system is null || system.CurrentPlayerId == steamId )
+		if ( system is null )
+		{
+			return;
+		}
+
+		if ( forceRetry )
+		{
+			if ( system.CurrentPlayerId == steamId )
+			{
+				system.ClearVisibleSanctionsClient();
+			}
+		}
+
+		if ( system.CurrentPlayerId == steamId )
 		{
 			return;
 		}
@@ -317,7 +882,9 @@ internal static class StaffMenuHost
 
 	public static bool SanctionsLoading( long steamId )
 	{
-#if !LIFEPUNCH_LOCAL
+#if LIFEPUNCH_PACKAGE
+		return _packageSanctionsSubjectId == steamId && _packageSanctionsState == SanctionsReadState.Loading;
+#elif !LIFEPUNCH_LOCAL
 		var system = PlayerSanctionHistorySystem.Current;
 		return system is not null && system.IsLoading && system.CurrentPlayerId == steamId;
 #else
@@ -326,15 +893,80 @@ internal static class StaffMenuHost
 	}
 
 	/// <summary>
-	/// This player's sanctions, projected Dxura-free so the razor stays clean. Empty when the
-	/// caller lacks the portal permission or the system has not answered for this player yet --
-	/// the razor renders an explicit "no sanctions" row rather than a blank void.
+	/// Read outcome for this subject. Use this before interpreting an empty GetSanctions result;
+	/// an empty list alone does not establish a clean record.
+	/// </summary>
+	public static SanctionsReadState GetSanctionsState( long steamId )
+	{
+		if ( !CanViewSanctions( steamId ) )
+		{
+			return SanctionsReadState.PermissionDenied;
+		}
+
+#if LIFEPUNCH_PACKAGE
+		EnsureServerScope();
+		return _packageSanctionsSubjectId == steamId
+			? _packageSanctionsState
+			: SanctionsReadState.Unanswered;
+#elif !LIFEPUNCH_LOCAL
+		var system = PlayerSanctionHistorySystem.Current;
+		if ( system is null )
+		{
+			return SanctionsReadState.Unavailable;
+		}
+
+		if ( system.IsLoading && system.CurrentPlayerId == steamId )
+		{
+			return SanctionsReadState.Loading;
+		}
+
+		if ( system.CurrentPlayerId != steamId )
+		{
+			return SanctionsReadState.Unanswered;
+		}
+
+		if ( system.CurrentRequestRefused )
+		{
+			return SanctionsReadState.Refused;
+		}
+
+		if ( system.CurrentRequestFailed )
+		{
+			return SanctionsReadState.Failed;
+		}
+
+		// Limited viewers always receive a generic subset state. Do not disclose whether this
+		// particular subject actually has privileged rows by branching on a data-dependent bit.
+		if ( !CanView( "player.sanctions.view.notes" ) )
+		{
+			return SanctionsReadState.Filtered;
+		}
+
+		return system.VisibleSanctions.Count == 0
+			? SanctionsReadState.CompletedEmpty
+			: SanctionsReadState.Populated;
+#else
+		// The local fixture build has no sanctions source; return Unavailable, not CompletedEmpty.
+		return SanctionsReadState.Unavailable;
+#endif
+	}
+
+	/// <summary>
+	/// Sanctions projected without Dxura types. Use <see cref="GetSanctionsState"/> to distinguish
+	/// a completed empty result from unavailable, unauthorized or unanswered requests.
 	/// </summary>
 	public static IReadOnlyList<StaffSanction> GetSanctions( long steamId )
 	{
-#if !LIFEPUNCH_LOCAL
+#if LIFEPUNCH_PACKAGE
+		EnsureServerScope();
+		return CanViewSanctions( steamId ) && _packageSanctionsSubjectId == steamId
+		       && _packageSanctionsState is SanctionsReadState.Populated or SanctionsReadState.Filtered
+			? _packageSanctions
+			: System.Array.Empty<StaffSanction>();
+#elif !LIFEPUNCH_LOCAL
 		var system = PlayerSanctionHistorySystem.Current;
-		if ( system is null || !CanViewSanctions() || system.CurrentPlayerId != steamId )
+		if ( system is null || !CanViewSanctions( steamId ) || system.CurrentPlayerId != steamId
+		     || system.CurrentRequestFailed || system.CurrentRequestRefused )
 		{
 			return System.Array.Empty<StaffSanction>();
 		}
@@ -349,7 +981,11 @@ internal static class StaffMenuHost
 				entry.State.ToString() == "Active",
 				string.IsNullOrWhiteSpace( entry.Reason ) ? "No reason recorded" : entry.Reason,
 				entry.Duration is null ? "Permanent" : entry.Duration.Value.ToString(),
-				entry.Created.ToString( "yyyy-MM-dd HH:mm" ) ) );
+				entry.Created.ToString( "yyyy-MM-dd HH:mm" ),
+				entry.IsGlobal ? "Global" : "Server",
+				SplitPascalCase( entry.State.ToString() ),
+				FormatSanctionFlags( entry.Flags.ToString() ),
+				entry.Notes?.Trim() ?? "" ) );
 		}
 
 		return rows;
@@ -358,10 +994,96 @@ internal static class StaffMenuHost
 #endif
 	}
 
+#if LIFEPUNCH_PACKAGE
+	/// <summary>Accept one caller-filtered package bridge answer for the active subject only.</summary>
+	internal static void OnPackageSanctionsReceived(
+		System.Guid requestId,
+		long steamId,
+		int outcome,
+		string[] types,
+		bool[] active,
+		string[] reasons,
+		string[] durations,
+		string[] created,
+		string[] scopes,
+		string[] states,
+		string[] flags,
+		string[] notes )
+	{
+		EnsureServerScope();
+		if ( requestId == System.Guid.Empty || requestId != _packageSanctionsRequestId
+		     || steamId != _packageSanctionsSubjectId )
+		{
+			return;
+		}
+
+		_packageSanctions.Clear();
+		_packageSanctionsAnsweredFor = steamId;
+		var nextState = System.Enum.IsDefined( typeof( SanctionsReadState ), outcome )
+			? (SanctionsReadState)outcome
+			: SanctionsReadState.Unavailable;
+		if ( !CanViewSanctions( steamId ) )
+		{
+			nextState = SanctionsReadState.PermissionDenied;
+		}
+
+		types ??= System.Array.Empty<string>();
+		active ??= System.Array.Empty<bool>();
+		reasons ??= System.Array.Empty<string>();
+		durations ??= System.Array.Empty<string>();
+		created ??= System.Array.Empty<string>();
+		scopes ??= System.Array.Empty<string>();
+		states ??= System.Array.Empty<string>();
+		flags ??= System.Array.Empty<string>();
+		notes ??= System.Array.Empty<string>();
+		var count = new[]
+		{
+			types.Length, active.Length, reasons.Length, durations.Length, created.Length,
+			scopes.Length, states.Length, flags.Length, notes.Length
+		}.Min();
+
+		if ( nextState is SanctionsReadState.Populated or SanctionsReadState.Filtered )
+		{
+			for ( var i = 0; i < count; i++ )
+			{
+				var rawType = string.IsNullOrWhiteSpace( types[i] ) ? "Unknown" : types[i].Trim();
+				_packageSanctions.Add( new StaffSanction(
+					SplitPascalCase( rawType ),
+					rawType.ToLowerInvariant(),
+					active[i],
+					string.IsNullOrWhiteSpace( reasons[i] ) ? "No reason recorded" : reasons[i].Trim(),
+					string.IsNullOrWhiteSpace( durations[i] ) ? "Permanent" : durations[i].Trim(),
+					created[i]?.Trim() ?? string.Empty,
+					scopes[i]?.Trim() ?? string.Empty,
+					states[i]?.Trim() ?? string.Empty,
+					FormatSanctionFlags( flags[i] ),
+					notes[i]?.Trim() ?? string.Empty ) );
+			}
+
+			if ( nextState == SanctionsReadState.Populated && _packageSanctions.Count == 0 )
+			{
+				nextState = SanctionsReadState.CompletedEmpty;
+			}
+		}
+
+		_packageSanctionsState = nextState;
+		_packageSanctionsClientRevision++;
+	}
+
+	private static void ClearPackageSanctionsView()
+	{
+		_packageSanctionsRequestId = System.Guid.Empty;
+		_packageSanctionsSubjectId = 0;
+		_packageSanctionsAnsweredFor = 0;
+		_packageSanctionsState = SanctionsReadState.Unanswered;
+		_packageSanctions.Clear();
+		_packageSanctionsClientRevision++;
+	}
+#endif
+
 	/// <summary>
-	/// The player's job CATEGORY, resolved through DXRP's own taxonomy rather than a list we
-	/// invented: every job carries a GameModeJobGroupId, and the group's Name is the category the
-	/// tenant configured. Empty when the job or its group is not resolvable.
+	/// The tenant-configured job group name, resolved through GameModeJobGroupId.
+	/// Empty when the job or group cannot be resolved.
 	/// </summary>
 	public static string GetJobCategory( long steamId )
 	{
@@ -384,6 +1106,7 @@ internal static class StaffMenuHost
 	/// that grants them, so an operator can tell a staff member's own toggle from a player running
 	/// a command they should not have. Conditions (frozen/jailed/gagged) are done TO a player
 	/// rather than wielded by one, so they are never flagged illegitimate.
+	/// X-ray is included only for the local player; remote X-ray state is unavailable.
 	/// </summary>
 	public static IReadOnlyList<StaffStateFlag> GetStateFlags( long steamId )
 	{
@@ -412,7 +1135,14 @@ internal static class StaffMenuHost
 		var noclip = player.Controller.IsValid()
 			? player.Controller.Components.Get<MoveModeNoClip>()
 			: null;
-		Power( noclip.IsValid() && noclip.IsNoclipping, "Noclip", "ability.noclip" );
+		if ( noclip.IsValid() && noclip.IsNoclipping )
+		{
+			var allowed = Config.Current.Game.NoClip || RankSystem.HasPermission( steamId, "ability.noclip" );
+			flags.Add( new StaffStateFlag( "Noclip", !allowed ) );
+		}
+
+		// Native X-ray belongs to this client; never attach its state to a remote player.
+		Power( player == Player.Local && GetLocalXrayState() == true, "X-ray", "command.xray" );
 
 		// Status ids are DXRP's own constants (Constants.FreezeStatus / PrisonerStatus / GaggedStatus).
 		if ( player.HasStatus( Constants.FreezeStatus ) )
@@ -456,6 +1186,19 @@ internal static class StaffMenuHost
 		}
 
 		return builder.ToString();
+	}
+
+	/// <summary>Turn the permission-filtered sanction flag enum into portal-style display text.</summary>
+	private static string FormatSanctionFlags( string value )
+	{
+		if ( string.IsNullOrWhiteSpace( value ) || string.Equals( value, "None", System.StringComparison.OrdinalIgnoreCase ) )
+		{
+			return "None";
+		}
+
+		return string.Join( ", ", value.Split( ',' )
+			.Select( part => SplitPascalCase( part.Trim() ) )
+			.Where( part => !string.IsNullOrWhiteSpace( part ) ) );
 	}
 
 	private static StaffMenu? Mount()
@@ -549,6 +1292,29 @@ internal static class StaffMenuHost
 	static int PlayTimeMinutesFrom( Player player ) => (int)( player.PlayTime / 60f );
 #endif
 
+	/// <summary>
+	/// True when the live player is synthetic. Package builds fail closed on the engine's
+	/// <c>IsDebugPlayer</c> flag without reaching workbench-only registry types.
+	/// </summary>
+	public static bool IsSyntheticPlayer( long steamId )
+	{
+#if LIFEPUNCH_LOCAL
+		return false;
+#else
+		var player = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == steamId );
+		if ( !player.IsValid() )
+		{
+			return false;
+		}
+
+#if LIFEPUNCH_PACKAGE
+		return player.IsDebugPlayer;
+#else
+		return SyntheticActorRegistry.IsSynthetic( steamId, player.IsDebugPlayer );
+#endif
+#endif
+	}
+
 	/// <summary>The online players the menu can list, grouped by staff tier, targetability resolved.</summary>
 	public static IReadOnlyList<StaffMenuPlayer> OnlinePlayers()
 	{
@@ -592,21 +1358,22 @@ internal static class StaffMenuHost
 		var p = OnlinePlayers().FirstOrDefault( x => x.SteamId == steamId );
 		if ( p.SteamId == 0 )
 		{
-			return new StaffPlayerDetail( steamId, "", "—", "#ffffff", 0, "—", "#ffffff", 0, 0, 0, 0, 0, 0, 0, false );
+			return new StaffPlayerDetail( steamId, "", "—", "#ffffff", 0, 0, "—", "#ffffff", 0, 0, 0, 0, 0, 0, 0, 0, 0, false );
 		}
 
 		return new StaffPlayerDetail( p.SteamId, p.Name, p.Role, p.RankColorHex, p.PlayTimeMinutes,
-			"Citizen", "#5DA9E9", 1240, 540323, 100, 100, 25, 12, 4, true );
+			2, "Citizen", "#5DA9E9", 50, 1240, 540323, 100, 100, 25, 100, 12, 4, true );
 #else
 		var player = GameUtils.Players.FirstOrDefault( x => x.IsValid() && x.SteamId == steamId );
 		if ( !player.IsValid() )
 		{
-			return new StaffPlayerDetail( steamId, "", "—", "#ffffff", 0, "—", "#ffffff", 0, 0, 0, 0, 0, 0, 0, false );
+			return new StaffPlayerDetail( steamId, "", "—", "#ffffff", 0, 0, "—", "#ffffff", 0, 0, 0, 0, 0, 0, 0, 0, 0, false );
 		}
 
 		var health = player.HealthComponent.IsValid() ? (int)player.HealthComponent.Health : 0;
 		var maxHealth = player.HealthComponent.IsValid() ? (int)player.HealthComponent.MaxHealth : 0;
 		var armor = player.ArmorComponent.IsValid() ? (int)player.ArmorComponent.Armor : 0;
+		var maxArmor = player.ArmorComponent.IsValid() ? (int)player.ArmorComponent.MaxArmor : 0;
 
 		// JobDisplayName is CustomJob ?? Job.DisplayName(); guard the rare pre-init state where both are null.
 		var job = "—";
@@ -631,13 +1398,16 @@ internal static class StaffMenuHost
 			RealRole( player.SteamId ),
 			RankColorHex( player.SteamId ),
 			PlayTimeMinutesFrom( player ),
+			player.Level,
 			job,
 			jobColor,
-			(int)player.WalletBalance,
-			(int)player.BankBalance,
+			player.Job?.Salary ?? 0,
+			player.WalletBalance,
+			player.BankBalance,
 			health,
 			maxHealth,
 			armor,
+			maxArmor,
 			player.Kills,
 			player.Deaths,
 			true );
@@ -647,16 +1417,14 @@ internal static class StaffMenuHost
 	// --- Audit log (read-side, portal-mirrored) ---------------------------
 
 	/// <summary>
-	/// Permission Id that gates the in-menu Audit viewer. Hardcoded string (define-free editor build,
-	/// see TECH_DEBT STAFF-01). Must match the registered enum id
-	/// <c>Permission.ViewAudit</c> / <c>portal.audit.view</c> in
-	/// <c>game/Code/Api/Enums/Permission.cs</c>. The portal's recommended tiers (Mod: own-action
-	/// only → Super Admin / Community Manager: broad) are enforced server-side when the real read
-	/// API is wired (TECH_DEBT STAFF-07).
+	/// Audit-view permission ID, matching Permission.ViewAudit in game/Code/Api/Enums/Permission.cs.
+	/// A string keeps the local fixture build independent of the Dxura enum.
 	/// </summary>
 	public const string AuditPermissionId = "portal.audit.view";
 
-	/// <summary>True if the local viewer may open the Audit log. UX gating only; host re-checks the fetch.</summary>
+	/// <summary>
+	/// Whether the local viewer may open the Audit view. This is a UI permission check.
+	/// </summary>
 	public static bool CanViewAudit() => CanView( AuditPermissionId );
 
 	/// <summary>
@@ -666,7 +1434,7 @@ internal static class StaffMenuHost
 	/// </summary>
 	public static int AuditVersion
 	{
-#if LIFEPUNCH_LOCAL
+	#if LIFEPUNCH_LOCAL || LIFEPUNCH_PACKAGE
 		get => 0;
 #else
 		get => LocalAuditStore.Version;
@@ -689,9 +1457,23 @@ internal static class StaffMenuHost
 	};
 
 	/// <summary>
-	/// CSS tone suffix for an action pill. Pins match the live portal pixels Bloodwave
-	/// attached (ModifyBalance teal, WalletDeposit maroon, Chat purple). Everything else
-	/// is a stable hash into the same 12-tone set.
+	/// Locally emitted audit action names missing from the portal catalogue.
+	/// To update, inspect the first argument of every ServerApiClient.Audit call, including
+	/// conditional names, then subtract <see cref="PortalAuditActions"/>.
+	/// Portal names remain available even when this game build has no corresponding emitter.
+	/// </summary>
+	private static readonly string[] LocalAuditActions =
+	{
+		"ClearAllEntities", "ClearAllProps", "ClearEntities", "Fake Disconnect",
+		"LifePunchBtcPayout", "Lockpick", "PocketView", "SlotMachineCashOut", "SpawnItem",
+		"StaffAnnounce", "StaffRequestCreated", "StaffRequestUpdated", "StaffSpawnEntity",
+		"StaffSpawnMarket", "StaffTicketClaimed", "StaffTicketResolved", "Status", "TV",
+		"UseItem", "Vote", "VoteBet", "VoteDemote", "Wanted", "Warrant"
+	};
+
+	/// <summary>
+	/// Audit pill tones follow the portal palette: ModifyBalance teal, WalletDeposit maroon
+	/// and Chat purple. Other names use a stable hash into the same 12-tone set.
 	/// </summary>
 	private static readonly string[] AuditActionTones =
 	{
@@ -719,7 +1501,11 @@ internal static class StaffMenuHost
 			hash = unchecked( ch + ( hash << 5 ) - hash );
 		}
 
-		return AuditActionTones[System.Math.Abs( hash ) % AuditActionTones.Length];
+		// Mask, never Math.Abs: the hash above is unchecked, so int.MinValue is reachable and
+		// Math.Abs( int.MinValue ) throws OverflowException. This runs once per rendered row AND
+		// once per catalog pill, inside the render tree — a throw here takes the whole staff menu
+		// down, not just the Audit tab. Masking the sign bit is total and allocation-free.
+		return AuditActionTones[( hash & 0x7FFFFFFF ) % AuditActionTones.Length];
 	}
 
 	/// <summary>Portal-style player cell: SteamID64, or <c>system</c> when the actor is the server.</summary>
@@ -727,55 +1513,139 @@ internal static class StaffMenuHost
 		=> entry.PlayerSteamId == 0L ? "system" : entry.PlayerSteamId.ToString();
 
 	/// <summary>
-	/// Action names for the Audit Actions dropdown: portal catalog union live rows, sorted.
+	/// Cached newest-first feed shared by the grid, action catalogue and facet counts.
+	/// Sharing the snapshot avoids copying the locked ring for each consumer on a rebuild.
+	/// </summary>
+	private static IReadOnlyList<StaffAuditEntry> AuditSource()
+	{
+#if LIFEPUNCH_LOCAL
+		return AuditStub();
+#elif LIFEPUNCH_PACKAGE
+		return System.Array.Empty<StaffAuditEntry>();
+#else
+		return ReadLocalAuditEntries();
+#endif
+	}
+
+	/// <summary>
+	/// Action names for the Audit Actions dropdown: the portal catalog, union this build's own
+	/// emitters (<see cref="LocalAuditActions"/>), union whatever is actually in the feed, sorted.
+	/// The third term keeps a brand-new action name selectable the moment its first row lands.
 	/// </summary>
 	public static IReadOnlyList<string> AuditActionCatalog()
 	{
 		var set = new SortedSet<string>( PortalAuditActions, System.StringComparer.OrdinalIgnoreCase );
-#if LIFEPUNCH_LOCAL
-		foreach ( var row in AuditStub() )
+		foreach ( var name in LocalAuditActions )
+		{
+			set.Add( name );
+		}
+
+		foreach ( var row in AuditSource() )
 		{
 			if ( !string.IsNullOrWhiteSpace( row.Action ) )
 			{
 				set.Add( row.Action );
 			}
 		}
-#else
-		foreach ( var row in LocalAuditStore.SnapshotNewestFirst() )
-		{
-			if ( !string.IsNullOrWhiteSpace( row.Action ) )
-			{
-				set.Add( row.Action );
-			}
-		}
-#endif
+
 		return set.ToList();
 	}
 
 	/// <summary>
-	/// Audit entries for the viewer, newest first, pre-filtered like the live portal Audit page:
-	/// Player ID, Actions dropdown, Entity ID. <paramref name="playerId"/> matches SteamID64 or
-	/// actor name (<c>system</c> for server/automated entries). <paramref name="actions"/> is an
-	/// exact, case-insensitive action-name set when populated; null or empty means all actions.
-	///
-	/// Mirrors the portal's <c>GET /v1/audit/events</c> (pageIndex/pageSize, Bearer, tenant-scoped).
-	/// Editor build returns a representative stub set so the whole UX renders and filters live. The
-	/// workbench / non-local branch reads the host-side <c>LocalAuditStore</c> ring (fed at
-	/// <c>ServerApiClient.Audit</c>). Remote GET remains unbound (TECH_DEBT STAFF-07).
+	/// Row counts for each action under the other active filters.
+	/// Exclude the action filter itself so counts show what selecting each action would return.
+	/// </summary>
+	public static IReadOnlyDictionary<string, int> AuditActionCounts(
+		string playerId, string entityId,
+		AuditPlayerScope scope = AuditPlayerScope.Actor, int windowMinutes = 0 )
+	{
+		var counts = new Dictionary<string, int>( System.StringComparer.OrdinalIgnoreCase );
+		foreach ( var entry in FilterAudit( AuditSource(), playerId, entityId, false, null, scope, windowMinutes ) )
+		{
+			if ( string.IsNullOrWhiteSpace( entry.Action ) )
+			{
+				continue;
+			}
+
+			counts.TryGetValue( entry.Action, out var seen );
+			counts[entry.Action] = seen + 1;
+		}
+
+		return counts;
+	}
+
+	/// <summary>
+	/// Rows in the feed before ANY filter. Lets the empty state tell "nothing has happened yet" apart
+	/// from "your filters excluded everything", which are the same blank grid but opposite fixes.
+	/// </summary>
+	public static int AuditFeedTotal() => AuditSource().Count;
+
+	/// <summary>
+	/// Oldest stamped row still in the ring, or null when the feed is empty or carries no stamps.
+	/// The ring is bounded (<c>LocalAuditStore.Capacity</c>), so a time window wider than this is
+	/// answered only as far back as this row — the grid says so rather than implying full coverage.
+	/// </summary>
+	public static System.DateTimeOffset? AuditOldestUtc()
+	{
+		System.DateTimeOffset? oldest = null;
+		foreach ( var entry in AuditSource() )
+		{
+			if ( entry.WhenUtc == default )
+			{
+				continue;
+			}
+
+			if ( oldest is null || entry.WhenUtc < oldest.Value )
+			{
+				oldest = entry.WhenUtc;
+			}
+		}
+
+		return oldest;
+	}
+
+	/// <summary>
+	/// Whether this process can read LocalAuditStore. Its rows stay on the host;
+	/// StaffMenuBridgeService does not transport audit rows to remote clients.
+	/// </summary>
+	public static bool AuditFeedIsReadableHere
+	{
+#if LIFEPUNCH_LOCAL
+		get => true;
+#elif LIFEPUNCH_PACKAGE
+		get => false;
+#else
+		get => Networking.IsHost;
+#endif
+	}
+
+	/// <summary>Truthful reason an audit-backed surface is unavailable in this build or realm.</summary>
+	public static string AuditFeedUnavailableText
+	{
+#if LIFEPUNCH_PACKAGE
+		get => "The published DXRP parent exposes no in-game audit read feed, so this view cannot claim that no activity happened.";
+#else
+		get => "The audit ring lives on the host and does not cross the wire (STAFF-07) -- empty on a remote staff client, not a claim that nothing happened.";
+#endif
+	}
+
+	/// <summary>Relative "when" label for a raw stamp, in the same vocabulary the grid's When column uses.</summary>
+	public static string AuditWhenLabel( System.DateTimeOffset whenUtc ) => FormatAuditWhen( whenUtc );
+
+	/// <summary>
+	/// Newest-first local audit rows filtered by player, action and entity. Player matches
+	/// SteamID64 or actor name; populated action sets match exactly and case-insensitively.
+	/// The live branch reads LocalAuditStore, fed by ServerApiClient.Audit; no remote audit GET
+	/// is connected. The local fixture branch supplies sample rows for UI development.
 	/// </summary>
 	public static IReadOnlyList<StaffAuditEntry> GetAuditEntries(
 		string playerId, string entityId, bool matchDescription = false,
-		IReadOnlyCollection<string> actions = null )
-	{
-#if LIFEPUNCH_LOCAL
-		var source = AuditStub();
-#else
-		var source = ReadLocalAuditEntries();
-#endif
-		return FilterAudit( source, playerId, entityId, matchDescription, actions );
-	}
+		IReadOnlyCollection<string> actions = null,
+		AuditPlayerScope scope = AuditPlayerScope.Actor,
+		int windowMinutes = 0 )
+		=> FilterAudit( AuditSource(), playerId, entityId, matchDescription, actions, scope, windowMinutes );
 
-#if !LIFEPUNCH_LOCAL
+#if !LIFEPUNCH_LOCAL && !LIFEPUNCH_PACKAGE
 	private static IReadOnlyList<StaffAuditEntry> ReadLocalAuditEntries()
 	{
 		var rows = LocalAuditStore.SnapshotNewestFirst();
@@ -788,7 +1658,8 @@ internal static class StaffMenuHost
 				row.ActorName,
 				row.ActorSteamId,
 				InferAuditEntity( row.ActorSteamId ),
-				row.Description ) );
+				row.Description,
+				row.WhenUtc ) );
 		}
 
 		return mapped;
@@ -796,10 +1667,15 @@ internal static class StaffMenuHost
 
 	private static string InferAuditEntity( long actorSteamId )
 		=> actorSteamId == 0L ? "Server" : "Player";
+#endif
 
-	private static string FormatAuditWhen( DateTimeOffset whenUtc )
+	// Deliberately OUTSIDE the define: the editor stub now renders its When column through the SAME
+	// formatter as the live build, so the two cannot drift (the stub used to say "2m ago" where live
+	// says "2 minutes ago"). Fully qualified so it needs no import in either build.
+	private static string FormatAuditWhen( System.DateTimeOffset whenUtc )
 	{
-		var elapsed = DateTimeOffset.UtcNow - whenUtc;
+		if ( whenUtc == default ) return "unknown";
+		var elapsed = System.DateTimeOffset.UtcNow - whenUtc;
 		if ( elapsed.TotalSeconds < 60 ) return "just now";
 		var minutes = (int)elapsed.TotalMinutes;
 		if ( minutes < 60 ) return minutes <= 1 ? "1 minute ago" : $"{minutes} minutes ago";
@@ -808,14 +1684,15 @@ internal static class StaffMenuHost
 		if ( elapsed.TotalDays < 2 ) return "Yesterday";
 		return whenUtc.ToLocalTime().ToString( "yyyy-MM-dd HH:mm" );
 	}
-#endif
 
 	private static IReadOnlyList<StaffAuditEntry> FilterAudit(
 		IReadOnlyList<StaffAuditEntry> source,
 		string playerId,
 		string entityId,
 		bool matchDescription = false,
-		IReadOnlyCollection<string> actions = null )
+		IReadOnlyCollection<string> actions = null,
+		AuditPlayerScope scope = AuditPlayerScope.Actor,
+		int windowMinutes = 0 )
 	{
 		var player = playerId?.Trim() ?? "";
 		var entity = entityId?.Trim() ?? "";
@@ -832,22 +1709,38 @@ internal static class StaffMenuHost
 			}
 		}
 
+		// matchDescription is the profile card's older, narrower spelling of AuditPlayerScope.Both.
+		// Keep honouring it so that caller's results are byte-for-byte what they were, while the tab
+		// drives the explicit scope. Actor-only remains the default, i.e. the previous tab behaviour.
+		var matchActor = scope != AuditPlayerScope.Target;
+		var matchTarget = matchDescription || scope != AuditPlayerScope.Actor;
+
+		var cutoff = windowMinutes > 0
+			? System.DateTimeOffset.UtcNow.AddMinutes( -windowMinutes )
+			: (System.DateTimeOffset?)null;
+
 		return source.Where( e =>
 		{
 			if ( player.Length > 0 )
 			{
-				var actorHit = e.PlayerSteamId.ToString().Contains( player, System.StringComparison.OrdinalIgnoreCase )
-				               || e.Player.Contains( player, System.StringComparison.OrdinalIgnoreCase );
-				var descriptionHit = matchDescription
-				                     && e.Description.Contains( player, System.StringComparison.OrdinalIgnoreCase );
-				if ( !actorHit && !descriptionHit )
+				var actorHit = matchActor
+				               && ( e.PlayerSteamId.ToString().Contains( player, System.StringComparison.OrdinalIgnoreCase )
+				                    || e.Player.Contains( player, System.StringComparison.OrdinalIgnoreCase ) );
+				var targetHit = matchTarget
+				                && e.Description.Contains( player, System.StringComparison.OrdinalIgnoreCase );
+				if ( !actorHit && !targetHit )
 				{
 					return false;
 				}
 			}
 
+			// The Entity column is SYNTHESISED ("Server" / "Player"), so any identifier an operator
+			// would actually paste — a SteamID64, an item id, a door or waypoint name — exists only
+			// inside the description. Matching either is what lets the box do what its label promises;
+			// matching Entity alone made it a two-value toggle wearing an id field's placeholder.
 			if ( entity.Length > 0
-			     && !e.Entity.Contains( entity, System.StringComparison.OrdinalIgnoreCase ) )
+			     && !e.Entity.Contains( entity, System.StringComparison.OrdinalIgnoreCase )
+			     && !e.Description.Contains( entity, System.StringComparison.OrdinalIgnoreCase ) )
 			{
 				return false;
 			}
@@ -858,27 +1751,39 @@ internal static class StaffMenuHost
 				return false;
 			}
 
+			// A row with no stamp is never hidden by a window: we cannot prove it falls outside one.
+			if ( cutoff is not null && e.WhenUtc != default && e.WhenUtc < cutoff.Value )
+			{
+				return false;
+			}
+
 			return true;
 		} ).ToList();
 	}
 
 #if LIFEPUNCH_LOCAL
-	// Representative editor-only audit rows mirroring the live portal Audit page: real action types
-	// (Chat / ModifyBalance / DispatchAction / Update / GenerateToken) shown as coloured pills, the
-	// "system" actor (SteamId 0) for server/automated entries, and Server/Player entities. Lets the
-	// viewer, filters and empty-states all be designed without the live backend.
-	private static IReadOnlyList<StaffAuditEntry> AuditStub() => new List<StaffAuditEntry>
+	// Editor-only audit fixtures cover action types, system actors and Server/Player entities.
+	// Relative timestamps are recalculated per call and span every window preset and formatter branch.
+	private static IReadOnlyList<StaffAuditEntry> AuditStub()
 	{
-		new( "just now", "Chat", "system", 0L, "Server", "[System] #system.automessage.rulebreakers" ),
-		new( "just now", "ModifyBalance", "Regular Rick", 1L, "Player", "$6 for Salary" ),
-		new( "2m ago", "DispatchAction", "Mod Maddie", 6L, "ServerAction", "Kicked Suspicious Sammy — reason: RDM" ),
-		new( "14m ago", "DispatchAction", "Admin Andy", 3L, "ServerAction", "Banned Regular Rick — 3d, reason: cheating" ),
-		new( "38m ago", "Chat", "Suspicious Sammy", 2L, "Server", "/advert WTS printers cheap" ),
-		new( "1h ago", "Update", "Super Sam", 4L, "Player", "Changed Regular Rick rank → VIP" ),
-		new( "2h ago", "ModifyBalance", "Regular Rick", 1L, "Player", "$12 for Salary" ),
-		new( "3h ago", "GenerateToken", "Owner Olivia", 5L, "Server", "Generated server automation token" ),
-		new( "Yesterday", "Update", "Owner Olivia", 5L, "Server", "Pinned gamemode revision dxura.rp@latest" )
-	};
+		var now = System.DateTimeOffset.UtcNow;
+		return new List<StaffAuditEntry>
+		{
+			StubAuditRow( now.AddSeconds( -30 ), "Chat", "system", 0L, "Server", "[System] #system.automessage.rulebreakers" ),
+			StubAuditRow( now.AddSeconds( -45 ), "ModifyBalance", "Regular Rick", 1L, "Player", "$6 for Salary" ),
+			StubAuditRow( now.AddMinutes( -2 ), "DispatchAction", "Mod Maddie", 6L, "Player", "Kicked Suspicious Sammy — reason: RDM" ),
+			StubAuditRow( now.AddMinutes( -14 ), "DispatchAction", "Admin Andy", 3L, "Player", "Banned Regular Rick — 3d, reason: cheating" ),
+			StubAuditRow( now.AddMinutes( -38 ), "Chat", "Suspicious Sammy", 2L, "Server", "/advert WTS printers cheap" ),
+			StubAuditRow( now.AddHours( -1 ), "Update", "Super Sam", 4L, "Player", "Changed Regular Rick rank → VIP" ),
+			StubAuditRow( now.AddHours( -2 ), "ModifyBalance", "Regular Rick", 1L, "Player", "$12 for Salary" ),
+			StubAuditRow( now.AddHours( -3 ), "GenerateToken", "Owner Olivia", 5L, "Server", "Generated server automation token" ),
+			StubAuditRow( now.AddHours( -30 ), "Update", "Owner Olivia", 5L, "Server", "Pinned gamemode revision dxura.rp@latest" )
+		};
+	}
+
+	private static StaffAuditEntry StubAuditRow(
+		System.DateTimeOffset whenUtc, string action, string player, long steamId, string entity, string description )
+		=> new( FormatAuditWhen( whenUtc ), action, player, steamId, entity, description, whenUtc );
 #endif
 
 	// --- Waypoints (admin teleport bookmarks) -----------------------------
@@ -902,55 +1807,73 @@ internal static class StaffMenuHost
 	private const string WaypointCommandName = "waypoint";
 
 	/// <summary>
-	/// Bumped whenever the cached waypoint list changes, so the razor's <c>BuildHash</c> re-renders the
-	/// panel after a (editor) set/clear.
+	/// Waypoint cache revision used by Razor BuildHash.
 	/// </summary>
 	public static int WaypointVersion { get; private set; }
 
 #if LIFEPUNCH_LOCAL
 	// Editor build: a live in-memory list so set/clear visibly update the panel with no backend.
 	private static readonly List<string> _waypoints = new() { "bank", "nlr cave", "pd", "spawn" };
+	public static bool WaypointsReadIsUncertain => false;
 #else
-	// dxrp.net build: host-synced. The waypoint store is host/token-scoped (ServerApiClient needs the
-	// server authorization key), so the client can't read it directly — RefreshWaypoints asks the host
-	// (via the addon-owned StaffMenuBridgeService) to read its own per-server store and push the names back
-	// (OnWaypointsReceived). Self-contained in the addon: no DXRP core changes needed to drop it in.
+	// Waypoint reads go through StaffMenuBridgeService because the store uses the host
+	// server token. Responses update the client cache through OnWaypointsReceived.
 	private static readonly List<string> _waypoints = new();
+	public static bool WaypointsReadIsUncertain { get; private set; } = true;
+	private static System.Guid _waypointRequestId;
 #endif
 
 	/// <summary>Saved waypoint names (alphabetical). Editor: live stub; server: host-synced via RefreshWaypoints.</summary>
-	public static IReadOnlyList<string> GetWaypoints() => _waypoints;
+	public static IReadOnlyList<string> GetWaypoints()
+	{
+#if !LIFEPUNCH_LOCAL
+		EnsureServerScope();
+#endif
+		return _waypoints;
+	}
 
 	/// <summary>
-	/// Refresh the cached waypoint list. Editor build is already in-memory (no-op). Server build asks the
-	/// host to read its token-scoped store and push the real names back, so the panel shows each server's
-	/// own waypoints with zero per-server config (retires the STAFF-08 read limitation).
+	/// Request the host's token-scoped waypoint list. The local fixture build is already in memory.
 	/// </summary>
 	public static void RefreshWaypoints()
 	{
 #if !LIFEPUNCH_LOCAL
+		EnsureServerScope();
 		// Routes through the addon bridge (StaffMenuBridgeService), not DXRP core.
 		if ( StaffMenuBridgeService.Instance.IsValid() )
 		{
-			StaffMenuBridgeService.Instance.RequestWaypointsHost();
+			_waypointRequestId = System.Guid.NewGuid();
+			StaffMenuBridgeService.Instance.RequestWaypointsHost( _waypointRequestId );
 		}
 #endif
 	}
 
 #if !LIFEPUNCH_LOCAL
 	/// <summary>
-	/// Host→client callback (invoked by <see cref="StaffMenuBridgeService"/> filtered RPC):
-	/// replace the cached list with the server's real waypoint names and bump the version so the razor's
-	/// <c>BuildHash</c> re-renders.
+	/// Apply a correlated waypoint response and bump the cache revision for Razor.
 	/// </summary>
-	internal static void OnWaypointsReceived( string[] names )
+	internal static void OnWaypointsReceived( System.Guid requestId, string[] names, bool authoritative )
 	{
+		EnsureServerScope();
+		if ( requestId == System.Guid.Empty || requestId != _waypointRequestId )
+		{
+			return;
+		}
+
+		if ( !authoritative )
+		{
+			WaypointsReadIsUncertain = true;
+			WaypointVersion++;
+			return;
+		}
+
 		_waypoints.Clear();
 		if ( names != null )
 		{
 			_waypoints.AddRange( names );
 		}
 
+		WaypointsReadIsUncertain = false;
 		WaypointVersion++;
 	}
 
@@ -1014,10 +1937,9 @@ internal static class StaffMenuHost
 	}
 
 #if !LIFEPUNCH_LOCAL
-	// A player counts as "staff" (and gets their own rank-named group) only if their rank grants at
-	// least one action in our catalog. Everyone else collapses into the "Players" bucket — so donor
-	// ranks (VIP/EVIP) and members land under "Players", while Mod/Admin/Super Admin/Owner each group
-	// by their portal rank name. Reads host-synced rank dictionaries, so it resolves client-side.
+	// Group players as staff when they hold a permission used by a catalogue action.
+	// Other ranks, including donor ranks without staff permissions, remain under Players.
+	// Groups use the host-synced portal rank name.
 	private static bool IsStaff( long steamId )
 		=> StaffMenuActions.All.Any( action => RankSystem.HasPermission( steamId, action.PermissionId ) );
 
@@ -1029,10 +1951,8 @@ internal static class StaffMenuHost
 	}
 
 	/// <summary>
-	/// DXRP stores backend rank names with a leading colour/markup control character (e.g. the real
-	/// "Owner" arrives as a 6-char string). That junk breaks both clean display and our reference-tier
-	/// matching, so we strip control / format / private-use / surrogate code points and trim. Letters,
-	/// digits, spaces and ordinary punctuation are preserved, so "Super Admin" stays intact.
+	/// Remove control, format, private-use and surrogate characters from backend rank names,
+	/// then trim. Preserve ordinary letters, digits, spaces and punctuation for display and group matching.
 	/// </summary>
 	private static string SanitizeRankName( string raw )
 	{
@@ -1096,26 +2016,76 @@ internal static class StaffMenuHost
 
 	/// <summary>Bumped whenever cached settings change, so the razor's <c>BuildHash</c> re-renders.</summary>
 	public static int SettingsVersion { get; private set; }
+	public static bool WebsiteWriteIsPending { get; private set; }
+	public static bool WebsiteWriteSucceeded { get; private set; }
+	public static string WebsiteWriteMessage { get; private set; } = string.Empty;
+	public static int WebsiteWriteVersion { get; private set; }
 
 #if LIFEPUNCH_LOCAL
 	// Editor build: a live in-memory value so the input + click-to-copy work with no backend.
 	private static string _websiteUrl = "https://lifepunch.co";
+	public static bool WebsiteReadIsUncertain => false;
 #else
 	// dxrp.net build: host-synced from the token-scoped store via StaffMenuBridgeService (RefreshSettings).
 	private static string _websiteUrl = string.Empty;
+	public static bool WebsiteReadIsUncertain { get; private set; } = true;
+	private static System.Guid _settingsRequestId;
+	private static System.Guid _websiteWriteRequestId;
+	private static string _serverScopeKey = string.Empty;
 #endif
 
 	/// <summary>The owner-configured network website URL ("" when unset). Editor: stub; server: host-synced.</summary>
-	public static string WebsiteUrl => _websiteUrl;
+	public static string WebsiteUrl
+	{
+		get
+		{
+#if !LIFEPUNCH_LOCAL
+			EnsureServerScope();
+#endif
+			return _websiteUrl;
+		}
+	}
 
 	/// <summary>True when a website URL is configured — the network tag then becomes a click-to-copy link.</summary>
-	public static bool HasWebsite => !string.IsNullOrWhiteSpace( _websiteUrl );
+	public static bool HasWebsite => !string.IsNullOrWhiteSpace( WebsiteUrl );
+
+#if !LIFEPUNCH_LOCAL
+	private static void EnsureServerScope()
+	{
+		var sceneId = Game.ActiveScene?.Id ?? System.Guid.Empty;
+		var hostConnectionId = Connection.Host?.Id.ToString() ?? "none";
+		var scope = $"{sceneId:N}|{hostConnectionId}|{Networking.ServerName ?? string.Empty}";
+		if ( string.Equals( scope, _serverScopeKey, System.StringComparison.Ordinal ) )
+		{
+			return;
+		}
+
+		_serverScopeKey = scope;
+		_waypoints.Clear();
+		_websiteUrl = string.Empty;
+		_waypointRequestId = System.Guid.Empty;
+		_settingsRequestId = System.Guid.Empty;
+		_websiteWriteRequestId = System.Guid.Empty;
+		ClearInventoryView();
+#if LIFEPUNCH_PACKAGE
+		ClearPackageSanctionsView();
+#endif
+		WaypointsReadIsUncertain = true;
+		WebsiteReadIsUncertain = true;
+		WebsiteWriteIsPending = false;
+		WebsiteWriteSucceeded = false;
+		WebsiteWriteMessage = string.Empty;
+		WaypointVersion++;
+		SettingsVersion++;
+		WebsiteWriteVersion++;
+	}
+#endif
 
 	/// <summary>
 	/// Lowercase network slug shown in the header chip — derived from <see cref="WebsiteUrl"/>
 	/// (e.g. <c>https://dxrp.net/</c> → <c>dxrp</c>). Neutral <c>network</c> when unset.
 	/// </summary>
-	public static string NetworkIdentifier => DeriveNetworkIdentifier( _websiteUrl );
+	public static string NetworkIdentifier => DeriveNetworkIdentifier( WebsiteUrl );
 
 	static string DeriveNetworkIdentifier( string url )
 	{
@@ -1170,9 +2140,11 @@ internal static class StaffMenuHost
 	public static void RefreshSettings()
 	{
 #if !LIFEPUNCH_LOCAL
+		EnsureServerScope();
 		if ( StaffMenuBridgeService.Instance.IsValid() )
 		{
-			StaffMenuBridgeService.Instance.RequestSettingsHost();
+			_settingsRequestId = System.Guid.NewGuid();
+			StaffMenuBridgeService.Instance.RequestSettingsHost( _settingsRequestId );
 		}
 #endif
 	}
@@ -1182,13 +2154,104 @@ internal static class StaffMenuHost
 	{
 #if LIFEPUNCH_LOCAL
 		_websiteUrl = ( url ?? string.Empty ).Trim();
+		WebsiteWriteIsPending = false;
+		WebsiteWriteSucceeded = true;
+		WebsiteWriteMessage = "Applied to the local editor preview only.";
 		SettingsVersion++;
+		WebsiteWriteVersion++;
 		Log.Info( $"[lifepunchulx] (local stub) website set '{_websiteUrl}'" );
 #else
+		EnsureServerScope();
 		if ( StaffMenuBridgeService.Instance.IsValid() )
 		{
-			StaffMenuBridgeService.Instance.SetWebsiteHost( url ?? string.Empty );
+			_websiteWriteRequestId = System.Guid.NewGuid();
+			WebsiteWriteIsPending = true;
+			WebsiteWriteSucceeded = false;
+			WebsiteWriteMessage = "Saving through the server API...";
+			WebsiteWriteVersion++;
+			StaffMenuBridgeService.Instance.SetWebsiteHost( _websiteWriteRequestId, url ?? string.Empty );
 		}
+		else
+		{
+			WebsiteWriteIsPending = false;
+			WebsiteWriteSucceeded = false;
+			WebsiteWriteMessage = "Not saved: the host settings bridge is unavailable.";
+			WebsiteWriteVersion++;
+		}
+#endif
+	}
+
+	private static StaffMoneyGrantState _moneyGrantState;
+	private static TimeSince _moneyGrantPendingAge;
+	public static StaffMoneyGrantState MoneyGrantState
+	{
+		get
+		{
+			if ( _moneyGrantState == StaffMoneyGrantState.Pending && _moneyGrantPendingAge > 15f )
+			{
+				_moneyGrantState = StaffMoneyGrantState.Unknown;
+				MoneyGrantMessage = "Host confirmation is delayed. Do not retry; a late result will still reconcile here.";
+				MoneyGrantVersion++;
+			}
+
+			return _moneyGrantState;
+		}
+		private set
+		{
+			_moneyGrantState = value;
+			if ( value == StaffMoneyGrantState.Pending )
+			{
+				_moneyGrantPendingAge = 0;
+			}
+		}
+	}
+
+	/// <summary>
+	/// The panel owns the immutable subject/form snapshot for an in-flight money request. Keep it
+	/// mounted until the host returns a terminal result. An unknown outcome cannot be unlocked locally.
+	/// </summary>
+	public static bool MoneyGrantBlocksMenuClose =>
+		MoneyGrantState is StaffMoneyGrantState.Pending or StaffMoneyGrantState.Unknown;
+	public static string MoneyGrantMessage { get; private set; } = string.Empty;
+	public static int MoneyGrantVersion { get; private set; }
+	private static System.Guid _moneyGrantRequestId;
+
+	public static void ClearMoneyGrantResult()
+	{
+		if ( MoneyGrantState is StaffMoneyGrantState.Pending or StaffMoneyGrantState.Unknown )
+		{
+			return;
+		}
+
+		_moneyGrantRequestId = System.Guid.Empty;
+		MoneyGrantState = StaffMoneyGrantState.Idle;
+		MoneyGrantMessage = string.Empty;
+		MoneyGrantVersion++;
+	}
+
+	/// <summary>
+	/// Query the host's replay cache after a delayed result. This never re-executes a missing
+	/// request, so an uncertain prior grant cannot become a duplicate grant.
+	/// </summary>
+	public static void ReconcileMoneyGrant()
+	{
+		if ( MoneyGrantState != StaffMoneyGrantState.Unknown
+		     || _moneyGrantRequestId == System.Guid.Empty )
+		{
+			return;
+		}
+
+#if !LIFEPUNCH_LOCAL
+		if ( !StaffMenuBridgeService.Instance.IsValid() )
+		{
+			MoneyGrantMessage = "The host bridge is unavailable. The original request remains locked for safety.";
+			MoneyGrantVersion++;
+			return;
+		}
+
+		MoneyGrantMessage = "Checking the original host result…";
+		MoneyGrantVersion++;
+		StaffMenuBridgeService.Instance.QueryMoneyGrantResultHost( _moneyGrantRequestId );
 #endif
 	}
 
@@ -1197,10 +2260,72 @@ internal static class StaffMenuHost
 	/// Host→client callback (invoked by <see cref="StaffMenuBridgeService"/>): replace the
 	/// cached website with the server's stored value and bump the version so the razor re-renders.
 	/// </summary>
-	internal static void OnSettingsReceived( string website )
+	internal static void OnSettingsReceived( System.Guid requestId, string website, bool authoritative )
 	{
-		_websiteUrl = website ?? string.Empty;
+		EnsureServerScope();
+		if ( requestId == System.Guid.Empty )
+		{
+			if ( !authoritative )
+			{
+				return;
+			}
+
+			// A confirmed write supersedes every older read still in flight.
+			_settingsRequestId = System.Guid.NewGuid();
+		}
+		else if ( requestId != _settingsRequestId )
+		{
+			return;
+		}
+
+		if ( authoritative )
+		{
+			_websiteUrl = website ?? string.Empty;
+			WebsiteReadIsUncertain = false;
+		}
+		else
+		{
+			WebsiteReadIsUncertain = true;
+		}
+
 		SettingsVersion++;
+	}
+
+	internal static void OnWebsiteWriteResult( System.Guid requestId, bool succeeded, string message )
+	{
+		if ( requestId == System.Guid.Empty || requestId != _websiteWriteRequestId )
+		{
+			return;
+		}
+
+		WebsiteWriteIsPending = false;
+		WebsiteWriteSucceeded = succeeded;
+		WebsiteWriteMessage = message ?? string.Empty;
+		WebsiteWriteVersion++;
+	}
+
+	internal static void OnMoneyGrantResult( System.Guid requestId, bool succeeded, string message )
+	{
+		if ( requestId == System.Guid.Empty || requestId != _moneyGrantRequestId )
+		{
+			return;
+		}
+
+		MoneyGrantState = succeeded ? StaffMoneyGrantState.Succeeded : StaffMoneyGrantState.Rejected;
+		MoneyGrantMessage = message ?? string.Empty;
+		MoneyGrantVersion++;
+	}
+
+	internal static void OnMoneyGrantReconcileState( System.Guid requestId, bool inFlight, string message )
+	{
+		if ( requestId == System.Guid.Empty || requestId != _moneyGrantRequestId )
+		{
+			return;
+		}
+
+		MoneyGrantState = inFlight ? StaffMoneyGrantState.Pending : StaffMoneyGrantState.Unknown;
+		MoneyGrantMessage = message ?? string.Empty;
+		MoneyGrantVersion++;
 	}
 #endif
 
@@ -1235,13 +2360,46 @@ internal static class StaffMenuHost
 #endif
 	}
 
+	/// <summary>Read the native local command instance; null means this session has no supported reader.</summary>
+	private static bool? GetLocalXrayState()
+	{
+#if LIFEPUNCH_LOCAL
+		return null;
+#else
+		var chat = Chat.Current;
+		if ( !Player.Local.IsValid() || chat is null
+			|| !chat.TryGetCommand( "xray", out var command )
+			|| command is not Dxura.RP.Game.Commands.XrayCommand xray )
+		{
+			return null;
+		}
+
+		return xray.IsActive;
+#endif
+	}
+
+	/// <summary>Use the registered local command and the server's grants, never a rank-name threshold.</summary>
+	public static bool CanUseXray()
+	{
+#if LIFEPUNCH_LOCAL
+		return true;
+#else
+		var chat = Chat.Current;
+		var player = Player.Local;
+		return player.IsValid() && chat is not null && CanView( "command.xray" )
+			&& chat.TryGetCommand( "xray", out var command ) && command is not null
+			&& chat.CanAccessCommand( player, command );
+#endif
+	}
+
 	// --- Dispatch ----------------------------------------------------------
 
 	/// <summary>
 	/// Dispatch an action to DXRP's backend. AdminSystem RPC where one exists, else the registered
 	/// chat command. No-op-safe in the local build (logs instead).
 	/// </summary>
-	public static void Dispatch( StaffAction action, long targetSteamId, IReadOnlyDictionary<string, string> args )
+	public static void Dispatch( StaffAction action, long targetSteamId, IReadOnlyDictionary<string, string> args,
+		bool? expectedToggleState = null )
 	{
 #if LIFEPUNCH_LOCAL
 		var argText = string.Join( ", ", args.Select( kv => $"{kv.Key}={kv.Value}" ) );
@@ -1253,10 +2411,33 @@ internal static class StaffMenuHost
 				DispatchAdminRpc( action, targetSteamId, args );
 				break;
 			case StaffDispatchKind.ChatCommand:
+				if ( IsGuardedStatusToggle( action.Key ) )
+				{
+					if ( !expectedToggleState.HasValue || !StaffMenuBridgeService.Instance.IsValid() )
+					{
+						if ( Player.Local.IsValid() )
+							Player.Local.SendMessage( "Toggle unavailable: current state or host bridge is unavailable. No change was made." );
+						break;
+					}
+
+					StaffMenuBridgeService.Instance.SetStatusToggleHost( action.Key, targetSteamId,
+						expectedToggleState.Value, !expectedToggleState.Value );
+					break;
+				}
 				DispatchChatCommand( action, targetSteamId, args );
 				break;
 			case StaffDispatchKind.LocalToggle:
 				DispatchLocalToggle( action );
+				break;
+			case StaffDispatchKind.LocalCommand:
+				if ( action.Key == "xray" && action.DispatchTarget == "xray" && CanUseXray() )
+				{
+					// Consumed is not an enabled-state receipt; the native command owns state and feedback.
+					if ( !Chat.Current.TryExecuteLocalCommand( "/xray" ) )
+					{
+						Player.Local.SendMessage( "X-ray is unavailable in this session." );
+					}
+				}
 				break;
 			case StaffDispatchKind.GiveMoney:
 				DispatchGiveMoney( targetSteamId, args );
@@ -1276,9 +2457,11 @@ internal static class StaffMenuHost
 		switch ( action.DispatchTarget )
 		{
 			case "kick":
-				var reason = args.TryGetValue( "reason", out var supplied ) && !string.IsNullOrWhiteSpace( supplied )
-					? supplied
-					: "Kicked by staff";
+				if ( !args.TryGetValue( "reason", out var reason ) || string.IsNullOrWhiteSpace( reason ) )
+				{
+					return;
+				}
+
 				AdminSystem.Instance.KickPlayerHost( targetSteamId, reason );
 				break;
 			case "screenshot":
@@ -1297,6 +2480,11 @@ internal static class StaffMenuHost
 		switch ( action.DispatchTarget )
 		{
 			case "noclip":
+				if ( !Config.Current.Game.NoClip && !RankSystem.HasLocalPermission( Dxura.RP.Shared.Permission.Noclip ) )
+				{
+					return;
+				}
+
 				if ( !Player.Local.IsValid() || !Player.Local.Controller.IsValid() )
 				{
 					return;
@@ -1318,21 +2506,47 @@ internal static class StaffMenuHost
 	/// </summary>
 	private static void DispatchGiveMoney( long targetSteamId, IReadOnlyDictionary<string, string> args )
 	{
+		if ( MoneyGrantState is StaffMoneyGrantState.Pending or StaffMoneyGrantState.Succeeded or StaffMoneyGrantState.Unknown )
+		{
+			return;
+		}
+
 #if !LIFEPUNCH_LOCAL
 		args.TryGetValue( "amount", out var rawAmount );
 		args.TryGetValue( "reason", out var reason );
 		args.TryGetValue( "destination", out var destination );
 
-		if ( !uint.TryParse( rawAmount?.Trim(), out var amount ) || amount == 0 )
+		if ( !uint.TryParse( rawAmount?.Trim(), out var amount ) || amount == 0 || amount > int.MaxValue
+		     || destination is not ("cash" or "bank") || string.IsNullOrWhiteSpace( reason ) )
 		{
+			_moneyGrantRequestId = System.Guid.Empty;
+			MoneyGrantState = StaffMoneyGrantState.Rejected;
+			MoneyGrantMessage = "Grant rejected: check the amount, destination, and audit reason.";
+			MoneyGrantVersion++;
 			return;
 		}
 
 		if ( StaffMenuBridgeService.Instance.IsValid() )
 		{
+			_moneyGrantRequestId = System.Guid.NewGuid();
+			MoneyGrantState = StaffMoneyGrantState.Pending;
+			MoneyGrantMessage = "Awaiting host confirmation…";
+			MoneyGrantVersion++;
 			StaffMenuBridgeService.Instance.GiveMoneyHost(
-				targetSteamId, amount, destination == "bank", reason ?? "" );
+				_moneyGrantRequestId, targetSteamId, amount, destination == "bank", reason.Trim() );
 		}
+		else
+		{
+			_moneyGrantRequestId = System.Guid.Empty;
+			MoneyGrantState = StaffMoneyGrantState.Rejected;
+			MoneyGrantMessage = "Grant rejected: the host bridge is unavailable.";
+			MoneyGrantVersion++;
+		}
+#else
+		_moneyGrantRequestId = System.Guid.Empty;
+		MoneyGrantState = StaffMoneyGrantState.Rejected;
+		MoneyGrantMessage = "Preview only: no live host grant was sent.";
+		MoneyGrantVersion++;
 #endif
 	}
 

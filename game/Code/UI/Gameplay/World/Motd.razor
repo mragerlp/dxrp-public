@@ -9,7 +9,7 @@
 @code
 {
 	[Property]
-	private string Url => Config.Current.Game.MotdUrlOverride ?? $"{Constants.BaseWebsiteUrl}/embed/motd/{ServerApiLink.Current.ServerId}";
+	private string Url => Config.Current?.Game.MotdUrlOverride ?? $"{Constants.BaseWebsiteUrl}/embed/motd/{ServerApiLink.Current?.ServerId ?? Guid.Empty}";
 	
 	protected override void OnStart()
 	{

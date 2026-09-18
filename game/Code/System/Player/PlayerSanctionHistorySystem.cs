@@ -17,6 +17,9 @@ public sealed class PlayerSanctionHistorySystem : GameObjectSystem<PlayerSanctio
 	public long? CurrentPlayerId { get; private set; }
 	public Guid CurrentRequestId { get; private set; }
 	public bool IsLoading { get; private set; }
+	public bool CurrentRequestFailed { get; private set; }
+	public bool CurrentRequestRefused { get; private set; }
+	public bool CurrentResultMayBeFiltered { get; private set; }
 
 	public void InvalidateCachedSanctions( long playerId )
 	{
@@ -28,6 +31,9 @@ public sealed class PlayerSanctionHistorySystem : GameObjectSystem<PlayerSanctio
 		CurrentPlayerId = playerId;
 		CurrentRequestId = requestId;
 		IsLoading = true;
+		CurrentRequestFailed = false;
+		CurrentRequestRefused = false;
+		CurrentResultMayBeFiltered = false;
 		_visibleSanctions.Clear();
 		ClientRevision++;
 	}
@@ -42,6 +48,9 @@ public sealed class PlayerSanctionHistorySystem : GameObjectSystem<PlayerSanctio
 		CurrentPlayerId = null;
 		CurrentRequestId = Guid.Empty;
 		IsLoading = false;
+		CurrentRequestFailed = false;
+		CurrentRequestRefused = false;
+		CurrentResultMayBeFiltered = false;
 		_visibleSanctions.Clear();
 		ClientRevision++;
 	}
@@ -49,43 +58,60 @@ public sealed class PlayerSanctionHistorySystem : GameObjectSystem<PlayerSanctio
 	[Rpc.Host]
 	public async void RequestSanctionsHost( long playerId, Guid requestId )
 	{
-		var caller = GetValidCaller( playerId );
+		var callerConnection = Rpc.Caller;
+		if ( SyntheticActorRegistry.IsSynthetic( playerId ) )
+		{
+			SendSanctionsOutcome( callerConnection, playerId, requestId, refused: true, failed: false );
+			return;
+		}
+
+		var caller = GetValidCaller( callerConnection, playerId );
 		if ( caller == null || caller.Connection == null )
 		{
+			SendSanctionsOutcome( callerConnection, playerId, requestId, refused: true, failed: false );
 			return;
 		}
 
 		var sanctions = GetCachedSanctions( playerId );
 		if ( sanctions == null )
 		{
-			sanctions = [.. await ServerApiClient.GetPlayerSanctions( playerId )];
+			var fetched = await ServerApiClient.GetPlayerSanctions( playerId );
+			if ( fetched == null )
+			{
+				await GameTask.MainThread();
+				SendSanctionsOutcome( callerConnection, playerId, requestId, refused: false, failed: true );
+				return;
+			}
+
+			sanctions = [.. fetched];
 			_cachedSanctions[playerId] = new CachedSanctionsEntry( sanctions );
 		}
 
 		await GameTask.MainThread();
 
-		if ( !caller.IsValid() || caller.Connection == null )
+		if ( !caller.IsValid() || caller.Connection == null
+		     || !CanViewSanctions( caller.SteamId, playerId, RankSystem.HasPermission ) )
 		{
+			SendSanctionsOutcome( callerConnection, playerId, requestId, refused: true, failed: false );
 			return;
 		}
 
 		var visibleSanctions = BuildVisibleSanctions( caller.SteamId, sanctions );
+		var mayBeFiltered = visibleSanctions.Length < sanctions.Length;
 
 		using ( Rpc.FilterInclude( c => c.Id == caller.ConnectionId ) )
 		{
-			BroadcastVisibleSanctionsClient( playerId, requestId, visibleSanctions );
+			BroadcastVisibleSanctionsClient( playerId, requestId, visibleSanctions, mayBeFiltered );
 		}
 	}
 
 	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
-	private void BroadcastVisibleSanctionsClient( long playerId, Guid requestId, PlayerSanctionHistoryDto[] sanctions )
+	private void BroadcastVisibleSanctionsClient(
+		long playerId,
+		Guid requestId,
+		PlayerSanctionHistoryDto[] sanctions,
+		bool mayBeFiltered )
 	{
-		if ( !CanViewRequestedSanctions( playerId ) )
-		{
-			ClearVisibleSanctionsClient();
-			return;
-		}
-
 		if ( requestId != CurrentRequestId )
 		{
 			return;
@@ -93,8 +119,48 @@ public sealed class PlayerSanctionHistorySystem : GameObjectSystem<PlayerSanctio
 
 		CurrentPlayerId = playerId;
 		IsLoading = false;
+		CurrentRequestFailed = false;
+		CurrentRequestRefused = !CanViewRequestedSanctions( playerId );
+		CurrentResultMayBeFiltered = !CurrentRequestRefused && mayBeFiltered;
 		_visibleSanctions.Clear();
-		_visibleSanctions.AddRange( sanctions );
+		if ( !CurrentRequestRefused )
+		{
+			_visibleSanctions.AddRange( sanctions );
+		}
+		ClientRevision++;
+	}
+
+	private void SendSanctionsOutcome(
+		Connection caller,
+		long playerId,
+		Guid requestId,
+		bool refused,
+		bool failed )
+	{
+		using ( Rpc.FilterInclude( c => c.Id == caller.Id ) )
+		{
+			BroadcastSanctionsOutcomeClient( playerId, requestId, refused, failed );
+		}
+	}
+
+	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
+	private void BroadcastSanctionsOutcomeClient(
+		long playerId,
+		Guid requestId,
+		bool refused,
+		bool failed )
+	{
+		if ( requestId != CurrentRequestId )
+		{
+			return;
+		}
+
+		CurrentPlayerId = playerId;
+		IsLoading = false;
+		CurrentRequestRefused = refused;
+		CurrentRequestFailed = failed;
+		CurrentResultMayBeFiltered = false;
+		_visibleSanctions.Clear();
 		ClientRevision++;
 	}
 
@@ -140,14 +206,14 @@ public sealed class PlayerSanctionHistorySystem : GameObjectSystem<PlayerSanctio
 		return CanViewSanctions( Player.Local.SteamId, playerId, ( _, permission ) => RankSystem.HasLocalPermission( permission ) );
 	}
 
-	private static Player? GetValidCaller( long playerId )
+	private static Player? GetValidCaller( Connection callerConnection, long playerId )
 	{
-		if ( !CanViewSanctions( Rpc.Caller.SteamId, playerId, RankSystem.HasPermission ) )
+		if ( !CanViewSanctions( callerConnection.SteamId, playerId, RankSystem.HasPermission ) )
 		{
 			return null;
 		}
 
-		var caller = GameUtils.GetPlayerByConnectionId( Rpc.CallerId );
+		var caller = GameUtils.GetPlayerByConnectionId( callerConnection.Id );
 		return caller.IsValid() ? caller : null;
 	}
 

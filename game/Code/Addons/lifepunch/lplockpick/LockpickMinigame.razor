@@ -1,0 +1,482 @@
+@* ---------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - Copyright 2026 lifepunch.co. All rights reserved.
+   "Lockpick" (addon ident: lplockpick) is sole-owned by lifepunch.co.
+   Presence in this repository or on the DXRP portal grants no additional rights.
+   --------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.Lockpick
+@using System
+@using System.Collections.Generic
+@using System.Globalization
+@using Dxura.RP.Game.UI
+@using Sandbox
+@using Sandbox.Services
+@using Sandbox.UI
+@inherits PanelComponent
+@attribute [StyleSheet]
+
+<root class="lockpick-minigame" role="dialog" aria-label="@Language.GetPhrase( "lockpick.minigame.aria.dialog" )">
+	<section class="lockpick-shell">
+		<header class="lockpick-header">
+			<div class="title-stack">
+				<div class="eyebrow">@Language.GetPhrase( "lockpick.minigame.eyebrow" )</div>
+				<div class="title">@Language.GetPhrase( "lockpick.minigame.title" )</div>
+			</div>
+			<div class="progress-copy" aria-live="polite">@CaughtCountText()</div>
+		</header>
+
+		<div class="lock-body">
+			<div class="tumbler" role="group" aria-label="@PinTumblerLabel()">
+				<div class="pin-bank">
+					@for ( var index = 0; index < PinCount(); index++ )
+					{
+						var pinIndex = index;
+						<div class="@GetPinClass(pinIndex)"
+						     role="progressbar"
+						     aria-label="@GetPinAriaLabel(pinIndex)"
+						     aria-valuemin="0"
+						     aria-valuemax="100"
+						     aria-valuenow="@GetPinPercent(pinIndex)">
+							<div class="pin-number">@(pinIndex + 1)</div>
+							<div class="pin-channel" aria-hidden="true">
+								<div class="sweet-spot" style="@GetSweetSpotStyle(pinIndex)"></div>
+								<div class="pin-shaft" style="@GetPinStyle(pinIndex)">
+									<div class="pin-cap"></div>
+								</div>
+							</div>
+							<div class="pin-marker">@GetPinMarker(pinIndex)</div>
+							<div class="pin-state">@GetPinState(pinIndex)</div>
+						</div>
+					}
+				</div>
+			</div>
+
+			<aside class="tension-panel" aria-label="@Language.GetPhrase( "lockpick.minigame.aria.tension" )">
+				<div class="tension-label">@Language.GetPhrase( "lockpick.minigame.tension.label" )</div>
+				<div class="@GetWrenchClass()" aria-hidden="true">
+					<div class="wrench-head"></div>
+					<div class="wrench-shaft"></div>
+					<div class="wrench-grip"></div>
+				</div>
+				<div class="tension-state">@TensionText()</div>
+			</aside>
+		</div>
+
+		<div class="status-line" aria-live="polite">@_status</div>
+
+		<footer class="controls" aria-label="@Language.GetPhrase( "lockpick.minigame.aria.controls" )">
+			<div class="control-row">
+				<InputHint Action="reload" class="small" Size="@InputGlyphSize.Small" Animate="@false" />
+				<span>@Language.GetPhrase( "lockpick.minigame.control.select" )</span>
+			</div>
+			<div class="control-row">
+				<InputHint Action="attack1" class="small" Size="@InputGlyphSize.Small" Animate="@false" />
+				<span>@Language.GetPhrase( "lockpick.minigame.control.lift" )</span>
+			</div>
+			<div class="control-row">
+				<InputHint Action="attack2" class="small" Size="@InputGlyphSize.Small" Animate="@false" />
+				<span>@Language.GetPhrase( "lockpick.minigame.control.tension" )</span>
+			</div>
+			<div class="control-row escape-row">
+				<span class="escape-key">@Language.GetPhrase( "lockpick.minigame.control.escape_key" )</span>
+				<span>@Language.GetPhrase( "lockpick.minigame.control.close" )</span>
+			</div>
+		</footer>
+	</section>
+</root>
+
+@code
+{
+	private const float PinLiftSpeed = 0.72f;
+	private const float FallFlushQuanta = 8f;
+
+	private LockpickMinigameEquipment? _equipment;
+	private LockpickMinigameRules? _rules;
+	private float _sweetSpotWidth;
+	private float _pinFallSpeed;
+	private int _selectedPin;
+	private int _loosePin = -1;
+	private bool _inputArmed;
+	private bool _tensionHeld;
+	private bool _resolved;
+	private bool _preparedForClose;
+	private readonly List<int> _transcript = new();
+	private float _liftAccumulator;
+	private float _fallAccumulator;
+	private string _status = Language.GetPhrase( "lockpick.minigame.status.release_to_begin" );
+
+	public void Bind(
+		LockpickMinigameEquipment equipment,
+		int seed,
+		int pinCount,
+		float sweetSpotWidth,
+		float pinFallSpeed )
+	{
+		_equipment = equipment;
+		_rules = new LockpickMinigameRules( pinCount, seed );
+		_sweetSpotWidth = sweetSpotWidth;
+		_pinFallSpeed = pinFallSpeed;
+		_selectedPin = 0;
+		_loosePin = -1;
+		_inputArmed = false;
+		_tensionHeld = false;
+		_resolved = false;
+		_preparedForClose = false;
+		_transcript.Clear();
+		_liftAccumulator = 0f;
+		_fallAccumulator = 0f;
+		_status = Language.GetPhrase( "lockpick.minigame.status.release_to_begin" );
+		StateHasChanged();
+	}
+
+	public void PrepareForClose()
+	{
+		_preparedForClose = true;
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( _resolved )
+		{
+			return;
+		}
+
+		if ( !_equipment.IsValid() )
+		{
+			_resolved = true;
+			LockpickMinigameUiHost.CloseOrphan( this );
+			return;
+		}
+
+		if ( _rules is null )
+		{
+			return;
+		}
+
+		if ( !_inputArmed )
+		{
+			if ( Input.Down( "attack1" ) )
+			{
+				return;
+			}
+
+			_inputArmed = true;
+			_status = Language.GetPhrase( "lockpick.minigame.status.ready" );
+			return;
+		}
+
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			ResolveAndClose( false );
+			return;
+		}
+
+		if ( Input.Pressed( "reload" ) )
+		{
+			SelectNextUncaughtPin();
+			_status = string.Format( Language.GetPhrase( "lockpick.minigame.status.pin_selected" ), _selectedPin + 1 );
+		}
+
+		_tensionHeld = Input.Down( "attack2" );
+		var deltaSeconds = Math.Min( Time.Delta, 0.05f );
+
+		if ( !_tensionHeld && AnyFallablePin() )
+		{
+			_fallAccumulator += deltaSeconds * _pinFallSpeed;
+		}
+
+		if ( _tensionHeld || _fallAccumulator >= FallFlushQuanta * LockpickTranscript.Quantum )
+		{
+			FlushFallOps();
+		}
+
+		if ( !Input.Down( "attack1" ) )
+		{
+			return;
+		}
+
+		_liftAccumulator += PinLiftSpeed * deltaSeconds;
+		var liftQuanta = (int)(_liftAccumulator / LockpickTranscript.Quantum);
+		if ( liftQuanta < 1 )
+		{
+			return;
+		}
+
+		liftQuanta = Math.Min( liftQuanta, LockpickTranscript.MaxLiftQuanta );
+		_liftAccumulator -= liftQuanta * LockpickTranscript.Quantum;
+
+		// Falls precede the lift they interleave with, preserving the old
+		// UpdateTension-then-LiftPin per-frame order where it matters.
+		FlushFallOps();
+
+		if ( !RecordOp( LockpickTranscript.Pack(
+			     _tensionHeld ? LockpickTranscript.KindLiftTensioned : LockpickTranscript.KindLiftFree,
+			     _selectedPin,
+			     liftQuanta ) ) )
+		{
+			return;
+		}
+
+		var result = _rules.LiftPin(
+			_selectedPin,
+			liftQuanta * LockpickTranscript.Quantum,
+			_tensionHeld,
+			_sweetSpotWidth );
+		ApplyPinResult( result );
+	}
+
+	protected override void OnDisabled()
+	{
+		if ( !_preparedForClose && !_resolved && _equipment.IsValid() )
+		{
+			_preparedForClose = true;
+			_resolved = true;
+			_equipment.CancelFromPanel();
+		}
+	}
+
+	protected override int BuildHash()
+	{
+		return HashCode.Combine(
+			HashCode.Combine( _rules?.Revision ?? 0, _selectedPin, _loosePin, _inputArmed ),
+			HashCode.Combine( _tensionHeld, _resolved, _status ) );
+	}
+
+	private void ApplyPinResult( LockpickPinResult result )
+	{
+		switch ( result )
+		{
+			case LockpickPinResult.NoTension:
+				_status = Language.GetPhrase( "lockpick.minigame.status.no_tension" );
+				break;
+			case LockpickPinResult.Loose:
+				_loosePin = _selectedPin;
+				_status = string.Format( Language.GetPhrase( "lockpick.minigame.status.loose" ), _selectedPin + 1 );
+				break;
+			case LockpickPinResult.Binding:
+				_loosePin = -1;
+				_status = string.Format( Language.GetPhrase( "lockpick.minigame.status.binding" ), _selectedPin + 1 );
+				break;
+			case LockpickPinResult.MissedBinding:
+				_status = Language.GetPhrase( "lockpick.minigame.status.missed_binding" );
+				break;
+			case LockpickPinResult.Caught:
+				_status = string.Format( Language.GetPhrase( "lockpick.minigame.status.caught" ), _selectedPin + 1 );
+				SelectNextUncaughtPin();
+				break;
+			case LockpickPinResult.Complete:
+				_status = string.Format( Language.GetPhrase( "lockpick.minigame.status.complete" ), _rules.PinCount );
+				ResolveAndClose( true );
+				break;
+		}
+	}
+
+	private void SelectNextUncaughtPin()
+	{
+		if ( _rules is null || _rules.IsComplete )
+		{
+			return;
+		}
+
+		for ( var offset = 1; offset <= _rules.PinCount; offset++ )
+		{
+			var candidate = (_selectedPin + offset) % _rules.PinCount;
+			if ( !_rules.IsCaught( candidate ) )
+			{
+				_selectedPin = candidate;
+				return;
+			}
+		}
+	}
+
+	private bool AnyFallablePin()
+	{
+		if ( _rules is null )
+		{
+			return false;
+		}
+
+		for ( var index = 0; index < _rules.PinCount; index++ )
+		{
+			if ( !_rules.IsCaught( index ) && _rules.GetPinHeight( index ) > 0f )
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+
+	private void FlushFallOps()
+	{
+		if ( _rules is null )
+		{
+			return;
+		}
+
+		var fallQuanta = (int)(_fallAccumulator / LockpickTranscript.Quantum);
+		if ( fallQuanta < 1 )
+		{
+			return;
+		}
+
+		fallQuanta = Math.Min( fallQuanta, LockpickTranscript.MaxFallQuanta );
+		_fallAccumulator -= fallQuanta * LockpickTranscript.Quantum;
+
+		if ( RecordOp( LockpickTranscript.Pack( LockpickTranscript.KindFall, 0, fallQuanta ) ) )
+		{
+			_rules.ApplyFall( fallQuanta * LockpickTranscript.Quantum );
+		}
+	}
+
+	private bool RecordOp( int packedOp )
+	{
+		if ( _transcript.Count >= LockpickTranscript.MaxOps )
+		{
+			// Transcript full: the attempt can no longer be proven. Cancel
+			// cleanly rather than fail the eventual completion silently.
+			// (No new player-facing string: reuses the normal cancel path.)
+			ResolveAndClose( false );
+			return false;
+		}
+
+		_transcript.Add( packedOp );
+		return true;
+	}
+
+	private void ResolveAndClose( bool success )
+	{
+		if ( _resolved )
+		{
+			return;
+		}
+
+		_resolved = true;
+		if ( !_equipment.IsValid() )
+		{
+			LockpickMinigameUiHost.CloseOrphan( this );
+			return;
+		}
+
+		if ( success )
+		{
+			_equipment.CompleteFromPanel( _transcript.ToArray() );
+		}
+		else
+		{
+			_equipment.CancelFromPanel();
+		}
+	}
+
+	private int PinCount()
+	{
+		return _rules?.PinCount ?? 0;
+	}
+
+	private string CaughtCountText()
+	{
+		return string.Format(
+			Language.GetPhrase( "lockpick.minigame.progress" ),
+			_rules?.CaughtCount ?? 0,
+			_rules?.PinCount ?? 5 );
+	}
+
+	private string PinTumblerLabel()
+	{
+		return _rules is null
+			? Language.GetPhrase( "lockpick.minigame.aria.tumbler_empty" )
+			: string.Format( Language.GetPhrase( "lockpick.minigame.aria.tumbler" ), _rules.PinCount );
+	}
+
+	private string TensionText()
+	{
+		return Language.GetPhrase( _tensionHeld
+			? "lockpick.minigame.tension.held"
+			: "lockpick.minigame.tension.released" );
+	}
+
+	private string GetWrenchClass()
+	{
+		return _tensionHeld ? "tension-wrench is-held" : "tension-wrench";
+	}
+
+	private string GetPinClass( int pinIndex )
+	{
+		var classes = "pin-column";
+		if ( _rules?.IsCaught( pinIndex ) == true )
+		{
+			classes += " is-caught";
+		}
+		else if ( pinIndex == _loosePin )
+		{
+			classes += " is-loose";
+		}
+
+		if ( pinIndex == _selectedPin )
+		{
+			classes += " is-selected";
+		}
+
+		return classes;
+	}
+
+	private string GetPinMarker( int pinIndex )
+	{
+		if ( _rules?.IsCaught( pinIndex ) == true )
+		{
+			return Language.GetPhrase( "lockpick.minigame.pin.marker.check" );
+		}
+
+		return pinIndex == _selectedPin ? ">" : "";
+	}
+
+	private string GetPinState( int pinIndex )
+	{
+		if ( _rules?.IsCaught( pinIndex ) == true )
+		{
+			return Language.GetPhrase( "lockpick.minigame.pin.state.set" );
+		}
+
+		if ( pinIndex == _loosePin )
+		{
+			return Language.GetPhrase( "lockpick.minigame.pin.state.loose" );
+		}
+
+		return Language.GetPhrase( pinIndex == _selectedPin
+			? "lockpick.minigame.pin.state.selected"
+			: "lockpick.minigame.pin.state.ready" );
+	}
+
+	private int GetPinPercent( int pinIndex )
+	{
+		return (int)Math.Round( (_rules?.GetPinHeight( pinIndex ) ?? 0f) * 100f );
+	}
+
+	private string GetPinAriaLabel( int pinIndex )
+	{
+		return string.Format(
+			Language.GetPhrase( "lockpick.minigame.aria.pin" ),
+			pinIndex + 1,
+			GetPinState( pinIndex ),
+			GetPinPercent( pinIndex ) );
+	}
+
+	private string GetPinStyle( int pinIndex )
+	{
+		var bottom = (_rules?.GetPinHeight( pinIndex ) ?? 0f) * 72f;
+		return $"bottom: {bottom.ToString( "0.##", CultureInfo.InvariantCulture )}%;";
+	}
+
+	private string GetSweetSpotStyle( int pinIndex )
+	{
+		if ( _rules is null )
+		{
+			return "";
+		}
+
+		var start = _rules.GetSweetSpotStart( pinIndex, _sweetSpotWidth ) * 72f;
+		var height = (_rules.GetSweetSpotEnd( pinIndex, _sweetSpotWidth ) -
+		              _rules.GetSweetSpotStart( pinIndex, _sweetSpotWidth )) * 72f;
+		return $"bottom: {start.ToString( "0.##", CultureInfo.InvariantCulture )}%; height: {height.ToString( "0.##", CultureInfo.InvariantCulture )}%;";
+	}
+}

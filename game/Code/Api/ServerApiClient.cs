@@ -42,13 +42,11 @@ public static partial class ServerApiClient
 			return false;
 		}
 
-		ApiClientBase.FireAndForget( async () =>
+		return ApiClientBase.FireAndForget( async () =>
 			{
 				var headers = GetAuthHeaders();
 				await apiAction( headers );
 			},
 			errorMessage );
-
-		return true;
 	}
 }

@@ -260,19 +260,22 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 	public long? AdminViewPlayerId { get; private set; }
 	public Guid AdminViewRequestId { get; private set; }
 	public bool AdminViewIsLoading { get; private set; }
+	public bool AdminViewIsUnavailable { get; private set; }
 
 	public void BeginPocketViewClient( long playerId, Guid requestId )
 	{
 		AdminViewPlayerId = playerId;
 		AdminViewRequestId = requestId;
 		AdminViewIsLoading = true;
+		AdminViewIsUnavailable = false;
 		_adminViewItems.Clear();
 		AdminViewRevision++;
 	}
 
 	public void ClearPocketViewClient()
 	{
-		if ( AdminViewPlayerId == null && AdminViewRequestId == Guid.Empty && !AdminViewIsLoading && _adminViewItems.Count == 0 )
+		if ( AdminViewPlayerId == null && AdminViewRequestId == Guid.Empty && !AdminViewIsLoading
+		     && !AdminViewIsUnavailable && _adminViewItems.Count == 0 )
 		{
 			return;
 		}
@@ -280,6 +283,7 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 		AdminViewPlayerId = null;
 		AdminViewRequestId = Guid.Empty;
 		AdminViewIsLoading = false;
+		AdminViewIsUnavailable = false;
 		_adminViewItems.Clear();
 		AdminViewRevision++;
 	}
@@ -311,20 +315,35 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 	[Rpc.Host]
 	public void RequestPocketContentsHost( long playerId, Guid requestId )
 	{
-		if ( !RankSystem.HasPermission( Rpc.Caller.SteamId, Permission.ViewPocket ) )
+		var requestCaller = Rpc.Caller;
+		if ( requestId == Guid.Empty )
 		{
+			return;
+		}
+
+		if ( !RankSystem.HasPermission( requestCaller.SteamId, Permission.ViewPocket ) )
+		{
+			RejectPocketView( requestCaller, playerId, requestId );
 			return;
 		}
 
 		var caller = GameUtils.GetPlayerByConnectionId( Rpc.CallerId );
 		if ( !caller.IsValid() || caller.Connection == null )
 		{
+			RejectPocketView( requestCaller, playerId, requestId );
 			return;
 		}
 
 		var target = GameUtils.GetPlayerById( playerId );
 		if ( !target.IsValid() )
 		{
+			RejectPocketView( requestCaller, playerId, requestId );
+			return;
+		}
+
+		if ( !RankSystem.CanTarget( caller.SteamId, target.SteamId ) )
+		{
+			RejectPocketView( requestCaller, playerId, requestId );
 			return;
 		}
 
@@ -334,28 +353,54 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 			$"{caller.SteamName} ({caller.SteamId}) viewed the pocket of {target.SteamName} ({playerId}) ({items.Length} items)",
 			caller.SteamId );
 
-		using ( Rpc.FilterInclude( c => c.Id == caller.ConnectionId ) )
+		using ( Rpc.FilterInclude( c => c.Id == requestCaller.Id ) )
 		{
 			BroadcastPocketContentsClient( playerId, requestId, items );
 		}
 	}
 
-	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
-	private void BroadcastPocketContentsClient( long playerId, Guid requestId, string[] items )
+	private void RejectPocketView( Connection caller, long playerId, Guid requestId )
 	{
-		if ( !RankSystem.HasLocalPermission( Permission.ViewPocket ) )
+		using ( Rpc.FilterInclude( c => c.Id == caller.Id ) )
 		{
-			ClearPocketViewClient();
+			BroadcastPocketOutcomeClient( playerId, requestId, false );
+		}
+	}
+
+	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
+	private void BroadcastPocketOutcomeClient( long playerId, Guid requestId, bool available )
+	{
+		if ( requestId != AdminViewRequestId || AdminViewPlayerId != playerId )
+		{
 			return;
 		}
 
-		if ( requestId != AdminViewRequestId )
+		AdminViewIsLoading = false;
+		AdminViewIsUnavailable = !available;
+		_adminViewItems.Clear();
+		AdminViewRevision++;
+	}
+
+	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
+	private void BroadcastPocketContentsClient( long playerId, Guid requestId, string[] items )
+	{
+		if ( requestId != AdminViewRequestId || AdminViewPlayerId != playerId )
 		{
+			return;
+		}
+
+		if ( !RankSystem.HasLocalPermission( Permission.ViewPocket ) || !RankSystem.CanLocalTarget( playerId ) )
+		{
+			AdminViewIsLoading = false;
+			AdminViewIsUnavailable = true;
+			_adminViewItems.Clear();
+			AdminViewRevision++;
 			return;
 		}
 
 		AdminViewPlayerId = playerId;
 		AdminViewIsLoading = false;
+		AdminViewIsUnavailable = false;
 		_adminViewItems.Clear();
 		_adminViewItems.AddRange( items );
 		AdminViewRevision++;
@@ -374,20 +419,36 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 	[ConCmd( "dx_pocket_list", ConVarFlags.Server )]
 	public static void ListPocketItems( Connection caller )
 	{
-		if ( !RankSystem.HasPermission( caller.SteamId, Permission.Noclip ) )
+		if ( !RankSystem.HasPermission( caller.SteamId, Permission.ViewPocket ) || !Instance.IsValid() )
 		{
 			return;
 		}
 
+		var viewedPlayerIds = new List<long>();
 		foreach ( var (playerId, items) in Instance.Pockets )
 		{
-			var player = GameUtils.GetPlayerById( playerId );
-			caller.SendLog( LogLevel.Info, $"Player {(player.IsValid() ? player.DisplayName : "Unknown")} ({playerId}) has {items.Count} items in pocket." );
+			if ( playerId != caller.SteamId && !RankSystem.CanTarget( caller.SteamId, playerId ) )
+			{
+				continue;
+			}
 
-			foreach ( var item in items )
+			var validItems = items.Where( item => item.IsValid() ).ToList();
+			var player = GameUtils.GetPlayerById( playerId );
+			caller.SendLog( LogLevel.Info, $"Player {(player.IsValid() ? player.DisplayName : "Unknown")} ({playerId}) has {validItems.Count} items in pocket." );
+			viewedPlayerIds.Add( playerId );
+
+			foreach ( var item in validItems )
 			{
 				caller.SendLog( LogLevel.Info, $"- Item: {item.Name} (ID: {item.Id})" );
 			}
+		}
+
+		if ( viewedPlayerIds.Count > 0 )
+		{
+			_ = ServerApiClient.Audit(
+				"PocketView",
+				$"{caller.DisplayName} ({caller.SteamId}) listed pockets for SteamIDs {string.Join( ", ", viewedPlayerIds )}",
+				caller.SteamId );
 		}
 	}
 }

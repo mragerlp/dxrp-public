@@ -7,16 +7,6 @@ public enum FireMode
 	Burst
 }
 
-struct ShootDamageTrace
-{
-	public GameObject? Target { get; set; }
-	public float Damage { get; set; }
-	public Vector3 Position { get; set; }
-	public Vector3 Direction { get; set; }
-	public HitboxTags Hitbox { get; set; }
-	public DamageFlags Flags { get; set; }
-}
-
 [Icon( "track_changes" )]
 [Title( "Bullet" )]
 [Group( "Weapon Components" )]
@@ -71,6 +61,8 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 
 	[Property] [Group( "Effects" )] public GameObject? MuzzleFlashPrefab { get; set; }
 
+	[Property] [Group( "Effects" )] public GameObject? EjectionPrefab { get; set; }
+
 	[Property]
 	[ToggleGroup( "Headshot" )] public bool HeadshotEnabled { get; set; } = true;
 
@@ -83,6 +75,10 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 	[Property]
 	[Group( "Effects" )]
 	public SoundEvent? ShootSound { get; set; }
+
+	[Property]
+	[Group( "Effects" )]
+	public SoundEvent? SuppressedShootSound { get; set; }
 
 	/// <summary>
 	///     What sound should we play when we dry fire?
@@ -223,17 +219,17 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 	///     Play any particle effects such as muzzle flashes.
 	/// </summary>
 	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Unreliable )]
-	private void BroadcastShootEffects()
+	private void BroadcastShootEffects( byte presentation )
 	{
 		if ( Application.IsDedicatedServer )
 		{
 			return;
 		}
 
-		DoShootEffects();
+		DoShootEffects( presentation );
 	}
 
-	private void DoShootEffects()
+	private void DoShootEffects( byte presentation )
 	{
 		if ( !Effector.ModelRenderer.IsValid() )
 		{
@@ -241,7 +237,8 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 		}
 
 		// Create a muzzle flash from a GameObject / prefab
-		if ( MuzzleFlashPrefab.IsValid() )
+		if ( !WeaponFirePresentationRules.ShouldSuppressMuzzleFlash( presentation )
+		     && MuzzleFlashPrefab.IsValid() )
 		{
 			if ( Effector.Muzzle.IsValid() )
 			{
@@ -252,7 +249,20 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 			}
 		}
 
-		ShootSound.Play( Equipment.WorldPosition );
+		if ( EjectionPrefab.IsValid() && Effector.EjectionPort.IsValid() )
+		{
+			EjectionPrefab.Clone( new CloneConfig
+			{
+				Parent = Effector.EjectionPort, Transform = new Transform(), StartEnabled = true, Name = $"Ejection: {Equipment.GameObject}"
+			} );
+		}
+
+		var shootSound = WeaponFirePresentationRules.ShouldUseSuppressedSound(
+			presentation,
+			SuppressedShootSound is not null )
+			? SuppressedShootSound
+			: ShootSound;
+		shootSound.Play( Equipment.WorldPosition );
 
 		// Third person
 		if ( Equipment.Owner.IsValid() && Equipment.Owner.Renderer.IsValid() )
@@ -338,7 +348,7 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 	/// <summary>
 	///     Shoot the gun!
 	/// </summary>
-	/// 
+	///
 	private void Shoot()
 	{
 		TimeSinceShoot = 0;
@@ -348,11 +358,15 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 			IsBurstFiring = true;
 		}
 
-		DoShootEffects();
+		var presentationProvider = Equipment.Components.Get<IWeaponFirePresentationProvider>(
+			FindMode.EnabledInSelfAndDescendants );
+		if ( presentationProvider is null )
+		{
+			DoShootEffects( (byte)WeaponFirePresentation.None );
+		}
 
 		IGameEvents.PostToGameObject( GameObject, x => x.OnWeaponShot() );
 
-		var clientTraces = new List<ShootDamageTrace>();
 		for ( var i = 0; i < BulletCount; i++ )
 		{
 			var trace = GetShootTrace();
@@ -369,7 +383,6 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 			}
 
 			CreateImpactEffects( tr.GameObject, tr.Surface, tr.EndPosition, tr.Normal );
-			clientTraces.Add( CreateShootDamageTrace( tr ) );
 
 			if ( tr.GameObject?.Root.Components.Get<Player>( FindMode.EnabledInSelfAndDescendants ) is null )
 			{
@@ -379,51 +392,70 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 			DoBloodEffects( tr.HitPosition, tr.Direction );
 		}
 
-		DoShootHost( clientTraces );
+		DoShootHost();
 
 
 		// If we have a recoil function, let it know.
 		Equipment.Components.Get<RecoilWeaponComponent>( FindMode.EnabledInSelfAndDescendants )?.Shoot();
 	}
 
-	private ShootDamageTrace CreateShootDamageTrace( SceneTraceResult tr )
-	{
-		return new ShootDamageTrace
-		{
-			Target = tr.GameObject,
-			Damage = CalculateDamageFalloff( BaseDamage, tr.Distance ),
-			Position = tr.EndPosition,
-			Direction = tr.Direction,
-			Hitbox = tr.GetHitboxTags(),
-			Flags = Player.IsValid() && Player.Controller.IsOnGround ? DamageFlags.AirShot : DamageFlags.None
-		};
-	}
-
 	[Rpc.Host( NetFlags.OwnerOnly | NetFlags.Reliable )]
-	private void DoShootHost( List<ShootDamageTrace> clientHits )
+	private void DoShootHost()
 	{
 		var caller = Rpc.Caller;
 		var callerId = Rpc.CallerId;
+		var equipmentValid = Equipment.IsValid();
+		var owner = equipmentValid ? Equipment.Owner : null;
+		var ownerValid = owner.IsValid();
+		var controllerValid = ownerValid && owner.Controller.IsValid();
+		var hostAimRay = controllerValid
+			? new Ray( owner.Controller.EyePosition, owner.Controller.EyeAngles.ToRotation().Forward )
+			: default;
+		var ammoComponentValid = AmmoComponent.IsValid();
 		var isSemiAuto = SupportedFireModes.Count == 1 && SupportedFireModes[0] == FireMode.Semi;
 		var minFireInterval = isSemiAuto ? Delay : RpmToSeconds();
-		var fireCooldown = MathF.Max( minFireInterval * 0.85f, Config.Current.Game.DamageCooldown );
+		var damageCooldown = Config.Current.Game.DamageCooldown;
+		var fireCooldown = MathF.Max( minFireInterval * 0.85f, damageCooldown );
+		var equipmentNetworkOwner = equipmentValid ? Equipment.GameObject.Network.Owner : null;
+		var callerOwnsDebugPlayer = ownerValid && owner.IsDebugPlayer && caller.IsHost;
+		var callerOwnsPlayer = ownerValid && (owner.Connection == caller || owner.Connection is null && callerOwnsDebugPlayer);
+		var callerOwnsEquipment = equipmentValid
+		                           && (equipmentNetworkOwner == caller || equipmentNetworkOwner is null && callerOwnsDebugPlayer);
+		var combinedSpread = ownerValid ? BulletSpread + owner.Spread : float.NaN;
+		var isBlocked = equipmentValid
+		                && (Equipment.Tags.Has( "reloading" ) || Equipment.Tags.Has( "bolting" ) || Equipment.Tags.Has( "no_shooting" ));
+		var authorization = WeaponHostFireRules.Evaluate(
+			equipmentValid,
+			ownerValid,
+			callerOwnsPlayer,
+			callerOwnsEquipment,
+			equipmentValid && Equipment.IsDeployed,
+			ownerValid && owner.CurrentEquipment == Equipment,
+			ownerValid && owner.IsDead,
+			ownerValid && owner.IsRunning,
+			isBlocked,
+			TimeSinceDeployed >= DeployDelay,
+			controllerValid && WeaponHostFireRules.IsFiniteVector( hostAimRay.Position.x, hostAimRay.Position.y, hostAimRay.Position.z ),
+			controllerValid && WeaponHostFireRules.IsFiniteNonZeroVector( hostAimRay.Forward.x, hostAimRay.Forward.y, hostAimRay.Forward.z ),
+			controllerValid ? hostAimRay.Position.Distance( owner.WorldPosition ) : float.NaN,
+			WeaponHostFireRules.IsValidFireTiming( minFireInterval, DeployDelay, damageCooldown, fireCooldown )
+			&& WeaponHostFireRules.IsValidWeaponConfiguration(
+				fireCooldown,
+				MaxRange,
+				BulletSize,
+				BaseDamage,
+				HeadshotEnabled ? HeadshotDamageMultiplier : 1f,
+				combinedSpread,
+				BulletCount ),
+			RequiresAmmoComponent,
+			ammoComponentValid,
+			ammoComponentValid ? AmmoComponent.Ammo : 0 );
+		if ( authorization != WeaponHostFireReject.Accepted )
+		{
+			return;
+		}
+
 		if ( Cooldown.Current.CheckAndStartCooldown( $"{callerId}:damage", fireCooldown ) )
-		{
-			return;
-		}
-
-		if ( !Equipment.Owner.IsValid() )
-		{
-			return;
-		}
-
-		var owner = Equipment.Owner;
-		if ( owner.IsDead || owner.AimRay.Position.Distance( owner.WorldPosition ) > 150f )
-		{
-			return;
-		}
-
-		if ( RequiresAmmoComponent && (!AmmoComponent.IsValid() || AmmoComponent.Ammo <= 0) )
 		{
 			return;
 		}
@@ -433,32 +465,45 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 			AmmoComponent.Ammo = Math.Max( AmmoComponent.Ammo - 1, 0 );
 		}
 
-		using ( Rpc.FilterExclude( caller ) )
+		var presentationProvider = Equipment.Components.Get<IWeaponFirePresentationProvider>(
+			FindMode.EnabledInSelfAndDescendants );
+		var presentation = presentationProvider?.GetFirePresentation()
+			?? (byte)WeaponFirePresentation.None;
+		if ( presentationProvider is not null )
 		{
-			BroadcastShootEffects();
+			BroadcastShootEffects( presentation );
+		}
+		else
+		{
+			using ( Rpc.FilterExclude( caller ) )
+			{
+				BroadcastShootEffects( presentation );
+			}
 		}
 
-		if ( clientHits.Count > BulletCount )
+		for ( var i = 0; i < BulletCount; i++ )
 		{
-			var cheater = GameUtils.Players.FirstOrDefault( p => p.Connection == caller );
-			if ( cheater.IsValid() )
-				Sentinel.Sentinel.ReportViolation( cheater, "Bullet Count Exploit", $"Sent {clientHits.Count} hits for a weapon with BulletCount={BulletCount}" );
-			return;
-		}
-
-		foreach ( var clientShootTrace in clientHits )
-		{
-			var serverTrace = GetShootTrace();
+			var serverTrace = GetShootTrace( hostAimRay );
 
 			if ( !serverTrace.HasValue )
 			{
 				continue;
 			}
 
-			var shootTrace = clientShootTrace;
+			var shootTrace = serverTrace.Value;
+			if ( !shootTrace.Hit
+			     || !shootTrace.GameObject.IsValid()
+			     || !WeaponHostFireRules.IsPositiveFinite( shootTrace.Distance )
+			     || !WeaponHostFireRules.IsFiniteVector( shootTrace.StartPosition.x, shootTrace.StartPosition.y, shootTrace.StartPosition.z )
+			     || !WeaponHostFireRules.IsFiniteVector( shootTrace.HitPosition.x, shootTrace.HitPosition.y, shootTrace.HitPosition.z )
+			     || !WeaponHostFireRules.IsFiniteNonZeroVector( shootTrace.Direction.x, shootTrace.Direction.y, shootTrace.Direction.z )
+			     || !WeaponHostFireRules.IsFiniteVector( shootTrace.Normal.x, shootTrace.Normal.y, shootTrace.Normal.z ) )
+			{
+				continue;
+			}
 
 			// Require target to be alive
-			var targetPlayer = shootTrace.Target?.Root.Components.Get<Player>( FindMode.EnabledInSelfAndDescendants );
+			var targetPlayer = shootTrace.GameObject.Root.Components.Get<Player>( FindMode.EnabledInSelfAndDescendants );
 			if ( targetPlayer.IsValid() && (targetPlayer == owner || targetPlayer.HealthComponent.State != LifeState.Alive) )
 			{
 				continue;
@@ -468,25 +513,30 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 			{
 				using ( Rpc.FilterExclude( caller ) )
 				{
-					BroadcastBloodEffects( shootTrace.Position, shootTrace.Direction );
+					BroadcastBloodEffects( shootTrace.HitPosition, shootTrace.Direction );
 				}
 			}
 
-			if ( shootTrace.Position.Distance( owner.AimRay.Position ) > MaxRange * 1.1f )
+			if ( shootTrace.HitPosition.Distance( hostAimRay.Position ) > MaxRange * 1.1f )
 			{
 				continue;
 			}
 
-			var toHit = (shootTrace.Position - owner.AimRay.Position).Normal;
-			if ( Vector3.Dot( toHit, owner.AimRay.Forward ) < 0f )
+			var toHit = (shootTrace.HitPosition - hostAimRay.Position).Normal;
+			if ( Vector3.Dot( toHit, hostAimRay.Forward ) < 0f )
 			{
 				continue;
 			}
 
-			var headShot = HeadshotEnabled && shootTrace.Hitbox.HasFlag( HitboxTags.Head );
+			var hitbox = shootTrace.GetHitboxTags();
+			var headShot = HeadshotEnabled && hitbox.HasFlag( HitboxTags.Head );
 			var headShotMult = headShot ? HeadshotDamageMultiplier : 1.0f;
 
-			var damage = CalculateDamageFalloff( BaseDamage, serverTrace.Value.StartPosition.Distance( shootTrace.Position ) ).CeilToInt() * headShotMult;
+			var damage = CalculateDamageFalloff( BaseDamage, shootTrace.Distance ).CeilToInt() * headShotMult;
+			if ( !WeaponHostFireRules.IsPositiveFinite( damage ) )
+			{
+				continue;
+			}
 
 			var damageFlags = DamageFlags.None;
 
@@ -495,13 +545,13 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 				damageFlags |= DamageFlags.AirShot;
 			}
 
-			shootTrace.Target?.TakeDamageHost( new DamageInfo(
-				Equipment.Owner,
+			shootTrace.GameObject.TakeDamageHost( new DamageInfo(
+				owner,
 				damage,
 				Equipment,
-				shootTrace.Position,
+				shootTrace.HitPosition,
 				shootTrace.Direction * damage * 80f,
-				shootTrace.Hitbox,
+				hitbox,
 				damageFlags ) );
 		}
 	}
@@ -592,7 +642,11 @@ public class ShootWeaponComponent : InputWeaponComponent, IEquipmentEvents
 			return null;
 		}
 
-		var weaponRay = WeaponRay.Value;
+		return GetShootTrace( WeaponRay.Value );
+	}
+
+	private SceneTraceResult? GetShootTrace( Ray weaponRay )
+	{
 
 		var start = weaponRay.Position;
 		var rot = Rotation.LookAt( weaponRay.Forward );

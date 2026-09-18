@@ -39,7 +39,11 @@ public enum StaffActionSeverity
 public enum StaffActionDisplayTone
 {
 	Severity,
-	Money
+	Money,
+	Armor,
+	Cloak,
+	Freeze,
+	Health
 }
 
 /// <summary>
@@ -47,7 +51,7 @@ public enum StaffActionDisplayTone
 /// RPC where one exists, else routes through the registered chat <c>ICommand</c> via
 /// <c>Chat.ExecuteCommandHost</c>. <see cref="LocalToggle"/> handles client-only affordances that
 /// DXRP exposes via keybind rather than a command (e.g. noclip move-mode). Every path is re-checked
-/// host-side; this catalog never carries authority.
+/// at the execution boundary; client-only commands retain their native local permission checks.
 /// </summary>
 public enum StaffDispatchKind
 {
@@ -56,10 +60,10 @@ public enum StaffDispatchKind
 	LocalToggle,
 
 	/// <summary>
-	/// Currency grant. Its own kind rather than a chat command because DXRP exposes none: the
-	/// client sends a request and the HOST validates the caller's permission and executes.
+	/// Currency grant through a host request; the host validates permission and executes it.
 	/// </summary>
-	GiveMoney
+	GiveMoney,
+	LocalCommand
 }
 
 /// <summary>How the UI should render/validate an argument input.</summary>
@@ -87,10 +91,8 @@ public sealed record StaffActionArg(
 	string? Placeholder = null );
 
 /// <summary>
-/// One entry in the staff command catalog (ULX-style, built clean as data). References DXRP only by
-/// stable permission Id string + dispatch target name — never a Dxura type — so it compiles in the
-/// standalone editor build. Permission Ids reconcile 1:1 with the live DXRP portal and
-/// <c>admin-panel/permissions/*.json</c>.
+/// A staff command definition using permission IDs and dispatch names instead of Dxura types.
+/// Built-in IDs follow DXRP; addon commands define separate IDs that require their own rank grants.
 /// </summary>
 public sealed record StaffAction(
 	string Key,
@@ -107,11 +109,9 @@ public sealed record StaffAction(
 	StaffActionDisplayTone DisplayTone = StaffActionDisplayTone.Severity );
 
 /// <summary>
-/// The LifePunch staff command catalog + categories, mirroring the DXRP portal permission taxonomy
-/// (Moderation / Commands / Ability). Growing the menu = adding rows here.
-/// Chat-only commands stay out of <see cref="All"/>; job force-set is menu-only via Set Job below
-/// (still dispatches to DXRP <c>/job</c> — portal <c>command.job.manage</c>).
-/// Catalog reconciled against the live portal Super Admin permission set (2026-06).
+/// Staff command catalogue and categories following the DXRP portal permission taxonomy.
+/// Chat-only commands are excluded; Set Job dispatches to DXRP /job using command.job.manage.
+/// Built-in catalogue reconciled against the portal Super Admin permission set in 2026-06.
 /// </summary>
 public static class StaffMenuActions
 {
@@ -130,19 +130,22 @@ public static class StaffMenuActions
 	private static StaffActionArg Reason( bool required ) =>
 		new( "reason", "Reason", StaffArgKind.Text, required, "Reason" );
 
-	private static StaffActionArg Duration( bool required ) =>
-		new( "duration", "Duration", StaffArgKind.Duration, required, "e.g. 1h, 1d, 7d, perm" );
+	private static StaffActionArg Duration( bool required, bool allowPermanent = false ) =>
+		new( "duration", "Duration", StaffArgKind.Duration, required,
+			allowPermanent ? "e.g. 1h, 1d, 7d, perm" : "e.g. 10m, 1h, 1d" );
 
+	// Rebuild catalog data from source during hotload instead of migrating old records.
+	[Sandbox.SkipHotload]
 	public static readonly IReadOnlyList<StaffAction> All = new List<StaffAction>
 	{
 		// ---- Moderation ----
 		new( "kick", "Kick", CategoryModeration, "player.kick",
 			StaffDispatchKind.AdminRpc, "kick", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
-			new[] { Reason( required: false ) }, "logout", "Kick player" ),
+			new[] { Reason( required: true ) }, "logout", "Kick player" ),
 
 		new( "ban", "Ban", CategoryModeration, "player.ban",
 			StaffDispatchKind.ChatCommand, "ban", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
-			new[] { Duration( required: true ), Reason( required: true ) }, "gavel", "Ban player" ),
+			new[] { Duration( required: true, allowPermanent: true ), Reason( required: true ) }, "gavel", "Ban player" ),
 
 		new( "jail", "Jail", CategoryModeration, "player.jail",
 			StaffDispatchKind.ChatCommand, "jail", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
@@ -167,15 +170,15 @@ public static class StaffMenuActions
 		// ---- Commands ----
 		new( "god", "God Mode", CategoryCommands, "command.god",
 			StaffDispatchKind.ChatCommand, "god", StaffActionTarget.SelfOnly, StaffActionSeverity.Severe,
-			NoArgs, "shield", "Toggle god mode" ),
+			NoArgs, "volunteer_activism", "Toggle god mode" ),
 
 		new( "cloak", "Cloak", CategoryCommands, "command.cloak",
 			StaffDispatchKind.ChatCommand, "cloak", StaffActionTarget.SelfOnly, StaffActionSeverity.Light,
-			NoArgs, "visibility_off", "Go invisible" ),
+			NoArgs, "visibility_off", "Go invisible", StaffActionDisplayTone.Cloak ),
 
 		new( "incognito", "Incognito", CategoryCommands, "command.incognito",
 			StaffDispatchKind.ChatCommand, "incognito", StaffActionTarget.SelfOnly, StaffActionSeverity.Light,
-			NoArgs, "person_off", "Hide from player list" ),
+			NoArgs, "do_not_disturb_on_total_silence", "Hide from player list" ),
 
 		new( "fakedisconnect", "Fake Disconnect", CategoryCommands, "command.fakedisconnect",
 			StaffDispatchKind.ChatCommand, "fakedisconnect", StaffActionTarget.SelfOnly, StaffActionSeverity.Light,
@@ -183,11 +186,16 @@ public static class StaffMenuActions
 
 		new( "freeze", "Freeze", CategoryCommands, "command.freeze",
 			StaffDispatchKind.ChatCommand, "freeze", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
-			NoArgs, "ac_unit", "Freeze player in place" ),
+			NoArgs, "ac_unit", "Freeze player in place", StaffActionDisplayTone.Freeze ),
 
 		new( "sethealth", "Set Health", CategoryCommands, "command.sethealth",
 			StaffDispatchKind.ChatCommand, "sethealth", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
-			new[] { new StaffActionArg( "amount", "Health", StaffArgKind.Number, true, "e.g. 100" ) }, "favorite", "Set player's health" ),
+			new[] { new StaffActionArg( "amount", "Health", StaffArgKind.Number, true, "e.g. 100" ) }, "favorite", "Set player's health", StaffActionDisplayTone.Health ),
+
+		// Addon-defined permission; granting Set Health does not grant Set Armor.
+		new( "setarmor", "Set Armor", CategoryCommands, "command.setarmor",
+			StaffDispatchKind.ChatCommand, "setarmor", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
+			new[] { new StaffActionArg( "amount", "Armor", StaffArgKind.Number, true, "e.g. 100; 0 clears armor" ) }, "shield", "Set player's armor within the server limit", StaffActionDisplayTone.Armor ),
 
 		new( "setjob", "Set Job", CategoryCommands, "command.job.manage",
 			StaffDispatchKind.ChatCommand, "job", StaffActionTarget.OtherPlayer, StaffActionSeverity.Light,
@@ -202,16 +210,14 @@ public static class StaffMenuActions
 			StaffDispatchKind.ChatCommand, "unarrest", StaffActionTarget.OtherPlayer, StaffActionSeverity.Medium,
 			NoArgs, "no_accounts", "Unarrest player" ),
 
-		// Staff currency grant, for refunds and event payouts. Gated on the portal's own
-		// economy.manage permission -- the tier the portal assigns to Owner and Super Admin --
-		// rather than on a rank name we invented here. The grid hides actions the caller lacks
-		// permission for, and the host re-checks regardless of what the client believes.
+		// Uses economy.manage for refunds and event payouts. The host rechecks the grant
+		// regardless of client visibility or rank label.
 		new( "givemoney", "Give Money", CategoryCommands, "economy.manage",
 			StaffDispatchKind.GiveMoney, "givemoney", StaffActionTarget.OtherPlayer, StaffActionSeverity.Severe,
 			new[]
 			{
-				new StaffActionArg( "amount", "Amount", StaffArgKind.Number, true, "e.g. 5000" ),
 				new StaffActionArg( "destination", "Destination", StaffArgKind.Destination, true, "Cash or bank" ),
+				new StaffActionArg( "amount", "Amount", StaffArgKind.Number, true, "e.g. 5000" ),
 				new StaffActionArg( "reason", "Reason", StaffArgKind.Text, true, "Refund for lost printer, event payout..." )
 			},
 			"payments", "Grant currency to this player (audited)", StaffActionDisplayTone.Money ),
@@ -251,27 +257,27 @@ public static class StaffMenuActions
 
 		new( "noclip", "Noclip", CategoryAbility, "ability.noclip",
 			StaffDispatchKind.LocalToggle, "noclip", StaffActionTarget.SelfOnly, StaffActionSeverity.Severe,
-			NoArgs, "flight", "Toggle noclip flight" )
+			NoArgs, "flight", "Toggle noclip flight" ),
+
+		// Each server owner grants this capability to their trusted staff ranks.
+		// X-ray shares the Frozen palette; this display tone does not imply a native status.
+		new( "xray", "X-ray", CategoryAbility, "command.xray",
+			StaffDispatchKind.LocalCommand, "xray", StaffActionTarget.SelfOnly, StaffActionSeverity.Severe,
+			NoArgs, "xray", "Toggle X-ray for yourself", StaffActionDisplayTone.Freeze )
 	};
 }
 
 /// <summary>
-/// Tunable, server-agnostic policy the DXRP portal can't express. The portal only toggles WHETHER a
-/// rank may ban — not for how long. This adds a per-rank ban-duration ceiling (the headline value-add
-/// for reselling the menu to other servers). It is a client-side guardrail for UX; DXRP's own
-/// permission checks remain the security boundary (see TECH_DEBT STAFF-03 for the enforceable endgame).
+	/// Tunable policy the DXRP portal can't express. The portal only toggles WHETHER a rank may ban —
+	/// not for how long. This addon therefore limits the durations its own UI will dispatch. DXRP's
+	/// native command permission remains the host security boundary; this table is never presented as
+	/// a replacement for a server-side tenant policy.
 /// </summary>
 public static class StaffMenuConfig
 {
 	/// <summary>
-	/// Optional reference ladder placeholders under "Staff" (the only per-server config in the addon).
-	///
-	/// Default is empty — fully server-agnostic: the sidebar lists only portal ranks that have someone
-	/// online with real staff-menu permissions, grouped by their live portal rank name. No hardcoded
-	/// LifePunch empty "(0)" rows on other servers.
-	///
-	/// Always automatic: action visibility and staff vs Players come from portal permissions, not this list.
-	/// Optional override: populate tiers here if an owner wants always-visible empty rows merged by rank name.
+	/// Optional empty rank groups under Staff. By default, groups come from online players
+	/// with staff-menu permissions. These labels do not grant permissions or control action visibility.
 	/// </summary>
 	public static readonly IReadOnlyList<(string Name, int Order)> ReferenceTiers = Array.Empty<(string Name, int Order)>();
 
@@ -287,9 +293,66 @@ public static class StaffMenuConfig
 		("Permanent", "perm", int.MaxValue)
 	};
 
+	/// <summary>Only Ban accepts an indefinite sanction; other commands require a finite duration.</summary>
+	public static IEnumerable<(string Label, string Token, int Hours)> DurationPresets( string actionKey )
+	{
+		foreach ( var preset in BanDurations )
+		{
+			if ( actionKey == "ban" || preset.Token != "perm" )
+			{
+				yield return preset;
+			}
+		}
+	}
+
 	/// <summary>
-	/// Max ban length (in hours) the caller's rank ORDER may issue; null = unlimited (permanent allowed).
-	/// Defaults match the live LifePunch ladder (Mod=4, Admin=5, Super Admin=10, Owner=69).
+	/// Normalize the token sent to DXRP and enforce its integer and TimeSpan parser bounds.
+	/// Blank optional values are handled by the form; only Ban may use a permanent token.
+	/// </summary>
+	public static bool TryNormalizeDurationToken( string token, bool allowPermanent, out string normalized )
+	{
+		normalized = "";
+		token = ( token ?? string.Empty ).Trim().ToLowerInvariant();
+		if ( token is "perm" or "permanent" )
+		{
+			if ( !allowPermanent ) return false;
+			normalized = "perm";
+			return true;
+		}
+
+		if ( token.Length < 2 || !int.TryParse( token[..^1], out var value ) || value <= 0 )
+		{
+			return false;
+		}
+
+		TimeSpan? duration;
+		try
+		{
+			duration = token[^1] switch
+			{
+				'm' => TimeSpan.FromMinutes( value ),
+				'h' => TimeSpan.FromHours( value ),
+				'd' => TimeSpan.FromDays( value ),
+				_ => null
+			};
+		}
+		catch ( OverflowException )
+		{
+			return false;
+		}
+		catch ( ArgumentOutOfRangeException )
+		{
+			return false;
+		}
+
+		if ( duration is null ) return false;
+		normalized = value.ToString( System.Globalization.CultureInfo.InvariantCulture ) + token[^1];
+		return true;
+	}
+
+	/// <summary>
+	/// Maximum ban duration in hours by rank order; null permits permanent bans.
+	/// Default thresholds are Mod=4, Admin=5 and Super Admin=10; orders above 10 are also unlimited.
 	/// </summary>
 	public static int? MaxBanHoursForRankOrder( int order ) => order switch
 	{
@@ -304,5 +367,48 @@ public static class StaffMenuConfig
 	{
 		var cap = MaxBanHoursForRankOrder( rankOrder );
 		return cap is null || hours <= cap.Value;
+	}
+
+	/// <summary>
+	/// Validate a free-form duration against the same grammar and ceiling as the quick picks. The
+	/// comparison is performed in minutes so values such as <c>90m</c> cannot evade an hourly cap.
+	/// Permanent tokens are accepted only for an unlimited rank.
+	/// </summary>
+	public static bool IsBanDurationTokenAllowed( int rankOrder, string token )
+	{
+		if ( !TryNormalizeDurationToken( token, allowPermanent: true, out token ) )
+		{
+			return false;
+		}
+
+		var cap = MaxBanHoursForRankOrder( rankOrder );
+
+		if ( token is "perm" or "permanent" )
+		{
+			return cap is null;
+		}
+
+		if ( token.Length < 2 || !long.TryParse( token[..^1], out var value ) || value <= 0 )
+		{
+			return false;
+		}
+
+		long minutes;
+		try
+		{
+			minutes = token[^1] switch
+			{
+				'm' => value,
+				'h' => checked( value * 60L ),
+				'd' => checked( value * 24L * 60L ),
+				_ => -1L
+			};
+		}
+		catch ( OverflowException )
+		{
+			return false;
+		}
+
+		return minutes > 0 && ( cap is null || minutes <= (long)cap.Value * 60L );
 	}
 }

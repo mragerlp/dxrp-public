@@ -1,0 +1,56 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>disable</ImplicitUsings>
+    <Nullable>disable</Nullable>
+    <LangVersion>12</LangVersion>
+    <RootNamespace>LifePunch.DXRP.Addons.Weapons.Attachments</RootNamespace>
+  </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\..\game\Code\Equipment\Weapon\WeaponPresentationContracts.cs"
+             Link="WeaponPresentationContracts.cs" />
+    <Compile Include="..\..\game\Code\Addons\lifepunch\lpweapons\attachments\WeaponAttachmentContract.cs"
+             Link="WeaponAttachmentContract.cs" />
+    <None Include="..\..\game\Code\Equipment\Weapon\WeaponPresentationContracts.cs"
+          Link="WeaponPresentationContracts.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Addons\lifepunch\lpweapons\attachments\WeaponAttachmentContract.cs"
+          Link="WeaponAttachmentContract.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Addons\lifepunch\lpweapons\attachments\WeaponAttachmentState.cs"
+          Link="WeaponAttachmentState.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Addons\lifepunch\lpweapons\attachments\WeaponAttachmentController.cs"
+          Link="WeaponAttachmentController.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Addons\lifepunch\lpweapons\attachments\WeaponAttachmentCommand.cs"
+          Link="WeaponAttachmentCommand.source.cs"
+          CopyToOutputDirectory="PreserveNewest"
+          Condition="Exists('..\..\game\Code\Addons\lifepunch\lpweapons\attachments\WeaponAttachmentCommand.cs')" />
+    <None Include="..\..\game\Code\Addons\lifepunch\lpweapons\attachments\WeaponAttachmentRenderController.cs"
+          Link="WeaponAttachmentRenderController.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Equipment\IEquipmentSnapshotState.cs"
+          Link="IEquipmentSnapshotState.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Player\Player.cs"
+          Link="Player.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Player\Player.Equipment.cs"
+          Link="PlayerEquipment.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Equipment\Equipment.cs"
+          Link="Equipment.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\System\Recovery\Data\PlayerSnapshotData.cs"
+          Link="PlayerSnapshotData.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Equipment\DroppedEquipment.cs"
+          Link="DroppedEquipment.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="..\..\game\Code\Equipment\Weapon\ShootWeaponComponent.cs"
+          Link="ShootWeaponComponent.source.cs"
+          CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+</Project>

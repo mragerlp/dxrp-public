@@ -1,0 +1,71 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Server Hub shared primitives. Flex-only s&box SCSS.
+//
+// Currency identity lives here so every surface in the hub spells money the same
+// way. The rule these classes encode - the sign carries the colour and the amount
+// stays white - is what lets a player tell cash from any other number at a glance
+// without reading the label.
+// -----------------------------------------------------------------------------
+
+@import "LpServerHubTokens.scss";
+
+// --- Currency identity ------------------------------------------------------
+
+.lp-money-cash {
+	color: $good;
+	font-weight: 600;
+}
+
+.lp-money-amt {
+	color: $text-strong;
+	font-weight: 500;
+}
+
+// --- Entity colour dot ------------------------------------------------------
+//
+// A true circle is the one place a full radius is allowed. Everything else in the
+// hub is 2px, or 4px at the shell edge.
+
+.hub-dot {
+	width: $dot;
+	height: $dot;
+	border-radius: 50%;
+	flex-shrink: 0;
+}
+
+// Stands in for an entity with no colour configured. Neutral and clearly unset,
+// rather than the opaque black that an unset colour actually packs to.
+.hub-dot-none {
+	background-color: $text-faint;
+	opacity: 0.5;
+}
+
+// --- Status chips -----------------------------------------------------------
+//
+// Status vocabulary, never chrome. These carry live state and nothing structural
+// ever borrows their colour.
+
+.jobs-chip {
+	height: $chip-h;
+	padding-left: $space-2;
+	padding-right: $space-2;
+	border-radius: $radius;
+	font-size: $type-chip;
+	font-weight: 600;
+	letter-spacing: $track-chip;
+	align-items: center;
+	justify-content: center;
+	flex-shrink: 0;
+}
+
+.jobs-chip-full {
+	background-color: $bad-soft;
+	color: $bad-text;
+}
+
+.jobs-chip-locked {
+	background-color: $dim-soft;
+	color: $text-dim;
+}

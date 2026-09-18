@@ -30,6 +30,8 @@ public class ShipmentEntity : BaseEntity, IWireUsable, Component.IPressable
 	private float _totalAnimationTime;
 	private Vector3 _originalPreviewPosition;
 	private bool _previewPositionSaved;
+	private Vector3 _authoredPreviewPosition;
+	private bool _authoredPreviewSaved;
 
 	public override bool DestroyOnJobChange => false;
 	public override bool AllowOwnershipTransfer => true;
@@ -42,6 +44,7 @@ public class ShipmentEntity : BaseEntity, IWireUsable, Component.IPressable
 	{
 		base.OnStart();
 
+		RememberAuthoredPreview();
 		UpdateState();
 
 		// Save the original position of the preview
@@ -52,6 +55,12 @@ public class ShipmentEntity : BaseEntity, IWireUsable, Component.IPressable
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
+
+		var previewRenderer = ResolveEquipmentRenderer();
+		if ( previewRenderer.IsValid() && !IsUsablePreviewModel( previewRenderer.Model ) )
+		{
+			UpdateState();
+		}
 
 		if ( !_occluded && _previewPositionSaved && !GameManager.IsHeadless )
 		{
@@ -66,9 +75,25 @@ public class ShipmentEntity : BaseEntity, IWireUsable, Component.IPressable
 		_occluded = occlude;
 	}
 
+	private ModelRenderer? ResolveEquipmentRenderer()
+	{
+		if ( EquipmentPreview.IsValid() )
+		{
+			var fromPreview = EquipmentPreview.Components.Get<ModelRenderer>();
+			if ( fromPreview.IsValid() )
+			{
+				EquipmentRenderer = fromPreview;
+				return fromPreview;
+			}
+		}
+
+		return EquipmentRenderer.IsValid() ? EquipmentRenderer : null;
+	}
+
 	private void UpdateState()
 	{
-		if ( !EquipmentRenderer.IsValid() || !TypeText.IsValid() || !QuantityText.IsValid() )
+		var previewRenderer = ResolveEquipmentRenderer();
+		if ( !previewRenderer.IsValid() || !TypeText.IsValid() || !QuantityText.IsValid() )
 		{
 			return;
 		}
@@ -79,10 +104,60 @@ public class ShipmentEntity : BaseEntity, IWireUsable, Component.IPressable
 		}
 
 		var equipment = GameModeEquipments.FindById( EquipmentId );
-		EquipmentRenderer.Model = equipment.GetWorldModel();
-		EquipmentRenderer.WorldScale = 1.1f;
+		if ( equipment is null )
+		{
+			return;
+		}
+
+		previewRenderer.Model = equipment.GetWorldModel();
+		previewRenderer.WorldScale = equipment.WorldModelScale() * 1.1f;
+		AlignPreviewToModelOrigin();
 		TypeText.Text = equipment.DisplayName();
 		QuantityText.Text = $"{Quantity}/{MaxQuantity}";
+	}
+
+	private static bool IsUsablePreviewModel( Model? model )
+	{
+		return model is not null && model.IsValid() && !model.IsError;
+	}
+
+	private void RememberAuthoredPreview()
+	{
+		if ( _authoredPreviewSaved || !EquipmentPreview.IsValid() )
+		{
+			return;
+		}
+
+		_authoredPreviewPosition = EquipmentPreview.LocalPosition;
+		_authoredPreviewSaved = true;
+	}
+
+	/// <summary>
+	/// M4 world meshes sit on Z=0. The AK is authored centered (bottom ≈ -5.74).
+	/// Lift the shared crate preview so every gun's lowest point matches that M4 sit.
+	/// </summary>
+	private void AlignPreviewToModelOrigin()
+	{
+		RememberAuthoredPreview();
+		if ( !EquipmentPreview.IsValid() )
+		{
+			return;
+		}
+
+		var model = EquipmentRenderer.Model;
+		if ( model is null || !model.IsValid() )
+		{
+			return;
+		}
+
+		var authored = _authoredPreviewSaved ? _authoredPreviewPosition : EquipmentPreview.LocalPosition;
+		var lift = -model.Bounds.Mins.z * EquipmentRenderer.WorldScale.z;
+		EquipmentPreview.LocalPosition = authored + Vector3.Up * lift;
+
+		if ( _previewPositionSaved )
+		{
+			_originalPreviewPosition = EquipmentPreview.LocalPosition;
+		}
 	}
 
 	public void ConfigureHost( GameModeEquipmentDto equipment, int quantity )
