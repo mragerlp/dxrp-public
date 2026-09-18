@@ -13,7 +13,12 @@
 // s&box SCSS variables are file-local. Scroll, flag and action-pill classes come from that sheet.
 
 // Ranks section accent; rank data colors retain their own meaning.
-$observe-ranks-accent: hotpink;
+// #6d28d9 is $tone-purple from StaffMenu.razor.scss, mirrored here as a literal for the same
+// reason as every other colour in this sheet: s&box SCSS variables are file-local. It replaces
+// `hotpink`, which was a CSS named colour rather than a house token. The sibling observe tabs
+// already own #1689ff (staff), #199c3b (economy), #d99a3f (sentinel) and #c05f5f (sanctions),
+// so purple is the palette tone that stays legible beside all four without colliding.
+$observe-ranks-accent: #6d28d9;
 
 .lifepunchulx {
 	.observe {
