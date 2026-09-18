@@ -813,6 +813,7 @@
 					var profileHealthAction = detail.Found ? GetProfileStatAction( "sethealth", profileSteamId ) : null;
 					var profileArmorAction = detail.Found ? GetProfileStatAction( "setarmor", profileSteamId ) : null;
 					var profileMoneyAction = detail.Found ? GetProfileStatAction( "givemoney", profileSteamId ) : null;
+					var profileJobAction = detail.Found ? GetProfileStatAction( "setjob", profileSteamId ) : null;
 					<div class="profile">
 						<div class="profile-head">
 							<button class="icon-btn" onclick="@CloseProfile"><i class="material-icons" style="@AppliedGlyphStyle()">arrow_back</i></button>
@@ -928,7 +929,16 @@
 											<div class="profile-rows">
 												<div class="field">
 													<span class="k">Job</span>
-													<span class="v v-job @( detail.Found ? "" : "v-tone-zero" )" style="@( detail.Found && !string.IsNullOrEmpty( detail.JobColorHex ) ? $"color: {detail.JobColorHex}" : "" )">@( detail.Found ? detail.Job : "—" )</span>
+													@if ( profileJobAction is not null )
+													{
+														<button type="button" class="v profile-stat-value v-job @( detail.Found ? "" : "v-tone-zero" )" style="@( detail.Found && !string.IsNullOrEmpty( detail.JobColorHex ) ? $"color: {detail.JobColorHex}" : "" )"
+														        tooltip="Open Set Job for this player; pick a job and confirm"
+														        onclick="@(() => OpenProfileStat( "setjob", profileSteamId ))">@detail.Job</button>
+													}
+													else
+													{
+														<span class="v v-job @( detail.Found ? "" : "v-tone-zero" )" style="@( detail.Found && !string.IsNullOrEmpty( detail.JobColorHex ) ? $"color: {detail.JobColorHex}" : "" )">@( detail.Found ? detail.Job : "—" )</span>
+													}
 												</div>
 												<div class="field">
 													<span class="k">Base salary</span>
