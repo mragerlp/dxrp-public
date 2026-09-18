@@ -812,6 +812,7 @@
 					var steamIdCopied = _copiedSteamId == profileSteamId;
 					var profileHealthAction = detail.Found ? GetProfileStatAction( "sethealth", profileSteamId ) : null;
 					var profileArmorAction = detail.Found ? GetProfileStatAction( "setarmor", profileSteamId ) : null;
+					var profileMoneyAction = detail.Found ? GetProfileStatAction( "givemoney", profileSteamId ) : null;
 					<div class="profile">
 						<div class="profile-head">
 							<button class="icon-btn" onclick="@CloseProfile"><i class="material-icons" style="@AppliedGlyphStyle()">arrow_back</i></button>
@@ -935,11 +936,29 @@
 												</div>
 												<div class="field">
 													<span class="k">Cash</span>
-													<span class="v @( detail.Wallet > 0 ? "v-cash" : "v-tone-zero" )">@( detail.Found ? "$" + detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) : "—" )</span>
+													@if ( profileMoneyAction is not null )
+													{
+														<button type="button" class="v profile-stat-value @( detail.Wallet > 0 ? "v-cash" : "v-tone-zero" )"
+														        tooltip="Open Give Money for this player; choose an amount and confirm"
+														        onclick="@(() => OpenProfileStat( "givemoney", profileSteamId, "cash" ))">@( "$" + detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</button>
+													}
+													else
+													{
+														<span class="v @( detail.Wallet > 0 ? "v-cash" : "v-tone-zero" )">@( detail.Found ? "$" + detail.Wallet.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) : "—" )</span>
+													}
 												</div>
 												<div class="field">
 													<span class="k">Bank</span>
-													<span class="v @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )">@( detail.Found ? "$" + detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) : "—" )</span>
+													@if ( profileMoneyAction is not null )
+													{
+														<button type="button" class="v profile-stat-value @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )"
+														        tooltip="Open Give Money for this player; choose an amount and confirm"
+														        onclick="@(() => OpenProfileStat( "givemoney", profileSteamId, "bank" ))">@( "$" + detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) )</button>
+													}
+													else
+													{
+														<span class="v @( detail.Bank > 0 ? "v-cash" : "v-tone-zero" )">@( detail.Found ? "$" + detail.Bank.ToString( "N0", System.Globalization.CultureInfo.InvariantCulture ) : "—" )</span>
+													}
 												</div>
 											</div>
 											<div class="profile-footer">
@@ -2384,7 +2403,10 @@
 			: null;
 	}
 
-	private void OpenProfileStat( string actionKey, long steamId )
+	// A money shortcut presets the Give Money destination. _destination is sticky across forms
+	// (BeginArgs never resets it; SetDestination is its only writer), so the preset is applied
+	// explicitly once the form is open instead of trusting the default.
+	private void OpenProfileStat( string actionKey, long steamId, string? destination = null )
 	{
 		// Recheck the catalog, permission and current roster policy at the click boundary.
 		var action = GetProfileStatAction( actionKey, steamId );
@@ -2396,6 +2418,11 @@
 		ConfirmTarget( steamId );
 		_activeTab = action.Category;
 		BeginArgs( action );
+
+		if ( destination is not null && _pendingAction == action )
+		{
+			SetDestination( destination );
+		}
 	}
 
 	// A profile shortcut must commit its subject before opening the named form.
