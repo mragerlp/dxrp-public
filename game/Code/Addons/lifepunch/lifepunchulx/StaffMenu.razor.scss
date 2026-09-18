@@ -3632,4 +3632,33 @@ $tone-gold: #a16207;
 		color: $muted;
 	}
 
+	// Website Save feedback as BUTTON STATE. Standalone classes emitted by Razor and placed last so
+	// they win over the shared disabled surface at equal specificity (house convention above).
+	.settings-save-saved,
+	.settings-save-saved:hover {
+		border-color: $success;
+		background-color: $success;
+		color: $text;
+		cursor: default;
+	}
+
+	.settings-save-saved .material-icons {
+		color: $text;
+	}
+
+	.settings-save-failed,
+	.settings-save-failed:hover {
+		border-color: $danger;
+		background-color: rgba($danger, 0.85);
+		color: $text;
+	}
+
+	.settings-save-failed .material-icons {
+		color: $text;
+	}
+
+	.settings-save-pending .material-icons {
+		color: $amber;
+	}
+
 }

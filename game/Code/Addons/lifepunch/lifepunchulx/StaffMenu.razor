@@ -429,10 +429,12 @@
 								<div class="settings-bar">
 									<i class="material-icons">link</i>
 									<TextEntry class="settings-input" Placeholder="https://your-network.com" Value:bind="@_websiteDraft"/>
+									@* Save feedback is BUTTON STATE only (green "Saved", red "Failed"). No row is ever
+									   inserted below the bar, so the Appearance card underneath never moves. *@
 									<button class="settings-btn save settings-save-primary @( WebsiteSaveClasses() )"
-									        tooltip="@( StaffMenuHost.WebsiteWriteIsPending ? "Waiting for the server API result" : ( WebsiteDraftIsDirty() ? "Save the network website link" : "No website changes to save" ) )"
+									        tooltip="@WebsiteSaveTooltip()"
 									        onclick="@SaveWebsiteFromInput">
-										<i class="material-icons">save</i> Save
+										<i class="material-icons">@WebsiteSaveIcon()</i> @WebsiteSaveLabel()
 									</button>
 								</div>
 
@@ -451,13 +453,6 @@
 										<span class="settings-current-text">@( StaffMenuHost.WebsiteReadIsUncertain ? "Website status unavailable — the server store did not return a confirmed answer." : "No website set yet — leave the field empty and Save to clear it." )</span>
 									}
 								</div>
-								@if ( !string.IsNullOrWhiteSpace( StaffMenuHost.WebsiteWriteMessage ) )
-								{
-									<div class="settings-write-result @( WebsiteWriteResultClass() )">
-										<i class="material-icons">@( StaffMenuHost.WebsiteWriteIsPending ? "sync" : ( StaffMenuHost.WebsiteWriteSucceeded ? "check_circle" : "error" ) )</i>
-										<span>@StaffMenuHost.WebsiteWriteMessage</span>
-									</div>
-								}
 							}
 							else
 							{
@@ -1978,6 +1973,7 @@
 		SenseJobFilterChange();
 		SenseJobScrollEnd();
 		SyncWebsiteDraftFromHost();
+		SyncWebsiteSaveFeedback();
 
 		// Refresh on the fixed cadence to keep volatile reads from replaying menu hover states.
 		if ( _sinceRosterRefresh >= RosterRefreshInterval )
@@ -3952,15 +3948,101 @@
 			( StaffMenuHost.WebsiteUrl ?? string.Empty ).Trim(),
 			StringComparison.Ordinal );
 
+	// Save feedback is TRANSIENT UI STATE on the button: never persisted with the settings, never carried
+	// across a panel close/open. "Saved" holds WebsiteSavedHoldSeconds or until the input changes; "Failed"
+	// holds until the input changes. A fresh Settings open starts idle: SeedWebsiteDraft() is the reset site.
+	private const float WebsiteSavedHoldSeconds = 2f;
+	private int _websiteWriteVersionSeen;
+	private string _websiteSubmittedDraft = "";
+	private bool _websiteSaveConfirmed;
+	private bool _websiteSaveFailed;
+	private RealTimeSince _websiteSaveConfirmedAge;
+
+	private void ResetWebsiteSaveFeedback()
+	{
+		_websiteWriteVersionSeen = StaffMenuHost.WebsiteWriteVersion;
+		_websiteSaveConfirmed = false;
+		_websiteSaveFailed = false;
+	}
+
+	private void SyncWebsiteSaveFeedback()
+	{
+		if ( _activeTab != TabSettings )
+		{
+			return;
+		}
+
+		var version = StaffMenuHost.WebsiteWriteVersion;
+		if ( version != _websiteWriteVersionSeen )
+		{
+			_websiteWriteVersionSeen = version;
+			if ( !StaffMenuHost.WebsiteWriteIsPending )
+			{
+				_websiteSaveConfirmed = StaffMenuHost.WebsiteWriteSucceeded;
+				_websiteSaveFailed = !StaffMenuHost.WebsiteWriteSucceeded
+					&& !string.IsNullOrWhiteSpace( StaffMenuHost.WebsiteWriteMessage );
+				_websiteSaveConfirmedAge = 0;
+			}
+		}
+
+		if ( _websiteSaveConfirmed && ( _websiteSaveConfirmedAge >= WebsiteSavedHoldSeconds || WebsiteDraftIsDirty() ) )
+		{
+			_websiteSaveConfirmed = false;
+		}
+
+		if ( _websiteSaveFailed && !string.Equals( ( _websiteDraft ?? string.Empty ).Trim(), _websiteSubmittedDraft, StringComparison.Ordinal ) )
+		{
+			_websiteSaveFailed = false;
+		}
+	}
+
+	private bool WebsiteSaveIsSaved() => !StaffMenuHost.WebsiteWriteIsPending && _websiteSaveConfirmed;
+
+	private bool WebsiteSaveIsFailed() => !StaffMenuHost.WebsiteWriteIsPending && _websiteSaveFailed;
+
 	private string WebsiteSaveClasses()
 	{
-		var classes = "";
-		if ( !WebsiteDraftIsDirty() || StaffMenuHost.WebsiteWriteIsPending )
+		if ( StaffMenuHost.WebsiteWriteIsPending )
+		{
+			return "control-disabled settings-save-disabled settings-save-pending";
+		}
+
+		if ( WebsiteSaveIsSaved() )
+		{
+			return "settings-save-saved";
+		}
+
+		var classes = WebsiteSaveIsFailed() ? "settings-save-failed" : "";
+		if ( !WebsiteDraftIsDirty() )
 		{
 			classes += " control-disabled settings-save-disabled";
 		}
 
 		return classes.Trim();
+	}
+
+	private string WebsiteSaveLabel()
+	{
+		if ( StaffMenuHost.WebsiteWriteIsPending ) return "Saving";
+		if ( WebsiteSaveIsSaved() ) return "Saved";
+		if ( WebsiteSaveIsFailed() ) return "Failed";
+		return "Save";
+	}
+
+	private string WebsiteSaveIcon()
+	{
+		if ( StaffMenuHost.WebsiteWriteIsPending ) return "sync";
+		if ( WebsiteSaveIsSaved() ) return "check";
+		if ( WebsiteSaveIsFailed() ) return "error";
+		return "save";
+	}
+
+	private string WebsiteSaveTooltip()
+	{
+		if ( StaffMenuHost.WebsiteWriteIsPending ) return "Waiting for the server API result";
+		if ( WebsiteSaveIsSaved() ) return string.IsNullOrWhiteSpace( StaffMenuHost.WebsiteWriteMessage ) ? "Saved" : StaffMenuHost.WebsiteWriteMessage;
+		if ( WebsiteSaveIsFailed() ) return $"{StaffMenuHost.WebsiteWriteMessage} — edit and Save to retry";
+		return WebsiteDraftIsDirty() ? "Save the network website link" : "No website changes to save";
 	}
 
 	/// <summary>Save the typed network website URL (host re-checks the owner grant). Empty clears it.</summary>
@@ -3972,7 +4054,10 @@
 		}
 
 		_websiteDraftTouched = true;
-		StaffMenuHost.SaveWebsite( ( _websiteDraft ?? string.Empty ).Trim() );
+		_websiteSubmittedDraft = ( _websiteDraft ?? string.Empty ).Trim();
+		_websiteSaveConfirmed = false;
+		_websiteSaveFailed = false;
+		StaffMenuHost.SaveWebsite( _websiteSubmittedDraft );
 	}
 
 	private void SeedWebsiteDraft()
@@ -3981,6 +4066,8 @@
 		_websiteDraftBaseline = _websiteDraft;
 		_websiteDraftTouched = false;
 		_lastSettingsVersion = StaffMenuHost.SettingsVersion;
+		// Every Settings open (including a fresh panel after close/reopen) starts with an idle Save button.
+		ResetWebsiteSaveFeedback();
 	}
 
 	private void SyncWebsiteDraftFromHost()
@@ -4026,16 +4113,6 @@
 		StaffMoneyGrantState.Unknown => "Close unavailable until the original money grant has a terminal result",
 		_ => "Close Menu"
 	};
-
-	private static string WebsiteWriteResultClass()
-	{
-		if ( StaffMenuHost.WebsiteWriteIsPending )
-		{
-			return "settings-write-pending";
-		}
-
-		return StaffMenuHost.WebsiteWriteSucceeded ? "settings-write-success" : "settings-write-failed";
-	}
 
 	/// <summary>Copy the owner-configured website link to the clipboard, with a brief "copied" confirmation.</summary>
 	private void CopyWebsite()
@@ -4121,7 +4198,7 @@
 					HashCode.Combine( _auditScope, _auditWindowMinutes, _auditWindowOpen ),
 					HashCode.Combine(
 						HashCode.Combine( _websiteDraft, _websiteCopied, _copiedSteamId, _currentCopied,
-							StaffMenuHost.SettingsVersion, StaffMenuHost.WebsiteWriteVersion ),
+							StaffMenuHost.SettingsVersion, StaffMenuHost.WebsiteWriteVersion, _websiteSaveConfirmed, _websiteSaveFailed ),
 						HashCode.Combine( _pocketModalOpen, _pocketModalSteamId, StaffMenuHost.GetPocketSlotCount(),
 							StaffMenuHost.PocketClientRevision,
 							StaffMenuHost.PocketAnsweredFor,
