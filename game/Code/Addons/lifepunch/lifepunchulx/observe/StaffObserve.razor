@@ -336,16 +336,16 @@
 						</div>
 					}
 					</div>
-					@if ( StaffObserveHost.RingLivesHere )
-					{
-						<div class="observe-caveat">Counts cover only the available audit snapshot; older events may be omitted. Zero does not establish inactivity.</div>
-					}
 				}
 			</div>
 
 			<div class="observe-block">
 				<div class="observe-section-head">Staff action log</div>
 				<div class="observe-hint">Recorded acts gated behind a staff power, newest first -- the same available audit snapshot the Audit tab reads, filtered to staff actions. The name is the acting staff member; the target of an act lives in the description text.</div>
+				@if ( StaffObserveHost.RingLivesHere )
+				{
+					<div class="observe-caveat">Counts cover only the available audit snapshot; older events may be omitted. Zero does not establish inactivity.</div>
+				}
 				@{
 					var staffLog = StaffObserveHost.StaffActionLog( _staffActorFilter );
 				}
@@ -888,7 +888,9 @@
 
 			var maxY = LifePunchUiScrollPolicy.GetMeasuredScrollMaxY( list );
 			var remaining = maxY - list.ScrollOffset.y;
-			if ( remaining > ObserveEndSnapDistance || remaining <= 0.01f )
+			// Preserve the top position when new content adds only a small overflow.
+			if ( list.ScrollOffset.y <= 0.01f
+				|| remaining > ObserveEndSnapDistance || remaining <= 0.01f )
 			{
 				continue;
 			}

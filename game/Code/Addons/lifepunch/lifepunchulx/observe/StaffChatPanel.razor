@@ -41,11 +41,11 @@
 			{
 				<div class="observe-row staff-chat-message">
 					<div class="staff-chat-author-line">
+						<span class="staff-chat-author" style="@( $"color: {message.AuthorColor};" )">@message.Author</span>
 						@if ( !string.IsNullOrEmpty( message.Role ) )
 						{
-							<span class="staff-chat-role" style="@( string.IsNullOrEmpty( message.RoleColor ) ? string.Empty : $"color: {message.RoleColor};" )">@message.Role</span>
+							<span class="staff-chat-role" style="@( string.IsNullOrEmpty( message.RoleColor ) ? string.Empty : $"color: {message.RoleColor}; border-color: {message.RoleColor};" )">@message.Role</span>
 						}
-						<span class="staff-chat-author" style="@( $"color: {message.AuthorColor};" )">@message.Author</span>
 					</div>
 					<span class="staff-chat-text">@message.Text</span>
 				</div>
@@ -54,7 +54,7 @@
 	</div>
 
 	<div class="staff-chat-composer">
-		<div class="staff-chat-input-row">
+		<div class="staff-chat-composer-main">
 			@if ( _context.CanRead )
 			{
 				<TextEntry class="arg-input staff-chat-input" Placeholder="Message staff..." Value:bind="@Draft" onsubmit="@Submit"/>
@@ -63,11 +63,11 @@
 			{
 				<div class="arg-input staff-chat-input staff-chat-input-disabled"><span>Message staff...</span></div>
 			}
+			<span class="observe-hint staff-chat-hint">@ComposerHint</span>
+		</div>
+		<div class="staff-chat-composer-actions">
 			<button class="@( CanSubmit ? "confirm-btn staff-chat-send" : "confirm-btn-inert staff-chat-send" )"
 				disabled="@(!CanSubmit)" onclick="@Submit"><span>Send</span></button>
-		</div>
-		<div class="staff-chat-composer-help">
-			<span class="observe-hint staff-chat-hint">@ComposerHint</span>
 			@if ( _context.CanRead )
 			{
 				<span class="observe-hint staff-chat-count">@CharacterCount</span>
