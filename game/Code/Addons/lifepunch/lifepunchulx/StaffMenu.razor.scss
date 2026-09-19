@@ -1729,6 +1729,16 @@ $tone-gold: #a16207;
 		text-align: center;
 	}
 
+	.pocket-slot-firearm {
+		flex-shrink: 0;
+		width: 48px;
+		height: 24px;
+		background-image: url("/ui/weapons/guns/M4_01.png");
+		background-size: cover;
+		background-position: center;
+		background-tint: $blue;
+	}
+
 	.pocket-slot .material-icons {
 		font-size: 20px;
 		color: $blue;

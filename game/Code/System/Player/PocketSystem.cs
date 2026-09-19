@@ -1,7 +1,19 @@
+using Dxura.RP.Game.Entities;
 using Dxura.RP.Shared;
 using Sandbox.Diagnostics;
 
 namespace Dxura.RP.Game;
+
+/// <summary>Semantic presentation category for a read-only pocket snapshot.</summary>
+public enum PocketItemKind
+{
+	Unknown,
+	Printer,
+	Shipment,
+	Firearm,
+	Plant,
+	Equipment
+}
 
 public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 {
@@ -254,8 +266,12 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 
 	// Admin pocket view (client-side state)
 	private readonly List<string> _adminViewItems = [];
+	private readonly List<PocketItemKind> _adminViewItemKinds = [];
 
 	public IReadOnlyList<string> AdminViewItems => _adminViewItems;
+
+	/// <summary>Categories aligned with AdminViewItems; unknown items use the generic presentation.</summary>
+	public IReadOnlyList<PocketItemKind> AdminViewItemKinds => _adminViewItemKinds;
 	public int AdminViewRevision { get; private set; }
 	public long? AdminViewPlayerId { get; private set; }
 	public Guid AdminViewRequestId { get; private set; }
@@ -269,13 +285,14 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 		AdminViewIsLoading = true;
 		AdminViewIsUnavailable = false;
 		_adminViewItems.Clear();
+		_adminViewItemKinds.Clear();
 		AdminViewRevision++;
 	}
 
 	public void ClearPocketViewClient()
 	{
 		if ( AdminViewPlayerId == null && AdminViewRequestId == Guid.Empty && !AdminViewIsLoading
-		     && !AdminViewIsUnavailable && _adminViewItems.Count == 0 )
+		     && !AdminViewIsUnavailable && _adminViewItems.Count == 0 && _adminViewItemKinds.Count == 0 )
 		{
 			return;
 		}
@@ -285,20 +302,79 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 		AdminViewIsLoading = false;
 		AdminViewIsUnavailable = false;
 		_adminViewItems.Clear();
+		_adminViewItemKinds.Clear();
 		AdminViewRevision++;
 	}
 
-	private string[] ListPocketDisplayNames( long steamId )
+	private (string[] Items, PocketItemKind[] Kinds) GetPocketViewSnapshot( long steamId )
 	{
 		if ( !Pockets.TryGetValue( steamId, out var items ) || items.Count == 0 )
 		{
-			return [];
+			return ([], []);
 		}
 
-		return items
-			.Where( i => i.IsValid() )
-			.Select( GetItemDisplayName )
-			.ToArray();
+		var names = new List<string>( items.Count );
+		var kinds = new List<PocketItemKind>( items.Count );
+		foreach ( var item in items )
+		{
+			if ( !item.IsValid() )
+			{
+				continue;
+			}
+
+			names.Add( GetItemDisplayName( item ) );
+			kinds.Add( GetItemKind( item ) );
+		}
+
+		return (names.ToArray(), kinds.ToArray());
+	}
+
+	private static PocketItemKind GetItemKind( GameObject item )
+	{
+		// Pockets disable their objects. Include disabled components and classify the
+		// container before its contents so a weapon shipment remains a shipment.
+		var lookup = FindMode.EverythingInSelfAndDescendants;
+		if ( item.Components.Get<ShipmentEntity>( lookup ).IsValid() )
+		{
+			return PocketItemKind.Shipment;
+		}
+
+		if ( item.Components.Get<PrinterEntity>( lookup ).IsValid() )
+		{
+			return PocketItemKind.Printer;
+		}
+
+		var resource = item.Components.Get<ResourceComponent>( lookup );
+		if ( item.Components.Get<WeedHarvestEntity>( lookup ).IsValid()
+		     || (resource.IsValid() && string.Equals( resource.ResourceId, "weed_brick", StringComparison.OrdinalIgnoreCase )) )
+		{
+			return PocketItemKind.Plant;
+		}
+
+		var equipment = item.Components.Get<DroppedEquipment>( lookup );
+		if ( !equipment.IsValid() )
+		{
+			return PocketItemKind.Unknown;
+		}
+
+		if ( !string.IsNullOrWhiteSpace( equipment.PrefabPath ) )
+		{
+			try
+			{
+				var prefab = GameObject.GetPrefab( equipment.PrefabPath );
+				if ( prefab.IsValid() && prefab.Components.Get<ShootWeaponComponent>( lookup ).IsValid() )
+				{
+					return PocketItemKind.Firearm;
+				}
+			}
+			catch ( Exception )
+			{
+				// Optional presentation metadata must not prevent a permitted pocket read.
+				return PocketItemKind.Equipment;
+			}
+		}
+
+		return PocketItemKind.Equipment;
 	}
 
 	private static string GetItemDisplayName( GameObject item )
@@ -347,7 +423,7 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 			return;
 		}
 
-		var items = ListPocketDisplayNames( playerId );
+		var (items, itemKinds) = GetPocketViewSnapshot( playerId );
 
 		_ = ServerApiClient.Audit( "PocketView",
 			$"{caller.SteamName} ({caller.SteamId}) viewed the pocket of {target.SteamName} ({playerId}) ({items.Length} items)",
@@ -355,7 +431,7 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 
 		using ( Rpc.FilterInclude( c => c.Id == requestCaller.Id ) )
 		{
-			BroadcastPocketContentsClient( playerId, requestId, items );
+			BroadcastPocketContentsClient( playerId, requestId, items, itemKinds );
 		}
 	}
 
@@ -378,11 +454,12 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 		AdminViewIsLoading = false;
 		AdminViewIsUnavailable = !available;
 		_adminViewItems.Clear();
+		_adminViewItemKinds.Clear();
 		AdminViewRevision++;
 	}
 
 	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
-	private void BroadcastPocketContentsClient( long playerId, Guid requestId, string[] items )
+	private void BroadcastPocketContentsClient( long playerId, Guid requestId, string[] items, PocketItemKind[] itemKinds )
 	{
 		if ( requestId != AdminViewRequestId || AdminViewPlayerId != playerId )
 		{
@@ -394,6 +471,7 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 			AdminViewIsLoading = false;
 			AdminViewIsUnavailable = true;
 			_adminViewItems.Clear();
+			_adminViewItemKinds.Clear();
 			AdminViewRevision++;
 			return;
 		}
@@ -402,7 +480,20 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 		AdminViewIsLoading = false;
 		AdminViewIsUnavailable = false;
 		_adminViewItems.Clear();
+		_adminViewItemKinds.Clear();
 		_adminViewItems.AddRange( items );
+		var receivedKinds = itemKinds ?? [];
+		var kindsAligned = receivedKinds.Length == items.Length;
+		for ( var index = 0; index < items.Length; index++ )
+		{
+			var kind = kindsAligned ? receivedKinds[index] : PocketItemKind.Unknown;
+			_adminViewItemKinds.Add( kind switch
+			{
+				PocketItemKind.Printer or PocketItemKind.Shipment or PocketItemKind.Firearm
+					or PocketItemKind.Plant or PocketItemKind.Equipment => kind,
+				_ => PocketItemKind.Unknown
+			} );
+		}
 		AdminViewRevision++;
 	}
 

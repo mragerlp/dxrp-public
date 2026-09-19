@@ -298,6 +298,29 @@ internal static class StaffMenuHost
 #endif
 	}
 
+	/// <summary>Display icon key for a slot in the current correlated pocket response.</summary>
+	public static string GetPocketItemIcon( long steamId, int slot )
+	{
+#if !LIFEPUNCH_LOCAL && !LIFEPUNCH_PACKAGE
+		var system = PocketSystem.Instance;
+		if ( system.IsValid() && system.AdminViewPlayerId == steamId
+		     && !system.AdminViewIsLoading && !system.AdminViewIsUnavailable
+		     && slot >= 0 && slot < system.AdminViewItems.Count && slot < system.AdminViewItemKinds.Count )
+		{
+			return system.AdminViewItemKinds[slot] switch
+			{
+				PocketItemKind.Printer => "attach_money",
+				PocketItemKind.Shipment => "inventory_2",
+				PocketItemKind.Firearm => "firearm", // Native DXRP weapon graphic, not a font glyph.
+				PocketItemKind.Plant => "local_florist",
+				PocketItemKind.Equipment => "build",
+				_ => "category"
+			};
+		}
+#endif
+		return "category";
+	}
+
 	public static bool PocketIsLoading( long steamId )
 	{
 #if LIFEPUNCH_LOCAL
