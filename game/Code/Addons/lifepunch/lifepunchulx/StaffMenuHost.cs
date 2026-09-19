@@ -218,7 +218,7 @@ internal static class StaffMenuHost
 	public static long LocalSteamId => Sandbox.Game.SteamId;
 
 	/// <summary>
-	/// The viewer's configured rank order, used by the ban-duration policy.
+	/// The viewer's server-configured rank order. Permission grants do not depend on its numeric value.
 	/// The local fixture build returns order 10.
 	/// </summary>
 	public static int LocalRankOrder
@@ -751,55 +751,56 @@ internal static class StaffMenuHost
 		return "";
 	}
 
-	// --- Sanction history (real DXRP source, not a stub) ------------------
-	// Backed by PlayerSanctionHistorySystem, the same system DXRP's own
-	// UI/Menus/TabMenu/Sections/Components/PlayerSanctionHistory.razor consumes.
+	// --- Sanction history (caller-filtered host bridge) ------------------
+	// Both runtime builds use the same host answer, including its explicit read scope.
+	// Native Tab-menu reads cannot replace or relabel this menu's cached answer.
 
-	/// <summary>
-	/// Sanction request counter. Responses update <see cref="SanctionsClientRevision"/> separately.
-	/// Hash that revision and <see cref="SanctionsAnsweredFor"/> alongside this counter, following
-	/// DXRP PlayerSanctionHistory.razor, so arriving or mismatched responses repaint correctly.
-	/// </summary>
+	/// <summary>Sanction request counter; response and scope changes update the client revision.</summary>
 	public static int SanctionsVersion { get; private set; }
 
-#if LIFEPUNCH_PACKAGE
-	private static readonly List<StaffSanction> _packageSanctions = new();
-	private static System.Guid _packageSanctionsRequestId;
-	private static long _packageSanctionsSubjectId;
-	private static long _packageSanctionsAnsweredFor;
-	private static SanctionsReadState _packageSanctionsState = SanctionsReadState.Unanswered;
-	private static int _packageSanctionsClientRevision;
+#if !LIFEPUNCH_LOCAL
+	private static readonly List<StaffSanction> _sanctions = new();
+	private static System.Guid _sanctionsRequestId;
+	private static long _sanctionsSubjectId;
+	private static long _sanctionsAnsweredFor;
+	private static bool _sanctionsCanView;
+	private static bool _sanctionsCanViewNotes;
+	private static bool _sanctionsRefreshPending;
+	private static bool _sanctionsHasRequested;
+	private static RealTimeSince _sanctionsRequestAge;
+	private const float SanctionsRequestInterval = 1f;
+	private const float SanctionsScopeRetryInterval = 5f;
+	private static float _sanctionsRetryInterval = SanctionsRequestInterval;
+	private static SanctionsReadState _sanctionsState = SanctionsReadState.Unanswered;
+	private static int _sanctionsClientRevision;
 #endif
 
-	/// <summary>
-	/// Client response revision, updated for loading, delivered answers and cleared results.
-	/// Returns zero when the backing system is absent.
-	/// </summary>
+	/// <summary>Client revision for loading, delivered answers, and permission-scope changes.</summary>
 	public static int SanctionsClientRevision
 	{
-#if LIFEPUNCH_PACKAGE
-		get => _packageSanctionsClientRevision;
-#elif !LIFEPUNCH_LOCAL
-		get => PlayerSanctionHistorySystem.Current?.ClientRevision ?? 0;
+		get
+		{
+#if !LIFEPUNCH_LOCAL
+			EnsureSanctionsScope();
+			return _sanctionsClientRevision;
 #else
-		get => 0;
+			return 0;
 #endif
+		}
 	}
 
-	/// <summary>
-	/// WHICH subject the system currently holds an answer for, or 0 for none. Hashed beside the
-	/// subject the panel is asking about, so that another player's response cannot satisfy this
-	/// one's wait -- the revision alone ticks for any subject.
-	/// </summary>
+	/// <summary>Subject of the current bridge answer, or zero while no answer is readable.</summary>
 	public static long SanctionsAnsweredFor
 	{
-#if LIFEPUNCH_PACKAGE
-		get => _packageSanctionsAnsweredFor;
-#elif !LIFEPUNCH_LOCAL
-		get => PlayerSanctionHistorySystem.Current?.CurrentPlayerId ?? 0;
+		get
+		{
+#if !LIFEPUNCH_LOCAL
+			EnsureSanctionsScope();
+			return _sanctionsAnsweredFor;
 #else
-		get => 0;
+			return 0;
 #endif
+		}
 	}
 
 	public static bool CanViewSanctions( long subjectSteamId )
@@ -815,188 +816,136 @@ internal static class StaffMenuHost
 	}
 
 	/// <summary>
-	/// Ask the host for a player's sanction history. BeginLoadingClient stamps the shared subject
-	/// synchronously, so repeated render calls remain idempotent without a process-static request latch.
+	/// Select a subject and ask the host for history. A denied selection is remembered without
+	/// sending a request, so a later grant can fetch a new answer instead of relabelling old data.
 	/// </summary>
 	public static void RequestSanctions( long steamId, bool forceRetry = false )
 	{
-#if LIFEPUNCH_PACKAGE
+#if !LIFEPUNCH_LOCAL
 		EnsureServerScope();
-		if ( steamId == 0 || !CanViewSanctions( steamId ) )
+		if ( steamId == 0 )
 		{
 			return;
 		}
 
-		if ( !forceRetry && _packageSanctionsSubjectId == steamId
-		     && _packageSanctionsState == SanctionsReadState.Loading )
+		var canView = CanViewSanctions( steamId );
+		var canViewNotes = canView && CanView( "player.sanctions.view.notes" );
+		if ( _sanctionsSubjectId != steamId || _sanctionsCanView != canView
+		     || _sanctionsCanViewNotes != canViewNotes || forceRetry )
 		{
-			return;
+			_sanctionsSubjectId = steamId;
+			_sanctionsCanView = canView;
+			_sanctionsCanViewNotes = canViewNotes;
+			InvalidateSanctionsAnswer();
 		}
 
-		ClearPackageSanctionsView();
-		_packageSanctionsSubjectId = steamId;
-		_packageSanctionsRequestId = System.Guid.NewGuid();
-		_packageSanctionsState = SanctionsReadState.Loading;
-		_packageSanctionsClientRevision++;
-		SanctionsVersion++;
-		if ( StaffMenuBridgeService.Instance.IsValid() )
-		{
-			StaffMenuBridgeService.Instance.RequestSanctionsHost( steamId, _packageSanctionsRequestId );
-		}
-		else
-		{
-			_packageSanctionsState = SanctionsReadState.Unavailable;
-			_packageSanctionsClientRevision++;
-		}
-#elif !LIFEPUNCH_LOCAL
-		if ( steamId == 0 || !CanViewSanctions( steamId ) )
-		{
-			return;
-		}
-
-		var system = PlayerSanctionHistorySystem.Current;
-		if ( system is null )
-		{
-			return;
-		}
-
-		if ( forceRetry )
-		{
-			if ( system.CurrentPlayerId == steamId )
-			{
-				system.ClearVisibleSanctionsClient();
-			}
-		}
-
-		if ( system.CurrentPlayerId == steamId )
-		{
-			return;
-		}
-
-		var requestId = System.Guid.NewGuid();
-		system.BeginLoadingClient( steamId, requestId );
-		system.RequestSanctionsHost( steamId, requestId );
-		SanctionsVersion++;
+		TryRequestSanctions();
 #endif
 	}
 
-	public static bool SanctionsLoading( long steamId )
-	{
-#if LIFEPUNCH_PACKAGE
-		return _packageSanctionsSubjectId == steamId && _packageSanctionsState == SanctionsReadState.Loading;
-#elif !LIFEPUNCH_LOCAL
-		var system = PlayerSanctionHistorySystem.Current;
-		return system is not null && system.IsLoading && system.CurrentPlayerId == steamId;
-#else
-		return false;
-#endif
-	}
+	public static bool SanctionsLoading( long steamId ) =>
+		GetSanctionsState( steamId ) == SanctionsReadState.Loading;
 
 	/// <summary>
-	/// Read outcome for this subject. Use this before interpreting an empty GetSanctions result;
-	/// an empty list alone does not establish a clean record.
+	/// The stored host outcome is never upgraded using a later grant. An empty list alone
+	/// does not establish a clean record, and limited answers remain explicitly Filtered.
 	/// </summary>
 	public static SanctionsReadState GetSanctionsState( long steamId )
 	{
+#if !LIFEPUNCH_LOCAL
+		EnsureSanctionsScope();
+#endif
 		if ( !CanViewSanctions( steamId ) )
 		{
 			return SanctionsReadState.PermissionDenied;
 		}
 
-#if LIFEPUNCH_PACKAGE
-		EnsureServerScope();
-		return _packageSanctionsSubjectId == steamId
-			? _packageSanctionsState
+#if !LIFEPUNCH_LOCAL
+		return _sanctionsSubjectId == steamId
+			? _sanctionsState
 			: SanctionsReadState.Unanswered;
-#elif !LIFEPUNCH_LOCAL
-		var system = PlayerSanctionHistorySystem.Current;
-		if ( system is null )
-		{
-			return SanctionsReadState.Unavailable;
-		}
-
-		if ( system.IsLoading && system.CurrentPlayerId == steamId )
-		{
-			return SanctionsReadState.Loading;
-		}
-
-		if ( system.CurrentPlayerId != steamId )
-		{
-			return SanctionsReadState.Unanswered;
-		}
-
-		if ( system.CurrentRequestRefused )
-		{
-			return SanctionsReadState.Refused;
-		}
-
-		if ( system.CurrentRequestFailed )
-		{
-			return SanctionsReadState.Failed;
-		}
-
-		// Limited viewers always receive a generic subset state. Do not disclose whether this
-		// particular subject actually has privileged rows by branching on a data-dependent bit.
-		if ( !CanView( "player.sanctions.view.notes" ) )
-		{
-			return SanctionsReadState.Filtered;
-		}
-
-		return system.VisibleSanctions.Count == 0
-			? SanctionsReadState.CompletedEmpty
-			: SanctionsReadState.Populated;
 #else
-		// The local fixture build has no sanctions source; return Unavailable, not CompletedEmpty.
 		return SanctionsReadState.Unavailable;
 #endif
 	}
 
-	/// <summary>
-	/// Sanctions projected without Dxura types. Use <see cref="GetSanctionsState"/> to distinguish
-	/// a completed empty result from unavailable, unauthorized or unanswered requests.
-	/// </summary>
+	/// <summary>Only the active subject's answer under its unchanged permission scope is readable.</summary>
 	public static IReadOnlyList<StaffSanction> GetSanctions( long steamId )
 	{
-#if LIFEPUNCH_PACKAGE
-		EnsureServerScope();
-		return CanViewSanctions( steamId ) && _packageSanctionsSubjectId == steamId
-		       && _packageSanctionsState is SanctionsReadState.Populated or SanctionsReadState.Filtered
-			? _packageSanctions
+#if !LIFEPUNCH_LOCAL
+		var state = GetSanctionsState( steamId );
+		return state is SanctionsReadState.Populated or SanctionsReadState.Filtered
+			? _sanctions
 			: System.Array.Empty<StaffSanction>();
-#elif !LIFEPUNCH_LOCAL
-		var system = PlayerSanctionHistorySystem.Current;
-		if ( system is null || !CanViewSanctions( steamId ) || system.CurrentPlayerId != steamId
-		     || system.CurrentRequestFailed || system.CurrentRequestRefused )
-		{
-			return System.Array.Empty<StaffSanction>();
-		}
-
-		var rows = new List<StaffSanction>();
-		foreach ( var entry in system.VisibleSanctions )
-		{
-			var type = entry.Type.ToString();
-			rows.Add( new StaffSanction(
-				SplitPascalCase( type ),
-				type.ToLowerInvariant(),
-				entry.State.ToString() == "Active",
-				string.IsNullOrWhiteSpace( entry.Reason ) ? "No reason recorded" : entry.Reason,
-				entry.Duration is null ? "Permanent" : entry.Duration.Value.ToString(),
-				entry.Created.ToString( "yyyy-MM-dd HH:mm" ),
-				entry.IsGlobal ? "Global" : "Server",
-				SplitPascalCase( entry.State.ToString() ),
-				FormatSanctionFlags( entry.Flags.ToString() ),
-				entry.Notes?.Trim() ?? "" ) );
-		}
-
-		return rows;
 #else
 		return System.Array.Empty<StaffSanction>();
 #endif
 	}
 
-#if LIFEPUNCH_PACKAGE
-	/// <summary>Accept one caller-filtered package bridge answer for the active subject only.</summary>
-	internal static void OnPackageSanctionsReceived(
+#if !LIFEPUNCH_LOCAL
+	private static void EnsureSanctionsScope()
+	{
+		EnsureServerScope();
+		if ( _sanctionsSubjectId == 0 )
+		{
+			return;
+		}
+
+		var canView = CanViewSanctions( _sanctionsSubjectId );
+		var canViewNotes = canView && CanView( "player.sanctions.view.notes" );
+		if ( _sanctionsCanView != canView || _sanctionsCanViewNotes != canViewNotes )
+		{
+			_sanctionsCanView = canView;
+			_sanctionsCanViewNotes = canViewNotes;
+			InvalidateSanctionsAnswer();
+		}
+
+		TryRequestSanctions();
+	}
+
+	private static void InvalidateSanctionsAnswer()
+	{
+		// Invalidate correlation immediately; neither an old answer nor its in-flight reply
+		// can survive a permission transition. Keep the last-issued time across invalidation.
+		_sanctionsRequestId = System.Guid.Empty;
+		_sanctionsAnsweredFor = 0;
+		_sanctions.Clear();
+		_sanctionsRefreshPending = _sanctionsCanView;
+		_sanctionsRetryInterval = SanctionsRequestInterval;
+		_sanctionsState = _sanctionsCanView ? SanctionsReadState.Loading : SanctionsReadState.PermissionDenied;
+		_sanctionsClientRevision++;
+	}
+
+	private static void TryRequestSanctions()
+	{
+		if ( !_sanctionsRefreshPending || !_sanctionsCanView
+		     || (_sanctionsHasRequested && _sanctionsRequestAge < _sanctionsRetryInterval) )
+		{
+			return;
+		}
+
+		_sanctionsRefreshPending = false;
+		_sanctions.Clear();
+		_sanctionsAnsweredFor = 0;
+		_sanctionsState = SanctionsReadState.Loading;
+		_sanctionsClientRevision++;
+		_sanctionsRequestId = System.Guid.NewGuid();
+		_sanctionsRequestAge = 0;
+		_sanctionsHasRequested = true;
+		SanctionsVersion++;
+		if ( StaffMenuBridgeService.Instance.IsValid() )
+		{
+			StaffMenuBridgeService.Instance.RequestSanctionsHost( _sanctionsSubjectId, _sanctionsRequestId );
+		}
+		else
+		{
+			_sanctionsState = SanctionsReadState.Unavailable;
+			_sanctionsClientRevision++;
+		}
+	}
+
+	/// <summary>Accept one caller-filtered bridge answer for the active subject and request scope.</summary>
+	internal static void OnSanctionsReceived(
 		System.Guid requestId,
 		long steamId,
 		int outcome,
@@ -1010,21 +959,31 @@ internal static class StaffMenuHost
 		string[] flags,
 		string[] notes )
 	{
-		EnsureServerScope();
-		if ( requestId == System.Guid.Empty || requestId != _packageSanctionsRequestId
-		     || steamId != _packageSanctionsSubjectId )
+		EnsureSanctionsScope();
+		if ( requestId == System.Guid.Empty || requestId != _sanctionsRequestId
+		     || steamId != _sanctionsSubjectId || !_sanctionsCanView
+		     || _sanctionsState != SanctionsReadState.Loading )
 		{
 			return;
 		}
 
-		_packageSanctions.Clear();
-		_packageSanctionsAnsweredFor = steamId;
-		var nextState = System.Enum.IsDefined( typeof( SanctionsReadState ), outcome )
-			? (SanctionsReadState)outcome
-			: SanctionsReadState.Unavailable;
-		if ( !CanViewSanctions( steamId ) )
+		_sanctions.Clear();
+		_sanctionsAnsweredFor = steamId;
+		var nextState = (SanctionsReadState)outcome;
+		if ( nextState is not (SanctionsReadState.Populated or SanctionsReadState.CompletedEmpty
+			or SanctionsReadState.Filtered or SanctionsReadState.Refused or SanctionsReadState.Failed) )
 		{
-			nextState = SanctionsReadState.PermissionDenied;
+			nextState = SanctionsReadState.Unavailable;
+		}
+
+		// Outcome records the host's answered scope. A local grant cannot promote Filtered,
+		// and a host still seeing an older grant cannot expose notes to a now-limited viewer.
+		var canReadNotes = _sanctionsCanViewNotes
+			&& nextState is SanctionsReadState.Populated or SanctionsReadState.CompletedEmpty;
+		if ( !_sanctionsCanViewNotes
+		     && nextState is SanctionsReadState.Populated or SanctionsReadState.CompletedEmpty )
+		{
+			nextState = SanctionsReadState.Filtered;
 		}
 
 		types ??= System.Array.Empty<string>();
@@ -1036,18 +995,33 @@ internal static class StaffMenuHost
 		states ??= System.Array.Empty<string>();
 		flags ??= System.Array.Empty<string>();
 		notes ??= System.Array.Empty<string>();
-		var count = new[]
+		var lengths = new[]
 		{
 			types.Length, active.Length, reasons.Length, durations.Length, created.Length,
 			scopes.Length, states.Length, flags.Length, notes.Length
-		}.Min();
+		};
+		var count = types.Length;
+		if ( lengths.Any( length => length != count )
+		     || (nextState == SanctionsReadState.CompletedEmpty && count != 0)
+		     || (nextState == SanctionsReadState.Populated && count == 0) )
+		{
+			// A malformed projection is unknown, never proof of an empty record.
+			nextState = SanctionsReadState.Failed;
+		}
 
 		if ( nextState is SanctionsReadState.Populated or SanctionsReadState.Filtered )
 		{
 			for ( var i = 0; i < count; i++ )
 			{
+				if ( !canReadNotes
+				     && (!System.Enum.TryParse<Dxura.RP.Shared.SanctionFlags>( flags[i], true, out var sanctionFlags )
+				         || (sanctionFlags & Dxura.RP.Shared.SanctionFlags.Privileged) != 0) )
+				{
+					continue;
+				}
+
 				var rawType = string.IsNullOrWhiteSpace( types[i] ) ? "Unknown" : types[i].Trim();
-				_packageSanctions.Add( new StaffSanction(
+				_sanctions.Add( new StaffSanction(
 					SplitPascalCase( rawType ),
 					rawType.ToLowerInvariant(),
 					active[i],
@@ -1057,27 +1031,31 @@ internal static class StaffMenuHost
 					scopes[i]?.Trim() ?? string.Empty,
 					states[i]?.Trim() ?? string.Empty,
 					FormatSanctionFlags( flags[i] ),
-					notes[i]?.Trim() ?? string.Empty ) );
-			}
-
-			if ( nextState == SanctionsReadState.Populated && _packageSanctions.Count == 0 )
-			{
-				nextState = SanctionsReadState.CompletedEmpty;
+					canReadNotes ? notes[i]?.Trim() ?? string.Empty : string.Empty ) );
 			}
 		}
 
-		_packageSanctionsState = nextState;
-		_packageSanctionsClientRevision++;
+		_sanctionsState = nextState;
+		// Permission sync can lag on either end. Keep the answered scope honest while
+		// allowing a bounded new read to recover once the host observes the same grant.
+		_sanctionsRefreshPending = nextState == SanctionsReadState.Refused
+			|| (nextState == SanctionsReadState.Filtered && _sanctionsCanViewNotes);
+		_sanctionsRetryInterval = SanctionsScopeRetryInterval;
+		_sanctionsClientRevision++;
 	}
 
-	private static void ClearPackageSanctionsView()
+	private static void ClearSanctionsView()
 	{
-		_packageSanctionsRequestId = System.Guid.Empty;
-		_packageSanctionsSubjectId = 0;
-		_packageSanctionsAnsweredFor = 0;
-		_packageSanctionsState = SanctionsReadState.Unanswered;
-		_packageSanctions.Clear();
-		_packageSanctionsClientRevision++;
+		_sanctionsRequestId = System.Guid.Empty;
+		_sanctionsSubjectId = 0;
+		_sanctionsAnsweredFor = 0;
+		_sanctionsCanView = false;
+		_sanctionsCanViewNotes = false;
+		_sanctionsRefreshPending = false;
+		_sanctionsHasRequested = false;
+		_sanctionsState = SanctionsReadState.Unanswered;
+		_sanctions.Clear();
+		_sanctionsClientRevision++;
 	}
 #endif
 
@@ -1427,19 +1405,121 @@ internal static class StaffMenuHost
 	/// </summary>
 	public static bool CanViewAudit() => CanView( AuditPermissionId );
 
-	/// <summary>
-	/// Bumped by <c>LocalAuditStore.Record</c>. Folded into the razor's throttled detail hash so a
-	/// row landing while the Audit tab (or a profile's Recent actions) is open renders without any
-	/// other state change. Constant in the editor build (stub rows never change).
-	/// </summary>
-	public static int AuditVersion
+	private static readonly List<StaffAuditEntry> _remoteAuditRows = new();
+	private static System.Guid _auditRequestId;
+	private static RealTimeSince _auditRequestAge = 10f;
+	private static string _auditReadState = "idle";
+	private static string _auditCoverage = string.Empty;
+	private static int _remoteAuditVersion;
+
+	private static void ClearAuditView()
 	{
-	#if LIFEPUNCH_LOCAL || LIFEPUNCH_PACKAGE
-		get => 0;
-#else
-		get => LocalAuditStore.Version;
+		if ( _remoteAuditRows.Count != 0 || _auditRequestId != System.Guid.Empty
+			|| _auditReadState != "idle" || _auditCoverage.Length != 0 )
+			_remoteAuditVersion++;
+		_remoteAuditRows.Clear();
+		_auditRequestId = System.Guid.Empty;
+		_auditReadState = "idle";
+		_auditCoverage = string.Empty;
+		_auditRequestAge = 10f;
+	}
+
+	/// <summary>Invalidate disclosed data as soon as the local grant or server scope changes.</summary>
+	private static bool EnsureAuditAccess()
+	{
+#if !LIFEPUNCH_LOCAL
+		EnsureServerScope();
+#endif
+		if ( CanViewAudit() ) return true;
+		ClearAuditView();
+		return false;
+	}
+
+	/// <summary>Request a bounded host snapshot; repeated consumers share one in-flight read.</summary>
+	public static void RefreshAuditSnapshot( bool force = false )
+	{
+		if ( !EnsureAuditAccess() ) return;
+#if !LIFEPUNCH_LOCAL
+		if ( Networking.IsHost ) return;
+		if ( _auditRequestId != System.Guid.Empty )
+		{
+			if ( _auditRequestAge < 10f ) return;
+			ClearAuditView();
+			_auditReadState = "failed";
+			_auditRequestAge = 0f;
+			_remoteAuditVersion++;
+			return;
+		}
+		// Even an explicit refresh respects the host's one-second request cooldown.
+		if ( _auditRequestAge < 1f || (!force && _auditRequestAge < 5f) ) return;
+		if ( !StaffMenuBridgeService.Instance.IsValid() )
+		{
+			if ( _auditReadState != "unavailable" ) _remoteAuditVersion++;
+			_remoteAuditRows.Clear();
+			_auditCoverage = string.Empty;
+			_auditReadState = "unavailable";
+			return;
+		}
+		_auditRequestId = System.Guid.NewGuid();
+		_auditRequestAge = 0f;
+		if ( _auditReadState != "ok" )
+		{
+			_auditReadState = "loading";
+			_remoteAuditVersion++;
+		}
+		StaffMenuBridgeService.Instance.RequestAuditHost( _auditRequestId );
 #endif
 	}
+
+#if !LIFEPUNCH_LOCAL
+	internal static void OnAuditReceived( System.Guid requestId, string outcome,
+		StaffAuditWireRow[] rows, string coverage )
+	{
+		if ( !EnsureAuditAccess() || requestId == System.Guid.Empty || requestId != _auditRequestId ) return;
+		_auditRequestId = System.Guid.Empty;
+		_auditRequestAge = 0f;
+		_remoteAuditRows.Clear();
+		_auditCoverage = string.Empty;
+		_auditReadState = outcome is "ok" or "refused" or "unavailable" or "failed" ? outcome : "failed";
+		if ( _auditReadState == "ok" )
+		{
+			try
+			{
+				if ( rows is null || rows.Length > 500 ) throw new System.ArgumentException( "Invalid audit snapshot" );
+				foreach ( var row in rows )
+				{
+					var when = System.DateTimeOffset.FromUnixTimeMilliseconds( row.WhenUnixMilliseconds );
+					_remoteAuditRows.Add( new StaffAuditEntry( FormatAuditWhen( when ), row.Action ?? string.Empty,
+						row.ActorName ?? string.Empty, row.ActorSteamId, row.ActorSteamId == 0L ? "Server" : "Player",
+						row.Description ?? string.Empty, when ) );
+				}
+				_auditCoverage = coverage ?? string.Empty;
+			}
+			catch ( System.Exception )
+			{
+				_remoteAuditRows.Clear();
+				_auditReadState = "failed";
+			}
+		}
+		_remoteAuditVersion++;
+	}
+#endif
+
+	public static int AuditVersion
+	{
+		get
+		{
+			if ( !EnsureAuditAccess() ) return 0;
+#if LIFEPUNCH_LOCAL
+			return 0;
+#elif !LIFEPUNCH_PACKAGE
+			if ( Networking.IsHost ) return LocalAuditStore.Version;
+#endif
+			return _remoteAuditVersion;
+		}
+	}
+
+	public static string AuditCoverageText => EnsureAuditAccess() ? _auditCoverage : string.Empty;
 
 	// Portal Audit action catalog (dxrp.net/portal/audit Actions dropdown) plus staff writers
 	// that already land in the local ring. Unioned with live row actions so a new name appears.
@@ -1518,12 +1598,15 @@ internal static class StaffMenuHost
 	/// </summary>
 	private static IReadOnlyList<StaffAuditEntry> AuditSource()
 	{
+		if ( !EnsureAuditAccess() ) return System.Array.Empty<StaffAuditEntry>();
 #if LIFEPUNCH_LOCAL
 		return AuditStub();
-#elif LIFEPUNCH_PACKAGE
-		return System.Array.Empty<StaffAuditEntry>();
 #else
-		return ReadLocalAuditEntries();
+#if !LIFEPUNCH_PACKAGE
+		if ( Networking.IsHost ) return ReadLocalAuditEntries();
+#endif
+		RefreshAuditSnapshot();
+		return _auditReadState == "ok" ? _remoteAuditRows : System.Array.Empty<StaffAuditEntry>();
 #endif
 	}
 
@@ -1604,29 +1687,38 @@ internal static class StaffMenuHost
 		return oldest;
 	}
 
-	/// <summary>
-	/// Whether this process can read LocalAuditStore. Its rows stay on the host;
-	/// StaffMenuBridgeService does not transport audit rows to remote clients.
-	/// </summary>
+	/// <summary>True only for an authorized local source or a completed remote snapshot.</summary>
 	public static bool AuditFeedIsReadableHere
 	{
+		get
+		{
+			if ( !EnsureAuditAccess() ) return false;
 #if LIFEPUNCH_LOCAL
-		get => true;
-#elif LIFEPUNCH_PACKAGE
-		get => false;
-#else
-		get => Networking.IsHost;
+			return true;
+#elif !LIFEPUNCH_PACKAGE
+			if ( Networking.IsHost ) return true;
 #endif
+			return _auditReadState == "ok";
+		}
 	}
 
-	/// <summary>Truthful reason an audit-backed surface is unavailable in this build or realm.</summary>
 	public static string AuditFeedUnavailableText
 	{
+		get
+		{
+			if ( !EnsureAuditAccess() ) return "Requires permission: portal.audit.view.";
 #if LIFEPUNCH_PACKAGE
-		get => "The published DXRP parent exposes no in-game audit read feed, so this view cannot claim that no activity happened.";
-#else
-		get => "The audit ring lives on the host and does not cross the wire (STAFF-07) -- empty on a remote staff client, not a claim that nothing happened.";
+			if ( Networking.IsHost || _auditReadState == "unavailable" )
+				return "Audit records are unavailable from this server's current DXRP version.";
 #endif
+			return _auditReadState switch
+			{
+				"refused" => "The server denied access to audit records. Requires permission: portal.audit.view.",
+				"failed" => "Audit records could not be loaded. Refresh to try again.",
+				"unavailable" => "Audit records are unavailable from this server.",
+				_ => "Loading audit records from the server..."
+			};
+		}
 	}
 
 	/// <summary>Relative "when" label for a raw stamp, in the same vocabulary the grid's When column uses.</summary>
@@ -1829,6 +1921,16 @@ internal static class StaffMenuHost
 #if !LIFEPUNCH_LOCAL
 		EnsureServerScope();
 #endif
+		if ( !CanUseWaypoints() )
+		{
+#if !LIFEPUNCH_LOCAL
+			if ( _waypoints.Count != 0 ) WaypointVersion++;
+			_waypoints.Clear();
+			_waypointRequestId = System.Guid.Empty;
+			WaypointsReadIsUncertain = true;
+#endif
+			return System.Array.Empty<string>();
+		}
 		return _waypoints;
 	}
 
@@ -1839,6 +1941,7 @@ internal static class StaffMenuHost
 	{
 #if !LIFEPUNCH_LOCAL
 		EnsureServerScope();
+		if ( !CanUseWaypoints() ) { GetWaypoints(); return; }
 		// Routes through the addon bridge (StaffMenuBridgeService), not DXRP core.
 		if ( StaffMenuBridgeService.Instance.IsValid() )
 		{
@@ -1855,6 +1958,7 @@ internal static class StaffMenuHost
 	internal static void OnWaypointsReceived( System.Guid requestId, string[] names, bool authoritative )
 	{
 		EnsureServerScope();
+		if ( !CanUseWaypoints() ) { GetWaypoints(); return; }
 		if ( requestId == System.Guid.Empty || requestId != _waypointRequestId )
 		{
 			return;
@@ -1897,6 +2001,7 @@ internal static class StaffMenuHost
 
 	private static void DispatchWaypoint( string op, string name )
 	{
+		if ( op == "go" ? !CanUseWaypoints() : !CanEditWaypoints() ) return;
 		name = name?.Trim() ?? "";
 		if ( name.Length == 0 )
 		{
@@ -1933,6 +2038,15 @@ internal static class StaffMenuHost
 		{
 			_ = RefreshAfterWrite();
 		}
+#endif
+	}
+
+	public static bool IsStaffMember( long steamId )
+	{
+#if LIFEPUNCH_LOCAL
+		return OnlinePlayers().Any( player => player.SteamId == steamId && player.GroupName != NonStaffGroup );
+#else
+		return IsStaff( steamId );
 #endif
 	}
 
@@ -2054,22 +2168,21 @@ internal static class StaffMenuHost
 	{
 		var sceneId = Game.ActiveScene?.Id ?? System.Guid.Empty;
 		var hostConnectionId = Connection.Host?.Id.ToString() ?? "none";
-		var scope = $"{sceneId:N}|{hostConnectionId}|{Networking.ServerName ?? string.Empty}";
+		var scope = $"{sceneId:N}|{hostConnectionId}|{LocalSteamId}|{Networking.ServerName ?? string.Empty}";
 		if ( string.Equals( scope, _serverScopeKey, System.StringComparison.Ordinal ) )
 		{
 			return;
 		}
 
 		_serverScopeKey = scope;
+		ClearAuditView();
 		_waypoints.Clear();
 		_websiteUrl = string.Empty;
 		_waypointRequestId = System.Guid.Empty;
 		_settingsRequestId = System.Guid.Empty;
 		_websiteWriteRequestId = System.Guid.Empty;
 		ClearInventoryView();
-#if LIFEPUNCH_PACKAGE
-		ClearPackageSanctionsView();
-#endif
+		ClearSanctionsView();
 		WaypointsReadIsUncertain = true;
 		WebsiteReadIsUncertain = true;
 		WebsiteWriteIsPending = false;
