@@ -57,16 +57,31 @@ internal static class LpParityHost
 	public const string RankViewPermissionId = "portal.rank.view";
 	public const string AddonViewPermissionId = "portal.addon.view";
 
-	/// <summary>UX gating only — mirrors <c>portal.server.view</c>.</summary>
+	// REACHABILITY, sensed 2026-09-18 (R9) and recorded so the next reader is not misled: of the four
+	// gates below, only CanViewRanks() is reachable. CanViewServer() and CanViewGameMode() have NO callers
+	// anywhere in game/. CanViewAddons() has exactly one caller -- GameModeOverview() -- and that method
+	// itself has no callers, so the gate is transitively dead. ServerStatus() and GameModeOverview() are
+	// likewise never invoked. They are LEFT AS THEY ARE on purpose: under R-2639-A the fix for a gate that
+	// hides a section is to stop it hiding, and a gate that gates nothing hides nothing. Wiring these up so
+	// they could then be inverted would ADD gating that does not exist today, which is the opposite of the
+	// ruling. If these projections are ever mounted, they must render for every rank from the start.
+
+	/// <summary>UX gating only — mirrors <c>portal.server.view</c>. Currently has no callers.</summary>
 	public static bool CanViewServer() => StaffMenuHost.CanView( ServerViewPermissionId );
 
-	/// <summary>UX gating only — mirrors <c>portal.gamemode.view</c>.</summary>
+	/// <summary>UX gating only — mirrors <c>portal.gamemode.view</c>. Currently has no callers.</summary>
 	public static bool CanViewGameMode() => StaffMenuHost.CanView( GameModeViewPermissionId );
 
-	/// <summary>UX gating only — mirrors <c>portal.rank.view</c>.</summary>
+	/// <summary>
+	/// UX gating only — mirrors <c>portal.rank.view</c>. The one reachable gate of the four: read by
+	/// StaffObserve.razor, where it decides whether rank ROWS are supplied, never whether the view renders.
+	/// </summary>
 	public static bool CanViewRanks() => StaffMenuHost.CanView( RankViewPermissionId );
 
-	/// <summary>UX gating only — mirrors <c>portal.addon.view</c>.</summary>
+	/// <summary>
+	/// UX gating only — mirrors <c>portal.addon.view</c>. Reached only from <c>GameModeOverview()</c>,
+	/// which has no callers, so this gate is transitively dead. See the reachability note above.
+	/// </summary>
 	public static bool CanViewAddons() => StaffMenuHost.CanView( AddonViewPermissionId );
 
 	private const string HostOnlyText = "host only";

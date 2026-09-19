@@ -618,16 +618,21 @@
 		{
 			@* StaffObserve owns the sanction subject and request. The profile route seeds it and
 			   provides a return path; per-subject CanViewSanctions applies inside the child.
-			   The full Observe hub retains the stricter CanViewObserve gate. *@
+			   The full Observe hub below still CONSULTS the stricter CanViewObserve, but since R9 it no
+			   longer gates whether that hub renders -- only whether its records are supplied. *@
 			<StaffObserve SanctionsOnly="@true"
 			              SubjectSeedSteamId="@_sanctionsSteamId"
 			              SubjectSeedVersion="@_sanctionsSeedVersion"
 			              OnManagePlayer="@((long steamId) => OpenSanctionManagementFromObserve( steamId ))"
 			              OnReturnToProfile="@(() => ReturnToProfileFromSanctions())" />
 		}
-		else if ( _activeTab == TabPlayerMgmt && StaffObserveHost.CanViewObserve() )
+		else if ( _activeTab == TabPlayerMgmt )
 		{
-			@* The full read-only Observe hub requires portal.audit.view and rank order 10 or higher. *@
+			@* R-2639-A / R-2640-A: the hub no longer requires CanViewObserve() in order to RENDER. It mounts
+			   for every rank, and StaffObserve itself states the reason and withholds the records when the
+			   viewer lacks portal.audit.view or the rank-order floor. What stood here was an "Access
+			   restricted" lock screen that REPLACED the entire page -- the exact shape the ruling forbids.
+			   CanViewObserve() is deliberately retained and is still consulted inside the child for state. *@
 			@* Attribute set kept TOTAL against the SanctionsOnly mount above: if the engine ever reuses the sibling
 			   panel positionally, the hub must not inherit the seed mode, seed or return path. *@
 			<StaffObserve SanctionsOnly="@false"
@@ -635,21 +640,6 @@
 			              SubjectSeedVersion="@( 0 )"
 			              OnReturnToProfile="@((Action?)null)"
 			              OnManagePlayer="@((long steamId) => OpenSanctionManagementFromObserve( steamId ))" />
-		}
-		else if ( _activeTab == TabPlayerMgmt )
-		{
-			<div class="settings">
-				<div class="settings-head">
-					<i class="material-icons">groups</i>
-					<span>Player &amp; Staff Management</span>
-				</div>
-
-				<div class="coming-soon">
-					<i class="material-icons">lock</i>
-					<span class="coming-soon-title">Access restricted</span>
-					<span class="coming-soon-hint">Your current rank does not have access to Observe.</span>
-				</div>
-			</div>
 		}
 		else
 		{
