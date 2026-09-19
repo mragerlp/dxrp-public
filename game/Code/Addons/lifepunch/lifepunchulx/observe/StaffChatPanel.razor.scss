@@ -22,16 +22,8 @@ $chat-border: #343536;
 	}
 
 	.staff-chat-heading {
-		flex-direction: row;
-		align-items: center;
-		flex-shrink: 0;
-		min-width: 0;
-		gap: $chat-space;
-	}
-
-	.staff-chat-heading-copy {
 		flex-direction: column;
-		flex: 1 1 0;
+		flex-shrink: 0;
 		min-width: 0;
 	}
 
@@ -122,7 +114,6 @@ $chat-border: #343536;
 	}
 
 	.staff-chat-send,
-	.staff-chat-back,
 	.staff-chat-count {
 		flex-shrink: 0;
 	}
@@ -132,12 +123,6 @@ $chat-border: #343536;
 		width: 100%;
 		height: $chat-control-height;
 		align-self: stretch;
-	}
-
-	.staff-chat-panel .staff-chat-back {
-		margin-top: 0;
-		width: auto;
-		align-self: center;
 	}
 
 	.staff-chat-hint {

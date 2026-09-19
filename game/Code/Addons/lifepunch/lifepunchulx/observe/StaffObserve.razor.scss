@@ -48,7 +48,10 @@ $observe-ranks-accent: #6d28d9;
 		color: #c05f5f;
 	}
 
-	.observe-chat-button {
+	.observe-chat-actions {
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
 		margin-left: auto;
 		flex-shrink: 0;
 	}
@@ -106,6 +109,23 @@ $observe-ranks-accent: #6d28d9;
 		.material-icons {
 			font-size: 15px;
 		}
+	}
+
+	// The return control stays compact beside Chat and uses the Observe accent on hover.
+	.observe-back-button {
+		padding: 4px 8px;
+		font-size: 11px;
+		flex-shrink: 0;
+
+		.material-icons {
+			font-size: 13px;
+		}
+	}
+
+	.observe-back-button:hover {
+		background-color: rgba(#d99a3f, 0.18);
+		border-color: #d99a3f;
+		color: #d99a3f;
 	}
 
 	// Selection keeps white text and a category outline. Hover adds category color

@@ -9,13 +9,8 @@
 
 <root class="staff-chat-panel">
 	<div class="staff-chat-heading">
-		<div class="staff-chat-heading-copy">
-			<div class="observe-section-head">Staff chat</div>
-			<div class="observe-hint">Recent received staff messages, newest first. Older messages may be unavailable.</div>
-		</div>
-		<button class="confirm-btn confirm-btn-secondary staff-chat-back" onclick="@(() => OnClose?.Invoke())">
-			<i class="material-icons">arrow_back</i><span>Back to Observe</span>
-		</button>
+		<div class="observe-section-head">Staff chat</div>
+		<div class="observe-hint">Recent received staff messages, newest first. Older messages may be unavailable.</div>
 	</div>
 	@if ( _context.CanRead )
 	{
@@ -77,8 +72,6 @@
 </root>
 
 @code {
-	public Action? OnClose { get; set; }
-
 	private StaffChatContext _context;
 	private IReadOnlyList<StaffChatMessage> _messages = Array.Empty<StaffChatMessage>();
 	private string _draft = string.Empty;

@@ -56,9 +56,17 @@
 		<button class="@ViewClass( ObserveView.Ranks )" onclick="@(() => SetView( ObserveView.Ranks ))">
 			<i class="material-icons">admin_panel_settings</i><span>Ranks</span>
 		</button>
-		<button class="@( ViewClass( ObserveView.StaffChat ) + " observe-chat-button" )" onclick="@OpenStaffChat">
-			<i class="material-icons">chat</i><span>Chat</span>
-		</button>
+		<div class="observe-chat-actions">
+			@if ( ActiveView == ObserveView.StaffChat )
+			{
+				<button class="observe-tab observe-back-button" onclick="@CloseStaffChat" tooltip="Back to Observe">
+					<i class="material-icons">arrow_back</i><span>Back to Observe</span>
+				</button>
+			}
+			<button class="@ViewClass( ObserveView.StaffChat )" onclick="@OpenStaffChat">
+				<i class="material-icons">chat</i><span>Chat</span>
+			</button>
+		</div>
 	</div>
 	}
 
@@ -72,7 +80,7 @@
 	}
 	else if ( ActiveView == ObserveView.StaffChat )
 	{
-		<StaffChatPanel OnClose="@CloseStaffChat" />
+		<StaffChatPanel />
 	}
 	else if ( ActiveView == ObserveView.Sentinel )
 	{
