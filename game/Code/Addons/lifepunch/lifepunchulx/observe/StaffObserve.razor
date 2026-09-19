@@ -296,7 +296,7 @@
 		<div class="observe-view">
 			<div class="observe-block">
 				<div class="observe-section-head">Online staff</div>
-				<div class="observe-hint">Rank-ordered staff on the server right now, with live playtime and actions in the available audit snapshot.</div>
+				<div class="observe-hint">Online staff, ordered by rank. Counts cover the available audit snapshot; zero does not mean inactive.</div>
 				@{
 					var staff = StaffObserveHost.StaffActivity();
 				}
@@ -352,7 +352,7 @@
 				<div class="observe-hint">Recorded acts gated behind a staff power, newest first -- the same available audit snapshot the Audit tab reads, filtered to staff actions. The name is the acting staff member; the target of an act lives in the description text.</div>
 				@if ( StaffObserveHost.RingLivesHere )
 				{
-					<div class="observe-caveat">Counts cover only the available audit snapshot; older events may be omitted. Zero does not establish inactivity.</div>
+					<div class="observe-caveat">Recent recorded staff actions only; older events may be unavailable.</div>
 				}
 				@{
 					var staffLog = StaffObserveHost.StaffActionLog( _staffActorFilter );
