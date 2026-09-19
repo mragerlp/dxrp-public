@@ -207,7 +207,7 @@
 
 						@if ( entries.Count == 0 && auditTotal == 0 && !StaffMenuHost.AuditFeedIsReadableHere )
 						{
-							@* Audit rows stay in the host process and are unavailable to remote clients. *@
+							@* The adapter distinguishes denied, unavailable and pending reads from an empty result. *@
 							<div class="audit-empty">@StaffMenuHost.AuditFeedUnavailableText</div>
 						}
 						else if ( entries.Count == 0 && auditTotal == 0 )
@@ -224,7 +224,7 @@
 							<div class="audit-overflow">@( $"Showing the newest {auditShown} of {entries.Count} entries — refine the filters to reach older rows." )</div>
 						}
 
-						@if ( _auditWindowMinutes > 0 && auditTotal > 0 )
+						@if ( auditTotal > 0 && ( _auditWindowMinutes > 0 || !string.IsNullOrEmpty( StaffMenuHost.AuditCoverageText ) ) )
 						{
 							<div class="audit-coverage">@AuditCoverageNote()</div>
 						}
@@ -244,19 +244,16 @@
 				<div class="wp-bar">
 					<i class="material-icons">place</i>
 					<TextEntry class="wp-input" Placeholder="Waypoint name" Value:bind="@_waypointName"/>
-					<button class="wp-btn wp-btn-quiet @( string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
-					        tooltip="Teleport to this waypoint"
+					<button class="wp-btn wp-btn-quiet @( !StaffMenuHost.CanUseWaypoints() || string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
+					        tooltip="@( StaffMenuHost.CanUseWaypoints() ? "Teleport to this waypoint" : "Requires permission: command.waypoint.use" )"
 					        onclick="@GoToTypedWaypoint">
 						<i class="material-icons">my_location</i> Go
 					</button>
-					@if ( StaffMenuHost.CanEditWaypoints() )
-					{
-						<button class="wp-btn wp-btn-primary @( string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
-						        tooltip="Save a waypoint at your current position + view angle"
+						<button class="wp-btn wp-btn-primary @( !StaffMenuHost.CanEditWaypoints() || string.IsNullOrWhiteSpace( _waypointName ) ? "control-disabled" : "" )"
+						        tooltip="@( StaffMenuHost.CanEditWaypoints() ? "Save a waypoint at your current position + view angle" : "Requires permission: command.waypoint.edit" )"
 						        onclick="@SetWaypointFromInput">
 							<i class="material-icons">push_pin</i> Set here
 						</button>
-					}
 				</div>
 
 				@{
@@ -273,7 +270,11 @@
 							<button class="wp-go-row" tooltip="Teleport here" onclick="@(() => GoToWaypoint( name ))">
 								<i class="material-icons" style="@AppliedGlyphStyle()">my_location</i> Go
 							</button>
-							@if ( StaffMenuHost.CanEditWaypoints() )
+							@if ( !StaffMenuHost.CanEditWaypoints() )
+							{
+								<button class="wp-clear control-disabled" tooltip="Requires permission: command.waypoint.edit"><i class="material-icons">delete</i></button>
+							}
+							else
 							{
 								@if ( _wpPendingDelete == name )
 								{
@@ -294,7 +295,11 @@
 						</div>
 					}
 
-					@if ( waypoints.Count == 0 && StaffMenuHost.WaypointsReadIsUncertain )
+					@if ( !StaffMenuHost.CanUseWaypoints() )
+					{
+						<div class="wp-empty">Requires permission: command.waypoint.use.</div>
+					}
+					else if ( waypoints.Count == 0 && StaffMenuHost.WaypointsReadIsUncertain )
 					{
 						<div class="wp-empty">
 							Waypoint status unavailable — the server store did not return a confirmed answer.
@@ -323,8 +328,7 @@
 
 				</div>
 
-				@if ( StaffMenuHost.CanView( "ability.teleport" ) )
-				{
+				@{
 					<div class="wp-return-section">
 						<div class="wp-head">
 							<i class="material-icons" style="@AppliedGlyphStyle()">undo</i>
@@ -338,27 +342,27 @@
 						<div class="wp-bar wp-return-bar">
 							<i class="material-icons">person</i>
 							<TextEntry class="wp-input" Placeholder="SteamID64" Value:bind="@_returnSteamId"/>
-					<button class="wp-btn go wp-move-primary @( string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled wp-go-disabled" : "" )"
-							        tooltip="Return this player to their previous position"
+					<button class="wp-btn go wp-move-primary @( !StaffMenuHost.CanView( "ability.teleport" ) || string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled wp-go-disabled" : "" )"
+							        tooltip="@( StaffMenuHost.CanView( "ability.teleport" ) ? "Return this player to their previous position" : "Requires permission: ability.teleport" )"
 							        onclick="@ReturnTypedPlayer">
 								<i class="material-icons">undo</i> Return
 							</button>
 						</div>
 
 						<div class="wp-move-bar">
-						<button class="wp-btn go wp-move-primary @( string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled wp-go-disabled" : "" )"
-							        tooltip="Teleport yourself to this player"
+						<button class="wp-btn go wp-move-primary @( !StaffMenuHost.CanView( "ability.teleport" ) || string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled wp-go-disabled" : "" )"
+							        tooltip="@( StaffMenuHost.CanView( "ability.teleport" ) ? "Teleport yourself to this player" : "Requires permission: ability.teleport" )"
 							        onclick="@GotoTypedPlayer">
 								<i class="material-icons">my_location</i> Goto
 							</button>
-						<button class="wp-btn go wp-move-primary @( string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled wp-go-disabled" : "" )"
-							        tooltip="Bring this player to you"
+						<button class="wp-btn go wp-move-primary @( !StaffMenuHost.CanView( "ability.teleport" ) || string.IsNullOrWhiteSpace( _returnSteamId ) ? "control-disabled wp-go-disabled" : "" )"
+							        tooltip="@( StaffMenuHost.CanView( "ability.teleport" ) ? "Bring this player to you" : "Requires permission: ability.teleport" )"
 							        onclick="@BringTypedPlayer">
 								<i class="material-icons">pan_tool</i> Bring
 							</button>
 						</div>
 
-						@* Recent movement uses the shared audit ring and exact action-name filter.
+						@* Recent movement filters the current bounded audit sample by exact action name.
 						   CanViewAudit is required separately from the waypoint teleport permission. *@
 						@if ( StaffMenuHost.CanViewAudit() )
 						{
@@ -372,10 +376,10 @@
 							<div class="lp-ui-scroll-region wp-events">
 								@if ( teleportEvents.Count == 0 )
 								{
-									@* Remote clients cannot read the host ring; qualify the result before showing an empty feed. *@
+									@* A readable sample may omit older events; absence here does not establish no activity. *@
 									@if ( StaffMenuHost.AuditFeedIsReadableHere )
 									{
-										<div class="section-empty">No teleport or waypoint activity recorded yet.</div>
+										<div class="section-empty">No teleport or waypoint events in the current audit sample.</div>
 									}
 									else
 									{
@@ -395,8 +399,14 @@
 									@* Show the total alongside the render cap so a partial view is identifiable. *@
 									@if ( teleportEvents.Count > 50 )
 									{
-										<div class="section-empty">@( $"Showing the newest 50 of {teleportEvents.Count} — the Audit tab reaches the rest." )</div>
+										<div class="section-empty">@( $"Showing the newest 50 of {teleportEvents.Count} matching events in the current audit sample. Open Audit for the remaining received events." )</div>
 									}
+								}
+								@if ( StaffMenuHost.AuditFeedIsReadableHere )
+								{
+									<div class="section-empty">@( string.IsNullOrEmpty( StaffMenuHost.AuditCoverageText )
+										? "This list covers a bounded audit sample; older events may be absent."
+										: StaffMenuHost.AuditCoverageText )</div>
 								}
 								<div class="wp-events-tail"></div>
 							</div>
@@ -422,11 +432,9 @@
 								@($"Linked from the “{StaffMenuHost.NetworkIdentifier}” tag in the tab bar — staff click it to copy your link.")
 							</div>
 
-							@if ( StaffMenuHost.CanEditSettings() )
-							{
-								<div class="settings-bar">
+								<div class="settings-bar @( StaffMenuHost.CanEditSettings() ? "" : "control-disabled" )" tooltip="@( StaffMenuHost.CanEditSettings() ? "Network website" : "Requires permission: lifepunchulx.settings.edit" )">
 									<i class="material-icons">link</i>
-									<TextEntry class="settings-input" Placeholder="https://your-network.com" Value:bind="@_websiteDraft"/>
+									<TextEntry Disabled="@(!StaffMenuHost.CanEditSettings())" style="@( StaffMenuHost.CanEditSettings() ? "" : "pointer-events: none; opacity: 0.45;" )" class="settings-input" Placeholder="https://your-network.com" Value:bind="@_websiteDraft"/>
 									@* Save feedback is BUTTON STATE only (green "Saved", red "Failed"). No row is ever
 									   inserted below the bar, so the Appearance card underneath never moves. *@
 									<button class="settings-btn save settings-save-primary @( WebsiteSaveClasses() )"
@@ -451,13 +459,6 @@
 										<span class="settings-current-text">@( StaffMenuHost.WebsiteReadIsUncertain ? "Website status unavailable — the server store did not return a confirmed answer." : "No website set yet — leave the field empty and Save to clear it." )</span>
 									}
 								</div>
-							}
-							else
-							{
-								<div class="settings-readonly">
-									@( StaffMenuHost.HasWebsite ? $"{(StaffMenuHost.WebsiteReadIsUncertain ? "Last known: " : "")}{StaffMenuHost.WebsiteUrl}" : ( StaffMenuHost.WebsiteReadIsUncertain ? "Website status unavailable." : "No website set." ) )
-								</div>
-							}
 						</div>
 
 						<div class="settings-group settings-appearance">
@@ -1057,18 +1058,15 @@
 								<i class="material-icons">bolt</i> Actions for this player
 							</button>
 
-							@if ( StaffMenuHost.CanViewAudit() || StaffMenuHost.CanViewSanctions( profileSteamId ) )
-							{
+							@{
 								<div class="profile-links">
-									@if ( StaffMenuHost.CanViewAudit() )
-									{
-										<button class="confirm-btn confirm-btn-secondary btn-observe" onclick="@(() => OpenAuditForPlayer( profileSteamId ))">
+									@{
+										<button class="confirm-btn confirm-btn-secondary btn-observe @( StaffMenuHost.CanViewAudit() ? "" : "control-disabled confirm-disabled-state" )" tooltip="@( StaffMenuHost.CanViewAudit() ? "View audit log" : "Requires permission: portal.audit.view" )" onclick="@(() => OpenAuditForPlayer( profileSteamId ))">
 											<i class="material-icons">history</i> View audit log
 										</button>
 									}
-								@if ( StaffMenuHost.CanViewSanctions( profileSteamId ) )
-								{
-									<button class="confirm-btn confirm-btn-secondary confirm-btn-severe-state" onclick="@(() => OpenSanctionsForPlayer( profileSteamId ))">
+								@{
+									<button class="confirm-btn confirm-btn-secondary confirm-btn-severe-state @( StaffMenuHost.CanViewSanctions( profileSteamId ) ? "" : "control-disabled confirm-disabled-state" )" tooltip="@( StaffMenuHost.CanViewSanctions( profileSteamId ) ? "Open sanctions" : "Requires permission to view this player’s sanctions" )" onclick="@(() => OpenSanctionsForPlayer( profileSteamId ))">
 											<i class="material-icons">gavel</i> Open sanctions
 										</button>
 									}
@@ -1249,7 +1247,8 @@
 						&& moneyState is StaffMoneyGrantState.Pending or StaffMoneyGrantState.Succeeded or StaffMoneyGrantState.Unknown;
 					var moneyNavigationLocked = pending.Dispatch == StaffDispatchKind.GiveMoney
 						&& moneyState is StaffMoneyGrantState.Pending or StaffMoneyGrantState.Unknown;
-					var formCanConfirm = requiredArgsComplete && !moneyLocked && HasRequiredToggleState( pending );
+					var actionEligible = IsEnabled( pending, selected, hasTarget );
+					var formCanConfirm = actionEligible && requiredArgsComplete && !moneyLocked && HasRequiredToggleState( pending );
 					var targetContext = pending.Dispatch == StaffDispatchKind.GiveMoney
 					                    && moneyState != StaffMoneyGrantState.Idle
 					                    && _moneyGrantTargetSteamId != 0
@@ -1312,7 +1311,7 @@
 										@foreach ( var preset in StaffMenuConfig.DurationPresets( pending.Key ) )
 										{
 											var allowed = pending.Key != "ban"
-												|| StaffMenuConfig.IsBanDurationAllowed( StaffMenuHost.LocalRankOrder, preset.Hours );
+												|| StaffMenuHost.CanView( "player.ban" );
 											<button class="chip @( _duration == preset.Token ? "chip-active" : "" ) @( allowed ? "" : "control-disabled" )"
 											        onclick="@(() => SetDuration( preset.Token, allowed ))">
 												@preset.Label
@@ -1474,11 +1473,11 @@
 							<div class="arg-required-hint">Complete the required fields before confirming.</div>
 						}
 
-						@* Moderation keeps the actual restatement in normal flow from form opening. Its natural
-						   content height stays present when the first click arms, so the second click keeps
-						   the same Confirm hit target without a guessed spacer height. *@
+						@* Every armed action keeps its existing restatement in normal flow from form opening.
+						   Its natural height stays present when the first click arms, so the second click
+						   keeps the same Confirm hit target without a guessed spacer height. *@
 						@if ( pending.Dispatch != StaffDispatchKind.GiveMoney
-						      && ( pending.Category == StaffMenuActions.CategoryModeration || pending.Key == "forcerpname" || IsToggleAction( pending ) || ( _severeConfirm && requiredArgsComplete ) ) )
+						      && ( RequiresArmedConfirm( pending ) || IsToggleAction( pending ) ) )
 						{
 							<div class="grant-confirm">
 								@* Severe actions and Jail restate the action and target. Money uses the reserved status lane. *@
@@ -1492,7 +1491,7 @@
 						@if ( ( pending.Key != "kick" || requiredArgsComplete ) && !moneyLocked )
 						{
 							<button class="@( ConfirmButtonClasses( pending, formCanConfirm ) )"
-							        tooltip="@ConfirmButtonTooltip( pending, formCanConfirm )"
+							        tooltip="@ConfirmButtonTooltip( pending, formCanConfirm, actionEligible )"
 							        onclick="@(() => ConfirmArgs( selected ))">
 								<i class="material-icons">@( _severeConfirm ? "warning" : "check" )</i> @ConfirmButtonLabel( pending )
 							</button>
@@ -1605,6 +1604,7 @@
 	// Roster scans check catalogue permissions per player, so use a slower cadence
 	// than volatile player stats such as health and balances.
 	private RealTimeSince _sinceRosterRefresh;
+	private bool _hadWaypointPermission;
 	private const float RosterRefreshInterval = 1.0f;
 
 	// Hash roster identity as well as count so replacements, renames and rank changes repaint.
@@ -1858,6 +1858,8 @@
 
 	private string ConfirmActionHint( StaffAction action )
 	{
+		if ( LacksPermission( action ) ) return PermissionLockedHint( action );
+
 		if ( !HasRequiredToggleState( action ) )
 		{
 			return "Waiting for the player's current state before confirming.";
@@ -1880,8 +1882,11 @@
 			: "Confirm once more to run this action on the live host.";
 	}
 
-	private string ConfirmButtonTooltip( StaffAction action, bool requiredArgsComplete )
+	private string ConfirmButtonTooltip( StaffAction action, bool requiredArgsComplete, bool actionEligible )
 	{
+		if ( LacksPermission( action ) ) return PermissionLockedHint( action );
+		if ( !actionEligible ) return "This action is unavailable for the current target or player state";
+
 		if ( !HasRequiredToggleState( action ) )
 		{
 			return "Current player state is unavailable";
@@ -1980,10 +1985,6 @@
 		// the Settings view is visited).
 		StaffMenuHost.RefreshSettings();
 
-		if ( StaffMenuHost.CanUseWaypoints() )
-		{
-			StaffMenuHost.RefreshWaypoints();
-		}
 	}
 
 	protected override void OnUpdate()
@@ -2037,17 +2038,26 @@
 			rosterHash = HashCode.Combine( rosterHash, permissionId, StaffMenuHost.CanView( permissionId ) );
 		}
 
-		// If a live rank edit revokes the permission behind an already-open privileged surface,
-		// leave that surface on the same one-second permission sample instead of keeping stale data open.
-		if ( (_activeTab == TabWaypoints && !StaffMenuHost.CanUseWaypoints())
-		     || (_activeTab == TabAudit && !StaffMenuHost.CanViewAudit())
-		     || (_activeTab == TabSanctions && !StaffMenuHost.CanViewSanctions( _sanctionsSteamId )) )
+		// A revoked grant or unavailable target cannot retain an armed confirmation for a later regrant.
+		if ( _pendingAction is { } pending )
 		{
-			_activeTab = StaffMenuActions.CategoryModeration;
-			_sanctionsSteamId = 0;
-			_pendingAction = null;
-			InvalidateArmedConfirm();
+			var selected = _players.FirstOrDefault( player => player.SteamId == _selectedSteamId );
+			if ( !IsEnabled( pending, selected, selected.SteamId != 0 ) ) InvalidateArmedConfirm();
 		}
+
+		// Keep sections discoverable after revocation; adapters withhold protected data.
+		var canUseWaypoints = StaffMenuHost.CanUseWaypoints();
+		if ( !canUseWaypoints )
+		{
+			StaffMenuHost.GetWaypoints();
+			_wpPendingDelete = null;
+		}
+		else if ( !_hadWaypointPermission )
+		{
+			StaffMenuHost.RefreshWaypoints();
+		}
+		_hadWaypointPermission = canUseWaypoints;
+		StaffMenuHost.RefreshAuditSnapshot();
 
 		if ( _inventoryModalOpen && !StaffMenuHost.CanViewInventory( _inventoryModalSteamId ) )
 		{
@@ -2245,6 +2255,7 @@
 
 	private void AskClearWaypoint( string name )
 	{
+		if ( !StaffMenuHost.CanEditWaypoints() ) return;
 		_wpPendingDelete = name;
 		StateHasChanged();
 	}
@@ -2257,6 +2268,7 @@
 
 	private void ConfirmClearWaypoint( string name )
 	{
+		if ( !StaffMenuHost.CanEditWaypoints() ) return;
 		_wpPendingDelete = null;
 		ClearWaypoint( name );
 	}
@@ -2590,7 +2602,7 @@
 
 	private void OnActionClick( StaffAction action, StaffMenuPlayer selected, bool enabled )
 	{
-		if ( !enabled || IsSelfSanction( action, selected.SteamId ) )
+		if ( !enabled || !IsEnabled( action, selected, selected.SteamId != 0 ) )
 		{
 			return;
 		}
@@ -2698,8 +2710,11 @@
 
 	private void ConfirmArgs( StaffMenuPlayer selected )
 	{
-		if ( _pendingAction is not { } action || ( action.Key == "xray" && !StaffMenuHost.CanUseXray() ) )
+		if ( _pendingAction is not { } action ) return;
+		if ( !IsEnabled( action, selected, selected.SteamId != 0 ) )
 		{
+			InvalidateArmedConfirm();
+			StateHasChanged();
 			return;
 		}
 
@@ -2878,7 +2893,7 @@
 	{
 		if ( action.Key == "ban" )
 		{
-			return StaffMenuConfig.IsBanDurationTokenAllowed( StaffMenuHost.LocalRankOrder, value );
+			return StaffMenuConfig.IsBanDurationTokenAllowed( value );
 		}
 
 		return StaffMenuConfig.TryNormalizeDurationToken( value, allowPermanent: false, out _ );
@@ -2903,6 +2918,14 @@
 	private void Dispatch( StaffAction action, StaffMenuPlayer selected, IReadOnlyDictionary<string, string>? args = null,
 		bool? expectedToggleState = null )
 	{
+		// Recheck eligibility at the last local boundary; the host remains authoritative.
+		if ( !IsEnabled( action, selected, selected.SteamId != 0 ) )
+		{
+			InvalidateArmedConfirm();
+			StateHasChanged();
+			return;
+		}
+
 		// Direct self toggles capture this click; confirmed forms retain the state they displayed.
 		if ( args is null && StaffMenuHost.IsGuardedStatusToggle( action.Key ) )
 		{
@@ -3145,6 +3168,7 @@
 
 	private void RefreshAudit()
 	{
+		StaffMenuHost.RefreshAuditSnapshot( true );
 		_auditActionOpen = false;
 		_auditWindowOpen = false;
 		StateHasChanged();
@@ -3220,6 +3244,7 @@
 	/// </summary>
 	private string AuditCoverageNote()
 	{
+		if ( !string.IsNullOrEmpty( StaffMenuHost.AuditCoverageText ) ) return StaffMenuHost.AuditCoverageText;
 		var oldest = StaffMenuHost.AuditOldestUtc();
 		if ( oldest is null )
 		{
@@ -3266,6 +3291,7 @@
 	/// <summary>Open the Audit viewer pre-filtered to one player (from their profile pane).</summary>
 	private void OpenAuditForPlayer( long steamId )
 	{
+		if ( steamId == 0 || !StaffMenuHost.CanViewAudit() ) return;
 		ResetPocketModal();
 		ResetInventoryModal();
 		_auditPlayerId = steamId.ToString();
@@ -3289,7 +3315,7 @@
 	/// </summary>
 	private void OpenSanctionsForPlayer( long steamId )
 	{
-		if ( steamId == 0 )
+		if ( steamId == 0 || !StaffMenuHost.CanViewSanctions( steamId ) )
 		{
 			return;
 		}
@@ -3491,6 +3517,7 @@
 	/// <summary>Save a waypoint at the caller's current position under the typed name.</summary>
 	private void SetWaypointFromInput()
 	{
+		if ( !StaffMenuHost.CanEditWaypoints() ) return;
 		if ( string.IsNullOrWhiteSpace( _waypointName ) )
 		{
 			return;
@@ -3523,6 +3550,7 @@
 	/// </summary>
 	private void DispatchTypedTeleport( string actionKey )
 	{
+		if ( !StaffMenuHost.CanView( "ability.teleport" ) ) return;
 		if ( !long.TryParse( _returnSteamId?.Trim(), out var steamId ) || steamId == 0 )
 		{
 			return;
@@ -4077,6 +4105,7 @@
 
 	private string WebsiteSaveClasses()
 	{
+		if ( !StaffMenuHost.CanEditSettings() ) return "control-disabled settings-save-disabled";
 		if ( StaffMenuHost.WebsiteWriteIsPending )
 		{
 			return "control-disabled settings-save-disabled settings-save-pending";
@@ -4114,6 +4143,7 @@
 
 	private string WebsiteSaveTooltip()
 	{
+		if ( !StaffMenuHost.CanEditSettings() ) return "Requires permission: lifepunchulx.settings.edit";
 		if ( StaffMenuHost.WebsiteWriteIsPending ) return "Waiting for the server API result";
 		if ( WebsiteSaveIsSaved() ) return string.IsNullOrWhiteSpace( StaffMenuHost.WebsiteWriteMessage ) ? "Saved" : StaffMenuHost.WebsiteWriteMessage;
 		if ( WebsiteSaveIsFailed() ) return $"{StaffMenuHost.WebsiteWriteMessage} — edit and Save to retry";
@@ -4123,7 +4153,7 @@
 	/// <summary>Save the typed network website URL (host re-checks the owner grant). Empty clears it.</summary>
 	private void SaveWebsiteFromInput()
 	{
-		if ( !WebsiteDraftIsDirty() || StaffMenuHost.WebsiteWriteIsPending )
+		if ( !StaffMenuHost.CanEditSettings() || !WebsiteDraftIsDirty() || StaffMenuHost.WebsiteWriteIsPending )
 		{
 			return;
 		}

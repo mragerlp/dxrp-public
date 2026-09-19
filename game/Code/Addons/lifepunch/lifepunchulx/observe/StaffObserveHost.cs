@@ -53,22 +53,13 @@ public readonly record struct ObserveStaffRow(
 /// </summary>
 internal static class StaffObserveHost
 {
-	// ── Superadmin+ gate ──────────────────────────────────────────────────────────────
+	// Read permissions.
 
 	/// <summary>
-	/// Minimum rank order for Observe, matching the default unlimited-ban threshold.
-	/// DXRP ranks use configured numeric Order values, not a fixed tier enum.
+	/// Sentinel, Economy and Staff records require the configured audit permission.
+	/// Rank names and order do not grant access. Sanctions and Ranks use their own read scopes.
 	/// </summary>
-	public const int SuperadminPlusMinRankOrder = 10;
-
-	/// <summary>
-	/// Observe visibility requires portal.audit.view and the rank-order floor.
-	/// This is a UI gate for read-only views, not authority to execute an action.
-	/// The local fixture build supplies permission and rank order 10 for preview.
-	/// </summary>
-	public static bool CanViewObserve() =>
-		StaffMenuHost.CanView( StaffMenuHost.AuditPermissionId )
-		&& StaffMenuHost.LocalRankOrder >= SuperadminPlusMinRankOrder;
+	public static bool CanViewObserve() => StaffMenuHost.CanViewAudit();
 
 	// ── Audit-ring action sets (existing names only) ─────────────────────────────────
 
@@ -98,35 +89,41 @@ internal static class StaffObserveHost
 	};
 
 	/// <summary>
-	/// Audit rows remain in the host process; remote clients cannot read the ring.
+	/// Whether the authorized audit adapter can supply rows in this session.
 	/// An unavailable feed must not be presented as an empty history.
 	/// </summary>
-	public static bool RingLivesHere => StaffMenuHost.AuditFeedIsReadableHere;
+	public static bool RingLivesHere => CanViewObserve() && StaffMenuHost.AuditFeedIsReadableHere;
 
 	/// <summary>
 	/// Reason ring-backed Observe views are unavailable to this viewer.
 	/// </summary>
-	public static string RingUnavailableText => StaffMenuHost.AuditFeedUnavailableText;
+	public static string RingUnavailableText => CanViewObserve()
+		? StaffMenuHost.AuditFeedUnavailableText
+		: $"Requires permission: {StaffMenuHost.AuditPermissionId}";
 
 	// ── View reads (existing sources only) ───────────────────────────────────────────
 
 	/// <summary>Newest-first enforcement events from the host audit ring.</summary>
-	public static IReadOnlyList<StaffAuditEntry> ModerationEvents() =>
-		StaffMenuHost.GetAuditEntries( "", "", false, ModerationActionNames );
+	public static IReadOnlyList<StaffAuditEntry> ModerationEvents() => CanViewObserve()
+		? StaffMenuHost.GetAuditEntries( "", "", false, ModerationActionNames )
+		: Array.Empty<StaffAuditEntry>();
 
 	/// <summary>Newest-first money events from the host audit ring. Amounts live inside the
 	/// free-text descriptions (the ring has no numeric field); callers must render them
 	/// verbatim and compute nothing from them.</summary>
-	public static IReadOnlyList<StaffAuditEntry> EconomyEvents() =>
-		StaffMenuHost.GetAuditEntries( "", "", false, EconomyActionNames );
+	public static IReadOnlyList<StaffAuditEntry> EconomyEvents() => CanViewObserve()
+		? StaffMenuHost.GetAuditEntries( "", "", false, EconomyActionNames )
+		: Array.Empty<StaffAuditEntry>();
 
 	/// <summary>
 	/// Newest-first staff actions, optionally restricted to an exact actor SteamID.
 	/// Targets are embedded in Description rather than stored in a separate ring field.
 	/// </summary>
-	public static IReadOnlyList<StaffAuditEntry> StaffActionLog( long actorSteamId = 0 ) =>
-		StaffMenuHost.GetAuditEntries(
-			actorSteamId == 0 ? "" : actorSteamId.ToString(), "", false, StaffActionTaxonomy.StaffActionNames );
+	public static IReadOnlyList<StaffAuditEntry> StaffActionLog( long actorSteamId = 0 ) => CanViewObserve()
+		? StaffMenuHost.GetAuditEntries( "", "", false, StaffActionTaxonomy.StaffActionNames )
+			.Where( entry => actorSteamId == 0 || entry.PlayerSteamId == actorSteamId )
+			.ToArray()
+		: Array.Empty<StaffAuditEntry>();
 
 	/// <summary>
 	/// Online players with active flags, with flags lacking their required permission first.
@@ -134,6 +131,11 @@ internal static class StaffObserveHost
 	/// </summary>
 	public static IReadOnlyList<ObserveFlaggedRow> FlaggedOnlinePlayers()
 	{
+		if ( !CanViewObserve() )
+		{
+			return Array.Empty<ObserveFlaggedRow>();
+		}
+
 		var rows = new List<ObserveFlaggedRow>();
 		foreach ( var player in StaffMenuHost.OnlinePlayers() )
 		{
@@ -158,6 +160,11 @@ internal static class StaffObserveHost
 	/// </summary>
 	public static IReadOnlyList<ObserveHoldingRow> TopHoldings( int max )
 	{
+		if ( !CanViewObserve() )
+		{
+			return Array.Empty<ObserveHoldingRow>();
+		}
+
 		var rows = new List<ObserveHoldingRow>();
 		foreach ( var player in StaffMenuHost.OnlinePlayers() )
 		{
@@ -190,8 +197,13 @@ internal static class StaffObserveHost
 	/// </summary>
 	public static IReadOnlyList<ObserveStaffRow> StaffActivity()
 	{
+		if ( !CanViewObserve() )
+		{
+			return Array.Empty<ObserveStaffRow>();
+		}
+
 		var counts = new Dictionary<long, int>();
-		foreach ( var entry in StaffMenuHost.GetAuditEntries( "", "" ) )
+		foreach ( var entry in StaffActionLog() )
 		{
 			if ( entry.PlayerSteamId == 0 )
 			{
@@ -204,7 +216,7 @@ internal static class StaffObserveHost
 		var rows = new List<ObserveStaffRow>();
 		foreach ( var player in StaffMenuHost.OnlinePlayers() )
 		{
-			if ( player.GroupName == StaffMenuHost.NonStaffGroup )
+			if ( !StaffMenuHost.IsStaffMember( player.SteamId ) )
 			{
 				continue;
 			}

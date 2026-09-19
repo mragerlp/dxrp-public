@@ -48,6 +48,11 @@ $observe-ranks-accent: #6d28d9;
 		color: #c05f5f;
 	}
 
+	.observe-chat-button {
+		margin-left: auto;
+		flex-shrink: 0;
+	}
+
 	.observe-title {
 		font-size: 16px;
 		font-weight: 700;
@@ -446,7 +451,7 @@ $observe-ranks-accent: #6d28d9;
 
 	.observe-sanctions-intro {
 		flex-direction: column;
-		flex: 1 1 auto;
+		flex: 1 1 0;
 		min-width: 0;
 
 		.observe-section-head {
@@ -477,6 +482,8 @@ $observe-ranks-accent: #6d28d9;
 
 	.observe-sanctions-actions {
 		justify-content: flex-end;
+		max-width: 50%;
+		flex-shrink: 1;
 	}
 
 	.observe-sanctions-footer {

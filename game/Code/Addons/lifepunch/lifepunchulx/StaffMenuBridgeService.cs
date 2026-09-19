@@ -32,6 +32,13 @@ public sealed class StaffMenuBridgeService : SingletonComponent<StaffMenuBridgeS
 	private const string WaypointStorePrefix = "commands:waypoint:";
 	private const string WebsiteStoreKey = "lifepunchulx:settings:website";
 	private const string SettingsEditPermission = "lifepunchulx.settings.edit";
+	private const string AuditViewPermission = "portal.audit.view";
+	private const float AuditReadCooldownSeconds = 1.0f;
+	private const int AuditSnapshotRowLimit = 500;
+	private const int AuditRpcBudgetBytes = 48 * 1024;
+	private const int AuditRpcEnvelopeReserveBytes = 2048;
+	private const int AuditRpcRowReserveBytes = 96;
+	private readonly Dictionary<long, RealTimeSince> _auditReadAge = new();
 	private const float WaypointReadCooldownSeconds = 0.5f;
 	private const float SettingsReadCooldownSeconds = 0.5f;
 	private const float InventoryReadCooldownSeconds = 0.5f;
@@ -58,6 +65,150 @@ public sealed class StaffMenuBridgeService : SingletonComponent<StaffMenuBridgeS
 	private readonly Dictionary<long, Guid> _moneyGrantUnresolvedByCaller = new();
 	private readonly Dictionary<string, (MoneyGrantHostState State, string Message)> _moneyGrantResults = new( StringComparer.Ordinal );
 	private readonly Queue<string> _moneyGrantResultOrder = new();
+
+	/// <summary>Read the current host's bounded audit ring for this authorized, current connection only.</summary>
+	[Rpc.Host]
+	public void RequestAuditHost( Guid requestId )
+	{
+		var connection = Rpc.Caller;
+		if ( requestId == Guid.Empty || !IsCurrentAuditConnection( connection ) )
+			return;
+
+		if ( !CanReadAudit( connection ) )
+		{
+			SendAuditResult( connection, requestId, "refused", Array.Empty<StaffAuditWireRow>(),
+				"Audit permission is required." );
+			return;
+		}
+
+		if ( _auditReadAge.TryGetValue( connection.SteamId, out var since ) && since < AuditReadCooldownSeconds )
+		{
+			SendAuditResult( connection, requestId, "failed", Array.Empty<StaffAuditWireRow>(),
+				"Audit requests are limited to one per second. Refresh again shortly." );
+			return;
+		}
+
+		_auditReadAge[connection.SteamId] = 0;
+#if LIFEPUNCH_PACKAGE
+		// The published parent has no proven host-ring API. Never substitute the requesting client's ring.
+		SendAuditResult( connection, requestId, "unavailable", Array.Empty<StaffAuditWireRow>(),
+			"Host audit history is unavailable from the currently published parent package." );
+#else
+		try
+		{
+			var snapshot = LocalAuditStore.SnapshotNewestFirst();
+			var rows = new List<StaffAuditWireRow>();
+			var wireBudget = AuditRpcEnvelopeReserveBytes;
+			var shortened = false;
+
+			foreach ( var entry in snapshot )
+			{
+				if ( rows.Count >= AuditSnapshotRowLimit )
+					break;
+
+				var rowShortened = false;
+				var action = LimitAuditField( entry.Action, 80, ref rowShortened );
+				var actorName = LimitAuditField( entry.ActorName, 128, ref rowShortened );
+				var description = LimitAuditField( entry.Description, 2048, ref rowShortened );
+				var rowBudget = AuditRpcRowReserveBytes + AuditFieldWireBudget( action )
+					+ AuditFieldWireBudget( actorName ) + AuditFieldWireBudget( description );
+				if ( wireBudget + rowBudget > AuditRpcBudgetBytes )
+					break;
+
+				rows.Add( new StaffAuditWireRow( entry.WhenUtc.ToUnixTimeMilliseconds(),
+					action, entry.ActorSteamId, actorName, description ) );
+				wireBudget += rowBudget;
+				shortened |= rowShortened;
+			}
+
+			var coverage = $"Recent host audit records: {rows.Count} newest row(s). "
+				+ "This bounded log is not the complete Portal history.";
+			var omitted = snapshot.Count - rows.Count;
+			if ( omitted > 0 )
+				coverage += $" {omitted} older row(s) omitted to keep the snapshot within its transfer limit.";
+			if ( shortened )
+				coverage += " Some long fields were shortened.";
+
+			SendAuditResult( connection, requestId, "ok", rows.ToArray(), coverage );
+		}
+		catch ( Exception e )
+		{
+			Log.Warning( $"[lifepunchulx] host audit snapshot failed ({e.GetType().Name})." );
+			SendAuditResult( connection, requestId, "failed", Array.Empty<StaffAuditWireRow>(),
+				"The host audit snapshot could not be read." );
+		}
+#endif
+	}
+
+	private static bool IsCurrentAuditConnection( Connection? connection )
+		=> Networking.IsHost && connection is not null && (connection.IsActive || connection.IsHost)
+			&& Connection.All.Any( current => ReferenceEquals( current, connection ) );
+
+	private static bool CanReadAudit( Connection connection )
+	{
+		if ( !IsCurrentAuditConnection( connection ) )
+			return false;
+
+		var player = GameUtils.GetPlayerByConnectionId( connection.Id );
+		return player.IsValid() && player.Connection is not null
+			&& player.Connection.Id == connection.Id && player.SteamId == connection.SteamId
+			&& RankSystem.HasPermission( player.SteamId, AuditViewPermission );
+	}
+
+	private static string LimitAuditField( string? value, int maximumCharacters, ref bool shortened )
+	{
+		value ??= string.Empty;
+		if ( value.Length <= maximumCharacters )
+			return value;
+
+		shortened = true;
+		var length = maximumCharacters - 3;
+		// Do not split a UTF-16 surrogate pair at the shortened field boundary.
+		if ( length > 0 && char.IsHighSurrogate( value[length - 1] ) )
+			length--;
+		return value[..length] + "...";
+	}
+
+	private static int AuditFieldWireBudget( string value )
+	{
+		var bytes = System.Text.Encoding.UTF8.GetByteCount( value );
+		// Reserve optional escaping for every character outside ASCII words/spaces,
+		// in addition to its UTF-8 bytes. This also bounds JSON-style escaped strings.
+		foreach ( var character in value )
+		{
+			if ( !(character is >= 'a' and <= 'z' or >= 'A' and <= 'Z'
+				or >= '0' and <= '9' or ' ') )
+				bytes += 5;
+		}
+		return bytes;
+	}
+
+	private void SendAuditResult( Connection connection, Guid requestId, string outcome,
+		StaffAuditWireRow[] rows, string coverage )
+	{
+		if ( !IsCurrentAuditConnection( connection ) )
+			return;
+
+		// Revalidate immediately before sending; revocation never receives already-read rows.
+		if ( !CanReadAudit( connection ) )
+		{
+			outcome = "refused";
+			rows = Array.Empty<StaffAuditWireRow>();
+			coverage = "Audit permission is required.";
+		}
+
+		using ( Rpc.FilterInclude( current => (current.IsActive || current.IsHost)
+			&& current.Id == connection.Id && current.SteamId == connection.SteamId ) )
+		{
+			// Follow the existing sanctions RPC's primitive-array transport.
+			ReceiveAuditClient( requestId, outcome,
+				rows.Select( row => row.WhenUnixMilliseconds ).ToArray(),
+				rows.Select( row => row.Action ).ToArray(),
+				rows.Select( row => row.ActorSteamId ).ToArray(),
+				rows.Select( row => row.ActorName ).ToArray(),
+				rows.Select( row => row.Description ).ToArray(), coverage );
+		}
+	}
 
 	/// <summary>Compare the confirmed state on the host, then run the existing native command without yielding.</summary>
 	[Rpc.Host]
@@ -988,6 +1139,34 @@ public sealed class StaffMenuBridgeService : SingletonComponent<StaffMenuBridgeS
 	}
 
 	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
+	private void ReceiveAuditClient( Guid requestId, string outcome, long[] whenUnixMilliseconds,
+		string[] actions, long[] actorSteamIds, string[] actorNames, string[] descriptions, string coverage )
+	{
+		if ( outcome != "ok" )
+		{
+			var state = outcome is "refused" or "unavailable" or "failed" ? outcome : "failed";
+			StaffMenuHost.OnAuditReceived( requestId, state, Array.Empty<StaffAuditWireRow>(), coverage );
+			return;
+		}
+
+		if ( whenUnixMilliseconds is null || actions is null || actorSteamIds is null
+			|| actorNames is null || descriptions is null || actions.Length > AuditSnapshotRowLimit
+			|| whenUnixMilliseconds.Length != actions.Length || actorSteamIds.Length != actions.Length
+			|| actorNames.Length != actions.Length || descriptions.Length != actions.Length )
+		{
+			StaffMenuHost.OnAuditReceived( requestId, "failed", Array.Empty<StaffAuditWireRow>(),
+				"The host audit snapshot was incomplete." );
+			return;
+		}
+
+		var rows = new StaffAuditWireRow[actions.Length];
+		for ( var i = 0; i < rows.Length; i++ )
+			rows[i] = new StaffAuditWireRow( whenUnixMilliseconds[i], actions[i], actorSteamIds[i],
+				actorNames[i], descriptions[i] );
+		StaffMenuHost.OnAuditReceived( requestId, "ok", rows, coverage );
+	}
+
+	[Rpc.Broadcast( NetFlags.HostOnly | NetFlags.Reliable )]
 	private void ReceiveWaypointsClient( Guid requestId, string[] names, bool authoritative )
 	{
 		StaffMenuHost.OnWaypointsReceived( requestId, names, authoritative );
@@ -1047,10 +1226,8 @@ public sealed class StaffMenuBridgeService : SingletonComponent<StaffMenuBridgeS
 		string[] flags,
 		string[] notes )
 	{
-#if LIFEPUNCH_PACKAGE
-		StaffMenuHost.OnPackageSanctionsReceived(
+		StaffMenuHost.OnSanctionsReceived(
 			requestId, targetSteamId, outcome, types, active, reasons, durations, created, scopes, states, flags, notes );
-#endif
 	}
 }
 #endif

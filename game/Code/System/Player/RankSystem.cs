@@ -49,6 +49,33 @@ public class RankSystem : SingletonComponent<RankSystem>
 	}
 
 	/// <summary>
+	/// Returns a detached snapshot of every rank definition synchronized to this server.
+	/// This reads existing state; it neither requests Portal data nor changes assignments.
+	/// The collection is read-only, and mutable DTO lists are copied so consumers cannot
+	/// change the rank system through the returned definitions.
+	/// </summary>
+	public IReadOnlyList<RankDto> GetRanksSnapshot()
+	{
+		var snapshot = new List<RankDto>( Ranks.Count );
+		foreach ( var rank in Ranks.Values )
+		{
+			snapshot.Add( new RankDto
+			{
+				Id = rank.Id,
+				Name = rank.Name,
+				Color = rank.Color,
+				Order = rank.Order,
+				IsDefault = rank.IsDefault,
+				Permissions = new List<string>( rank.Permissions ),
+				InheritsFromId = rank.InheritsFromId,
+				Flags = rank.Flags,
+				ServerIds = new List<Guid>( rank.ServerIds )
+			} );
+		}
+		return snapshot.AsReadOnly();
+	}
+
+	/// <summary>
 	/// Sets all rank assignments from the pulse/init response.
 	/// </summary>
 	public void SetRankAssignments( IEnumerable<RankAssignmentDto> rankAssignments )

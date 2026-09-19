@@ -1,0 +1,170 @@
+@* PROPRIETARY & CONFIDENTIAL — © 2026 lifepunch.co. All rights reserved. *@
+@namespace LifePunch.DXRP.Addons.StaffMenu
+@inherits Panel
+@attribute [StyleSheet]
+@using System
+@using System.Collections.Generic
+@using Sandbox
+@using Sandbox.UI
+
+<root class="staff-chat-panel">
+	<div class="staff-chat-heading">
+		<div class="staff-chat-heading-copy">
+			<div class="observe-section-head">Staff chat</div>
+			<div class="observe-hint">Recent received staff messages, newest first. Older messages may be unavailable.</div>
+		</div>
+		<button class="confirm-btn confirm-btn-secondary staff-chat-back" onclick="@(() => OnClose?.Invoke())">
+			<i class="material-icons">arrow_back</i><span>Back to Observe</span>
+		</button>
+	</div>
+	@if ( _context.CanRead )
+	{
+		<div class="observe-overflow">@( $"Showing {_messages.Count} of {_availableMessageCount} recent messages" )</div>
+	}
+
+	<div class="lp-ui-scroll-region staff-chat-list lp-ui-measured-scroll">
+		@if ( !_context.Available )
+		{
+			<div class="observe-empty">Staff chat is unavailable in this session.</div>
+		}
+		else if ( !_context.Allowed )
+		{
+			<div class="observe-caveat">Requires permission: chat.staff</div>
+		}
+		else if ( _messages.Count == 0 )
+		{
+			<div class="observe-empty">No staff messages in the recent received chat.</div>
+		}
+		else
+		{
+			@foreach ( var message in _messages )
+			{
+				<div class="observe-row staff-chat-message">
+					<div class="staff-chat-author-line">
+						@if ( !string.IsNullOrEmpty( message.Role ) )
+						{
+							<span class="staff-chat-role" style="@( string.IsNullOrEmpty( message.RoleColor ) ? string.Empty : $"color: {message.RoleColor};" )">@message.Role</span>
+						}
+						<span class="staff-chat-author" style="@( $"color: {message.AuthorColor};" )">@message.Author</span>
+					</div>
+					<span class="staff-chat-text">@message.Text</span>
+				</div>
+			}
+		}
+	</div>
+
+	<div class="staff-chat-composer">
+		<div class="staff-chat-input-row">
+			@if ( _context.CanRead )
+			{
+				<TextEntry class="arg-input staff-chat-input" Placeholder="Message staff..." Value:bind="@Draft" onsubmit="@Submit"/>
+			}
+			else
+			{
+				<div class="arg-input staff-chat-input staff-chat-input-disabled"><span>Message staff...</span></div>
+			}
+			<button class="@( CanSubmit ? "confirm-btn staff-chat-send" : "confirm-btn-inert staff-chat-send" )"
+				disabled="@(!CanSubmit)" onclick="@Submit"><span>Send</span></button>
+		</div>
+		<div class="staff-chat-composer-help">
+			<span class="observe-hint staff-chat-hint">@ComposerHint</span>
+			@if ( _context.CanRead )
+			{
+				<span class="observe-hint staff-chat-count">@CharacterCount</span>
+			}
+		</div>
+	</div>
+</root>
+
+@code {
+	public Action? OnClose { get; set; }
+
+	private StaffChatContext _context;
+	private IReadOnlyList<StaffChatMessage> _messages = Array.Empty<StaffChatMessage>();
+	private string _draft = string.Empty;
+	private string _submitError = string.Empty;
+	private Guid _latestMessageId;
+	private int _nativeMessageCount;
+	private int _availableMessageCount;
+	private int _messageRevision;
+
+	private string Draft
+	{
+		get => _draft;
+		set
+		{
+			_draft = value ?? string.Empty;
+			_submitError = string.Empty;
+		}
+	}
+
+	private bool CanSubmit => _context.CanSend
+		&& StaffChatInput.TryPrepare( _draft, _context.MaxLength, out _, out _ );
+
+	private string CharacterCount => $"{_draft.Trim().Length} / {_context.MaxLength}";
+
+	private string ComposerHint
+	{
+		get
+		{
+			if ( !string.IsNullOrEmpty( _context.SendBlockedReason ) ) return _context.SendBlockedReason;
+			if ( !string.IsNullOrEmpty( _submitError ) ) return _submitError;
+			if ( !string.IsNullOrWhiteSpace( _draft )
+				&& !StaffChatInput.TryPrepare( _draft, _context.MaxLength, out _, out var reason ) ) return reason;
+			return "Plain text only. Messages go to Staff chat.";
+		}
+	}
+
+	public override void Tick()
+	{
+		base.Tick();
+		Refresh();
+	}
+
+	private bool Refresh()
+	{
+		var next = StaffChatHost.ReadContext();
+		var reset = !next.SameSession( _context ) || next.CanRead != _context.CanRead;
+		_context = next;
+		if ( reset )
+		{
+			// This panel owns only its displayed snapshot and draft. Never clear native chat.
+			_messages = Array.Empty<StaffChatMessage>();
+			_availableMessageCount = 0;
+			_draft = string.Empty;
+			_submitError = string.Empty;
+			_latestMessageId = Guid.Empty;
+			_nativeMessageCount = -1;
+			_messageRevision++;
+		}
+
+		if ( !next.CanRead ) return reset;
+
+		var latest = StaffChatHost.LatestMessageId;
+		var count = StaffChatHost.MessageCount;
+		if ( reset || latest != _latestMessageId || count != _nativeMessageCount )
+		{
+			// Regrant can reveal entries still held by native authorized delivery.
+			// There is no independent or persistent ULX chat archive.
+			var snapshot = StaffChatHost.ReadMessages( next );
+			_messages = snapshot.Messages;
+			_availableMessageCount = snapshot.Available;
+			_latestMessageId = latest;
+			_nativeMessageCount = count;
+			_messageRevision++;
+		}
+		return reset;
+	}
+
+	private void Submit()
+	{
+		// A scope/permission transition invalidates the old draft even between UI frames.
+		if ( Refresh() ) return;
+		if ( !StaffChatHost.TrySubmit( _context, _draft, out _submitError ) ) return;
+		_draft = string.Empty;
+		Refresh();
+	}
+
+	protected override int BuildHash() => HashCode.Combine(
+		_context, _messageRevision, _draft, _submitError );
+}

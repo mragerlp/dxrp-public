@@ -351,64 +351,10 @@ public static class StaffMenuConfig
 	}
 
 	/// <summary>
-	/// Maximum ban duration in hours by rank order; null permits permanent bans.
-	/// Default thresholds are Mod=4, Admin=5 and Super Admin=10; orders above 10 are also unlimited.
+	/// Validate native duration syntax. Portal permission and host targeting authorize a ban;
+	/// server-specific rank ordinals do not impose an additional ULX duration policy.
 	/// </summary>
-	public static int? MaxBanHoursForRankOrder( int order ) => order switch
-	{
-		>= 10 => null,    // Super Admin / Owner — unlimited
-		>= 5 => 168,      // Admin — up to 1 week
-		>= 4 => 24,       // Mod — up to 1 day (only if granted player.ban at all)
-		_ => 0            // below staff — none
-	};
+	public static bool IsBanDurationTokenAllowed( string token )
+		=> TryNormalizeDurationToken( token, allowPermanent: true, out _ );
 
-	/// <summary>True if a rank order may issue the given quick-pick duration (in hours).</summary>
-	public static bool IsBanDurationAllowed( int rankOrder, int hours )
-	{
-		var cap = MaxBanHoursForRankOrder( rankOrder );
-		return cap is null || hours <= cap.Value;
-	}
-
-	/// <summary>
-	/// Validate a free-form duration against the same grammar and ceiling as the quick picks. The
-	/// comparison is performed in minutes so values such as <c>90m</c> cannot evade an hourly cap.
-	/// Permanent tokens are accepted only for an unlimited rank.
-	/// </summary>
-	public static bool IsBanDurationTokenAllowed( int rankOrder, string token )
-	{
-		if ( !TryNormalizeDurationToken( token, allowPermanent: true, out token ) )
-		{
-			return false;
-		}
-
-		var cap = MaxBanHoursForRankOrder( rankOrder );
-
-		if ( token is "perm" or "permanent" )
-		{
-			return cap is null;
-		}
-
-		if ( token.Length < 2 || !long.TryParse( token[..^1], out var value ) || value <= 0 )
-		{
-			return false;
-		}
-
-		long minutes;
-		try
-		{
-			minutes = token[^1] switch
-			{
-				'm' => value,
-				'h' => checked( value * 60L ),
-				'd' => checked( value * 24L * 60L ),
-				_ => -1L
-			};
-		}
-		catch ( OverflowException )
-		{
-			return false;
-		}
-
-		return minutes > 0 && ( cap is null || minutes <= (long)cap.Value * 60L );
-	}
 }
