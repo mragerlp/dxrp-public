@@ -54,20 +54,18 @@
 					<span>@category</span>
 				</button>
 			}
-			@if ( StaffMenuHost.CanUseWaypoints() )
-			{
-				<button class="@TabClass( TabWaypoints )" style="@TopTabAccentStyle( TabWaypoints )"
-				        onclick="@(() => SelectTab( TabWaypoints ))">
-					<span>Waypoints</span>
-				</button>
-			}
-			@if ( StaffMenuHost.CanViewAudit() )
-			{
-				<button class="@TabClass( TabAudit )" style="@TopTabAccentStyle( TabAudit )"
-				        onclick="@(() => SelectTab( TabAudit ))">
-					<span>Audit</span>
-				</button>
-			}
+			@* R-2639-A / R-2640-A: the menu decides nothing about VISIBILITY. Every tab renders for
+			   every rank; the portal decides actionability. CanUseWaypoints() and CanViewAudit() are
+			   deliberately retained -- B6 and the tab bodies still use them for ENABLED/greyed state --
+			   but they no longer decide whether the tab exists. *@
+			<button class="@TabClass( TabWaypoints )" style="@TopTabAccentStyle( TabWaypoints )"
+			        onclick="@(() => SelectTab( TabWaypoints ))">
+				<span>Waypoints</span>
+			</button>
+			<button class="@TabClass( TabAudit )" style="@TopTabAccentStyle( TabAudit )"
+			        onclick="@(() => SelectTab( TabAudit ))">
+				<span>Audit</span>
+			</button>
 		</div>
 
 		<div class="ulx-workspace">
@@ -1528,7 +1526,7 @@
 							: SelfToggleActionKeys.Contains( action.Key ) && StaffMenuHost.IsSelfToggleOn( action.Key );
 							<button class="action-btn @( ActionStateClasses( action, enabled, toggleOn ) )"
 							        style="@ActionRestingAccentStyle( action, enabled, toggleOn )"
-						        tooltip="@( !enabled && action.TargetMode == StaffActionTarget.SelfOnly ? SelfOnlyLockedHint : ( string.IsNullOrEmpty( action.Tooltip ) ? action.Label : action.Tooltip ) )"
+						        tooltip="@( LacksPermission( action ) ? PermissionLockedHint( action ) : ( !enabled && action.TargetMode == StaffActionTarget.SelfOnly ? SelfOnlyLockedHint : ( string.IsNullOrEmpty( action.Tooltip ) ? action.Label : action.Tooltip ) ) )"
 						        onclick="@(() => OnActionClick( action, selected, enabled ))">
 							@if ( action.Key == "xray" )
 							{
@@ -1541,7 +1539,11 @@
 							<span class="action-label">@action.Label</span>
 							@* Keep at most one hint per card. The no-target banner already explains missing selection;
 							   per-card reasons describe other conditions once a target is selected. *@
-							@if ( !enabled && action.TargetMode == StaffActionTarget.OtherPlayer && _selectedSteamId is not null )
+							@if ( LacksPermission( action ) )
+							{
+								<span class="action-disabled-reason">@PermissionLockedCardHint</span>
+							}
+							else if ( !enabled && action.TargetMode == StaffActionTarget.OtherPlayer && _selectedSteamId is not null )
 							{
 								<span class="action-disabled-reason">@( IsSelfSanction( action, selected.SteamId ) ? "Cannot target yourself" : "Target protected" )</span>
 							}
@@ -1564,7 +1566,10 @@
 
 				@if ( visibleActions.Count == 0 )
 				{
-					<div class="empty">No @_activeTab.ToLower() actions available to your rank.</div>
+					@* Rank can no longer empty this grid (R-2639-A / R-2640-A): ungranted tiles render greyed.
+					   Kept as a structural guard for a tab the catalogue defines no action for -- but the old
+					   "available to your rank" copy would now be a lie, so it states the real condition. *@
+					<div class="empty">No actions are defined for this tab.</div>
 				}
 				}
 				}
@@ -2521,9 +2526,14 @@
 	}
 
 	// Sort from least to most severe. Stable ordering preserves catalogue order within each tier.
+	// R-2639-A / R-2640-A: permission is NOT a filter here. Every action in the active tab renders;
+	// ungranted ones come back false from IsEnabled and grey through the existing control-disabled
+	// state. The xray gate moved out for the same reason -- IsEnabled already disables it, so it now
+	// greys in place instead of vanishing. This method is now purely "which actions belong to this
+	// tab", which is the only question the MENU is allowed to answer.
 	private List<StaffAction> GetVisibleTabActions() =>
 		StaffMenuActions.All
-			.Where( a => a.Category == _activeTab && StaffMenuHost.CanView( a.PermissionId ) && ( a.Key != "xray" || StaffMenuHost.CanUseXray() ) )
+			.Where( a => a.Category == _activeTab )
 			.OrderBy( a => a.Severity )
 			.ToList();
 
@@ -2537,8 +2547,35 @@
 	private bool SelfOnlyTargetIsCaller() =>
 		_selectedSteamId is null || _selectedSteamId == StaffMenuHost.LocalSteamId;
 
+	/// <summary>
+	/// True when a tile is inert specifically because the viewer's ranks do not grant it, as opposed to
+	/// a targeting condition. Kept separate so a greyed card can state the REAL reason.
+	/// </summary>
+	private static bool LacksPermission( StaffAction action )
+		=> !StaffMenuHost.CanView( action.PermissionId );
+
+	/// <summary>
+	/// Tooltip for a tile greyed by a missing portal grant. Names the permission id so an operator can
+	/// say exactly what to request, instead of the tile simply being absent.
+	/// </summary>
+	private static string PermissionLockedHint( StaffAction action )
+		=> $"Requires permission: {action.PermissionId}";
+
+	/// <summary>
+	/// Short ON-CARD marker for the same state. The full permission id lives in the tooltip because an
+	/// id is wider than an action card: rendering it inline overflowed the tile on both edges.
+	/// </summary>
+	private const string PermissionLockedCardHint = "Requires permission!";
+
 	private bool IsEnabled( StaffAction action, StaffMenuPlayer selected, bool hasTarget )
 	{
+		// Permission is a STATE, not a filter (R-2639-A / R-2640-A). This stays the FIRST check so an
+		// ungranted tile reports the missing grant rather than a downstream targeting condition.
+		if ( LacksPermission( action ) )
+		{
+			return false;
+		}
+
 		if ( action.Key == "xray" && !StaffMenuHost.CanUseXray() )
 		{
 			return false;
@@ -3080,6 +3117,9 @@
 	private void ToggleAuditActions()
 	{
 		_auditActionOpen = !_auditActionOpen;
+		// Only one audit popover may be open at a time -- the invariant SelectTab already enforces when
+		// it clears both. Opening this one closes the window picker.
+		_auditWindowOpen = false;
 		StateHasChanged();
 	}
 
@@ -3165,6 +3205,8 @@
 	private void ToggleAuditWindow()
 	{
 		_auditWindowOpen = !_auditWindowOpen;
+		// Mirror of ToggleAuditActions: opening the window picker closes the action picker.
+		_auditActionOpen = false;
 		StateHasChanged();
 	}
 
@@ -3878,7 +3920,13 @@
 #if LIFEPUNCH_LOCAL
 	private const string BuildBranch = "editor stub (LIFEPUNCH_LOCAL)";
 #else
-	private const string BuildBranch = "workbench (s&box)";
+	// This is a DIAGNOSTICS field, so it must not assert what it cannot read. As a const it claimed
+	// "workbench (s&box)" for EVERY non-local build, including a published package running on someone
+	// else's server, which is exactly the case where a reader needs the truth. No engine sensor reports
+	// the source branch or package identity, so report only what can actually be sensed -- editor or
+	// not -- and say UNKNOWN rather than name a build we have no way to identify.
+	private static string BuildBranch
+		=> Sandbox.Application.IsEditor ? "workbench (s&box editor)" : "UNKNOWN";
 #endif
 
 	// Count staff in the cached roster to avoid repeating per-player permission scans.
