@@ -12,7 +12,8 @@ public enum PocketItemKind
 	Shipment,
 	Firearm,
 	Plant,
-	Equipment
+	Equipment,
+	Medical
 }
 
 public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
@@ -344,6 +345,13 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 			return PocketItemKind.Printer;
 		}
 
+		var statusOnPress = item.Components.Get<StatusOnPress>( lookup );
+		if ( statusOnPress.IsValid()
+		     && string.Equals( statusOnPress.StatusToApply, Constants.BandageStatus, StringComparison.Ordinal ) )
+		{
+			return PocketItemKind.Medical;
+		}
+
 		var resource = item.Components.Get<ResourceComponent>( lookup );
 		if ( item.Components.Get<WeedHarvestEntity>( lookup ).IsValid()
 		     || (resource.IsValid() && string.Equals( resource.ResourceId, "weed_brick", StringComparison.OrdinalIgnoreCase )) )
@@ -490,7 +498,7 @@ public class PocketSystem : SingletonComponent<PocketSystem>, IGameEvents
 			_adminViewItemKinds.Add( kind switch
 			{
 				PocketItemKind.Printer or PocketItemKind.Shipment or PocketItemKind.Firearm
-					or PocketItemKind.Plant or PocketItemKind.Equipment => kind,
+					or PocketItemKind.Plant or PocketItemKind.Equipment or PocketItemKind.Medical => kind,
 				_ => PocketItemKind.Unknown
 			} );
 		}
