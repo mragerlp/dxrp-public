@@ -1100,9 +1100,17 @@
 											{
 												var item = slot < pocketItems.Count ? pocketItems[slot] : "";
 												var empty = string.IsNullOrWhiteSpace( item );
+												var pocketIcon = empty ? "inbox" : StaffMenuHost.GetPocketItemIcon( profileSteamId, slot );
 												<div class="@PocketSlotClass( empty, pocketLoading, pocketUnavailable )">
 													<span class="pocket-slot-number">@( slot + 1 )</span>
-													<i class="material-icons pocket-slot-fallback">@( empty ? "inventory_2" : "deployed_code" )</i>
+													@if ( pocketIcon == "firearm" )
+													{
+														<div class="pocket-slot-firearm"></div>
+													}
+													else
+													{
+														<i class="material-icons pocket-slot-fallback">@pocketIcon</i>
+													}
 													<span class="pocket-slot-label">@PocketSlotLabel( item, pocketLoading, pocketUnavailable )</span>
 												</div>
 											}

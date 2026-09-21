@@ -298,6 +298,54 @@ internal static class StaffMenuHost
 #endif
 	}
 
+	/// <summary>Display icon key for a slot in the current correlated pocket response.</summary>
+	public static string GetPocketItemIcon( long steamId, int slot )
+	{
+#if !LIFEPUNCH_LOCAL && !LIFEPUNCH_PACKAGE
+		var system = PocketSystem.Instance;
+		if ( system.IsValid() && system.AdminViewPlayerId == steamId
+		     && !system.AdminViewIsLoading && !system.AdminViewIsUnavailable
+		     && slot >= 0 && slot < system.AdminViewItems.Count && slot < system.AdminViewItemKinds.Count )
+		{
+			return system.AdminViewItemKinds[slot] switch
+			{
+				PocketItemKind.Printer => "attach_money",
+				PocketItemKind.Shipment => "inventory_2",
+				PocketItemKind.Firearm => GetPocketFirearmIcon( system.AdminViewRequestId ),
+				PocketItemKind.Plant => "local_florist",
+				PocketItemKind.Equipment => "build",
+				PocketItemKind.Medical => "local_hospital",
+				_ => "category"
+			};
+		}
+#endif
+		return "category";
+	}
+
+	private static Guid? _pocketFirearmIconRequest;
+	private static bool _pocketFirearmIconAvailable;
+
+	private static string GetPocketFirearmIcon( Guid requestId )
+	{
+		// Retry on each new pocket snapshot, but avoid loading a texture per slot or frame.
+		if ( _pocketFirearmIconRequest != requestId )
+		{
+			_pocketFirearmIconRequest = requestId;
+			_pocketFirearmIconAvailable = false;
+			try
+			{
+				var texture = Texture.LoadFromFileSystem( "ui/weapons/guns/M4_01.png", FileSystem.Mounted );
+				_pocketFirearmIconAvailable = texture is not null && !texture.IsError;
+			}
+			catch ( Exception )
+			{
+				// Missing optional art must not prevent a permitted pocket read.
+			}
+		}
+
+		return _pocketFirearmIconAvailable ? "firearm" : "category";
+	}
+
 	public static bool PocketIsLoading( long steamId )
 	{
 #if LIFEPUNCH_LOCAL

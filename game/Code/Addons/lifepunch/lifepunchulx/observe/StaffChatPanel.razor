@@ -9,13 +9,8 @@
 
 <root class="staff-chat-panel">
 	<div class="staff-chat-heading">
-		<div class="staff-chat-heading-copy">
-			<div class="observe-section-head">Staff chat</div>
-			<div class="observe-hint">Recent received staff messages, newest first. Older messages may be unavailable.</div>
-		</div>
-		<button class="confirm-btn confirm-btn-secondary staff-chat-back" onclick="@(() => OnClose?.Invoke())">
-			<i class="material-icons">arrow_back</i><span>Back to Observe</span>
-		</button>
+		<div class="observe-section-head">Staff chat</div>
+		<div class="observe-hint">Recent received staff messages, newest first. Older messages may be unavailable.</div>
 	</div>
 	@if ( _context.CanRead )
 	{
@@ -41,11 +36,11 @@
 			{
 				<div class="observe-row staff-chat-message">
 					<div class="staff-chat-author-line">
+						<span class="staff-chat-author" style="@( $"color: {message.AuthorColor};" )">@message.Author</span>
 						@if ( !string.IsNullOrEmpty( message.Role ) )
 						{
-							<span class="staff-chat-role" style="@( string.IsNullOrEmpty( message.RoleColor ) ? string.Empty : $"color: {message.RoleColor};" )">@message.Role</span>
+							<span class="staff-chat-role" style="@( string.IsNullOrEmpty( message.RoleColor ) ? string.Empty : $"color: {message.RoleColor}; border-color: {message.RoleColor};" )">@message.Role</span>
 						}
-						<span class="staff-chat-author" style="@( $"color: {message.AuthorColor};" )">@message.Author</span>
 					</div>
 					<span class="staff-chat-text">@message.Text</span>
 				</div>
@@ -54,7 +49,7 @@
 	</div>
 
 	<div class="staff-chat-composer">
-		<div class="staff-chat-input-row">
+		<div class="staff-chat-composer-main">
 			@if ( _context.CanRead )
 			{
 				<TextEntry class="arg-input staff-chat-input" Placeholder="Message staff..." Value:bind="@Draft" onsubmit="@Submit"/>
@@ -63,11 +58,11 @@
 			{
 				<div class="arg-input staff-chat-input staff-chat-input-disabled"><span>Message staff...</span></div>
 			}
+			<span class="observe-hint staff-chat-hint">@ComposerHint</span>
+		</div>
+		<div class="staff-chat-composer-actions">
 			<button class="@( CanSubmit ? "confirm-btn staff-chat-send" : "confirm-btn-inert staff-chat-send" )"
 				disabled="@(!CanSubmit)" onclick="@Submit"><span>Send</span></button>
-		</div>
-		<div class="staff-chat-composer-help">
-			<span class="observe-hint staff-chat-hint">@ComposerHint</span>
 			@if ( _context.CanRead )
 			{
 				<span class="observe-hint staff-chat-count">@CharacterCount</span>
@@ -77,8 +72,6 @@
 </root>
 
 @code {
-	public Action? OnClose { get; set; }
-
 	private StaffChatContext _context;
 	private IReadOnlyList<StaffChatMessage> _messages = Array.Empty<StaffChatMessage>();
 	private string _draft = string.Empty;

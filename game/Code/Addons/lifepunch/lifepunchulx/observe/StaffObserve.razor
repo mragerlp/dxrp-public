@@ -56,9 +56,17 @@
 		<button class="@ViewClass( ObserveView.Ranks )" onclick="@(() => SetView( ObserveView.Ranks ))">
 			<i class="material-icons">admin_panel_settings</i><span>Ranks</span>
 		</button>
-		<button class="@( ViewClass( ObserveView.StaffChat ) + " observe-chat-button" )" onclick="@OpenStaffChat">
-			<i class="material-icons">chat</i><span>Chat</span>
-		</button>
+		<div class="observe-chat-actions">
+			@if ( ActiveView == ObserveView.StaffChat )
+			{
+				<button class="observe-tab observe-back-button" onclick="@CloseStaffChat" tooltip="Back to Observe">
+					<i class="material-icons">arrow_back</i><span>Back to Observe</span>
+				</button>
+			}
+			<button class="@ViewClass( ObserveView.StaffChat )" onclick="@OpenStaffChat">
+				<i class="material-icons">chat</i><span>Chat</span>
+			</button>
+		</div>
 	</div>
 	}
 
@@ -72,7 +80,7 @@
 	}
 	else if ( ActiveView == ObserveView.StaffChat )
 	{
-		<StaffChatPanel OnClose="@CloseStaffChat" />
+		<StaffChatPanel />
 	}
 	else if ( ActiveView == ObserveView.Sentinel )
 	{
@@ -288,7 +296,7 @@
 		<div class="observe-view">
 			<div class="observe-block">
 				<div class="observe-section-head">Online staff</div>
-				<div class="observe-hint">Rank-ordered staff on the server right now, with live playtime and actions in the available audit snapshot.</div>
+				<div class="observe-hint">Online staff, ordered by rank. Counts cover the available audit snapshot; zero does not mean inactive.</div>
 				@{
 					var staff = StaffObserveHost.StaffActivity();
 				}
@@ -336,16 +344,16 @@
 						</div>
 					}
 					</div>
-					@if ( StaffObserveHost.RingLivesHere )
-					{
-						<div class="observe-caveat">Counts cover only the available audit snapshot; older events may be omitted. Zero does not establish inactivity.</div>
-					}
 				}
 			</div>
 
 			<div class="observe-block">
 				<div class="observe-section-head">Staff action log</div>
 				<div class="observe-hint">Recorded acts gated behind a staff power, newest first -- the same available audit snapshot the Audit tab reads, filtered to staff actions. The name is the acting staff member; the target of an act lives in the description text.</div>
+				@if ( StaffObserveHost.RingLivesHere )
+				{
+					<div class="observe-caveat">Recent recorded staff actions only; older events may be unavailable.</div>
+				}
 				@{
 					var staffLog = StaffObserveHost.StaffActionLog( _staffActorFilter );
 				}
@@ -888,7 +896,9 @@
 
 			var maxY = LifePunchUiScrollPolicy.GetMeasuredScrollMaxY( list );
 			var remaining = maxY - list.ScrollOffset.y;
-			if ( remaining > ObserveEndSnapDistance || remaining <= 0.01f )
+			// Preserve the top position when new content adds only a small overflow.
+			if ( list.ScrollOffset.y <= 0.01f
+				|| remaining > ObserveEndSnapDistance || remaining <= 0.01f )
 			{
 				continue;
 			}

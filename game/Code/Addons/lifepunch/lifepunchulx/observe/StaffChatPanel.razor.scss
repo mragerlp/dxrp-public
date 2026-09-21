@@ -5,6 +5,11 @@
 $chat-space: 8px;
 $chat-space-small: 4px;
 $chat-type: 12px;
+// Match the shared Confirm button height so both composer controls align.
+$chat-control-height: 38px;
+$chat-action-width: 80px;
+// Match the existing ULX structural border when native chat omits a color.
+$chat-border: #343536;
 
 .lifepunchulx {
 	.staff-chat-panel {
@@ -17,23 +22,33 @@ $chat-type: 12px;
 	}
 
 	.staff-chat-heading {
+		flex-direction: column;
+		flex-shrink: 0;
+		min-width: 0;
+	}
+
+	.staff-chat-composer {
 		flex-direction: row;
-		align-items: center;
+		align-items: flex-start;
 		flex-shrink: 0;
 		min-width: 0;
 		gap: $chat-space;
 	}
 
-	.staff-chat-heading-copy {
+	.staff-chat-composer-main,
+	.staff-chat-composer-actions {
 		flex-direction: column;
-		flex: 1 1 0;
 		min-width: 0;
+		gap: $chat-space;
 	}
 
-	.staff-chat-composer {
-		flex-direction: column;
+	.staff-chat-composer-main {
+		flex: 1 1 0;
+	}
+
+	.staff-chat-composer-actions {
 		flex-shrink: 0;
-		min-width: 0;
+		width: $chat-action-width;
 	}
 
 	.staff-chat-list {
@@ -67,6 +82,15 @@ $chat-type: 12px;
 		font-weight: 600;
 	}
 
+	.staff-chat-role {
+		padding: $chat-space-small $chat-space;
+		border: 1px solid $chat-border;
+		border-radius: $chat-space-small;
+		max-width: 100%;
+		white-space: normal;
+		word-break: break-all;
+	}
+
 	.staff-chat-text {
 		font-size: $chat-type;
 		white-space: normal;
@@ -76,18 +100,11 @@ $chat-type: 12px;
 		flex-shrink: 0;
 	}
 
-	.staff-chat-input-row,
-	.staff-chat-composer-help {
-		flex-direction: row;
-		align-items: center;
-		gap: $chat-space;
-		min-width: 0;
-		flex-shrink: 0;
-	}
-
 	.staff-chat-panel .staff-chat-input {
-		flex: 1 1 0;
+		flex-shrink: 0;
 		min-width: 0;
+		width: 100%;
+		height: $chat-control-height;
 	}
 
 	.staff-chat-panel .staff-chat-input-disabled {
@@ -97,20 +114,26 @@ $chat-type: 12px;
 	}
 
 	.staff-chat-send,
-	.staff-chat-back,
 	.staff-chat-count {
 		flex-shrink: 0;
 	}
 
-	.staff-chat-panel .staff-chat-send,
-	.staff-chat-panel .staff-chat-back {
+	.staff-chat-panel .staff-chat-send {
 		margin-top: 0;
-		width: auto;
-		align-self: center;
+		width: 100%;
+		height: $chat-control-height;
+		align-self: stretch;
 	}
 
 	.staff-chat-hint {
-		flex: 1 1 0;
 		min-width: 0;
+		white-space: normal;
+	}
+
+	.staff-chat-count {
+		width: 100%;
+		justify-content: center;
+		text-align: center;
+		white-space: nowrap;
 	}
 }
