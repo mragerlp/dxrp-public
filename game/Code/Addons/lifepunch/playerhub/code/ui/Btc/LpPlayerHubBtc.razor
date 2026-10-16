@@ -1,0 +1,160 @@
+@*
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Player Hub $BTC tab - LIVE. Hub plate (power switch, wallet, pending, PIN), actions on the existing
+   host rails, one card per linked GPU rack with its mining switch. Law 17: sign carries the colour.
+*@
+@namespace LifePunch.DXRP.Addons.PlayerHub
+@using System
+@using System.Collections.Generic
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="lp-playerhub-btc">
+	@if ( !Model.HasHub )
+	{
+		<LpPlayerHubEmpty Model="@EmptyState" />
+	}
+	else
+	{
+		<div class="btc-hub-plate lp-hub-panel">
+			<div class="btc-plate-head lp-hub-bar">
+				<div class="btc-plate-title">BITCOIN HUB</div>
+				<div class="btc-plate-state">
+					<span class="@PinChipClass()">@( Model.PinSet ? "PIN SET" : "NO PIN" )</span>
+					<span class="btc-chip">@RackCountLabel</span>
+				</div>
+			</div>
+
+			<div class="btc-plate-body">
+				<div class="btc-power">
+					<div class="btc-power-copy">
+						<div class="btc-eyebrow">POWER</div>
+						<div class="@PowerLabelClass()">@( Model.IsPowered ? "ON" : "OFF" )</div>
+					</div>
+					<button class="@SwitchClass( Model.IsPowered )" tooltip="@( Model.IsPowered ? "Power the hub off" : "Power the hub on" )" onclick="@Model.TogglePower">
+						<div class="lp-switch-knob"></div>
+					</button>
+				</div>
+
+				<div class="btc-money-grid">
+					<div class="btc-money-cell">
+						<div class="btc-eyebrow">HUB WALLET</div>
+						<div class="btc-money"><span class="lp-money-btc">&#8383;</span><span class="lp-money-amt">@Model.WalletBtc</span></div>
+						<div class="btc-money-sub"><span class="lp-money-cash">$</span><span class="lp-money-amt">@Model.WalletUsd</span></div>
+					</div>
+					<div class="btc-money-cell">
+						<div class="btc-eyebrow">PENDING ON RACKS</div>
+						<div class="btc-money"><span class="lp-money-btc">&#8383;</span><span class="lp-money-amt">@Model.PendingBtc</span></div>
+						<div class="btc-money-sub">deposit to move it into the wallet</div>
+					</div>
+				</div>
+
+				<div class="btc-actions">
+					<button class="@ActionClass( DepositEnabled )" disabled="@(!DepositEnabled)" tooltip="Move every rack's mined BTC into the hub wallet" onclick="@Model.DepositAll">
+						<i class="material-icons">download</i>
+						<span>Deposit all</span>
+					</button>
+					<button class="@ActionClass( CashOutEnabled )" disabled="@(!CashOutEnabled)" tooltip="Cash the whole hub wallet out to your bank" onclick="@Model.CashOutAll">
+						<i class="material-icons">payments</i>
+						<span>Cash out all</span>
+					</button>
+				</div>
+			</div>
+
+			<div class="btc-note">@Model.Note</div>
+		</div>
+
+		<div class="btc-racks lp-hub-panel">
+			<div class="btc-plate-head lp-hub-bar">
+				<div class="btc-plate-title">GPU RACKS</div>
+				<div class="btc-plate-note">@( Model.IsPowered ? "switches live" : "hub off - mining locked" )</div>
+			</div>
+			<div class="btc-rack-grid">
+				@if ( Model.Racks.Count == 0 )
+				{
+					<div class="btc-rack-empty">No rack linked to this hub.</div>
+				}
+				@foreach ( var rack in Model.Racks )
+				{
+					<div class="@RackCardClass( rack )">
+						<div class="btc-rack-head">
+							<div class="btc-rack-label">@rack.Label</div>
+							<span class="@TierChipClass( rack )">@rack.TierLabel</span>
+						</div>
+						<div class="btc-rack-stats">
+							<div class="btc-rack-stat"><span class="btc-eyebrow">CLOCK</span><span class="btc-rack-value">@rack.ClockLabel</span></div>
+							<div class="btc-rack-stat"><span class="btc-eyebrow">RATE</span><span class="btc-rack-value">@rack.RateLabel</span></div>
+						</div>
+						<div class="btc-rack-mined">
+							<span class="lp-money-btc">&#8383;</span><span class="lp-money-amt">@rack.MinedBtc</span>
+							<span class="lp-money-divider">|</span>
+							<span class="lp-money-cash">$</span><span class="lp-money-amt">@rack.MinedUsd</span>
+						</div>
+						<div class="btc-rack-foot">
+							<span class="@MiningLabelClass( rack )">@( rack.IsMining ? "MINING" : "IDLE" )</span>
+							<button class="@SwitchClass( rack.IsMining, Model.IsPowered )" disabled="@(!Model.IsPowered)" tooltip="@( rack.IsMining ? "Stop mining" : "Start mining" )" onclick="@rack.ToggleMining">
+								<div class="lp-switch-knob"></div>
+							</button>
+						</div>
+					</div>
+				}
+			</div>
+		</div>
+	}
+</root>
+
+@code
+{
+	[Property] public LpBtcVm Model { get; set; } = null!;
+
+	private static readonly LpHubStateVm EmptyState = new(
+		Icon: "currency_bitcoin",
+		Title: "No Bitcoin Hub",
+		Message: "Place a Bitcoin Hub in the world to see its wallet and racks here.",
+		ActionLabel: string.Empty,
+		ShowAction: false,
+		OnSelected: null);
+
+	private string RackCountLabel => Model.RackCount == 1 ? "1 RACK" : Model.RackCount + " RACKS";
+	private bool DepositEnabled => Model.CanManage && Model.IsPowered && Model.PendingBtc != "0.000000";
+	private bool CashOutEnabled => Model.CanManage && Model.WalletBtc != "0.000000";
+
+	// Inert states swap in a standalone class (house pattern: .disabled / ULX control-disabled); the engine does not
+	// style the :disabled pseudo, so the attribute alone leaves a dead control looking live.
+	private static string SwitchClass( bool on, bool enabled = true ) =>
+		!enabled ? "lp-switch lp-switch-off" : on ? "lp-switch lp-switch-on" : "lp-switch";
+	private static string ActionClass( bool enabled ) => enabled ? "btc-action btc-action-good" : "btc-action btc-action-off";
+	private string PowerLabelClass() => Model.IsPowered ? "btc-power-label btc-power-label-on" : "btc-power-label";
+	private string PinChipClass() => Model.PinSet ? "btc-chip btc-chip-good" : "btc-chip btc-chip-warn";
+	private static string RackCardClass( LpBtcRackVm r ) => r.IsMining ? "btc-rack-card btc-rack-card-mining" : "btc-rack-card";
+	private static string TierChipClass( LpBtcRackVm r ) => r.Advanced ? "btc-chip btc-chip-adv" : "btc-chip";
+	private static string MiningLabelClass( LpBtcRackVm r ) => r.IsMining ? "btc-mining-label btc-mining-label-on" : "btc-mining-label";
+
+	protected override int BuildHash()
+	{
+		var hash = new HashCode();
+		hash.Add( Model.HasHub );
+		hash.Add( Model.IsPowered );
+		hash.Add( Model.PinSet );
+		hash.Add( Model.CanManage );
+		hash.Add( Model.WalletBtc );
+		hash.Add( Model.WalletUsd );
+		hash.Add( Model.PendingBtc );
+		hash.Add( Model.RackCount );
+		hash.Add( Model.Note );
+		foreach ( var rack in Model.Racks )
+		{
+			hash.Add( rack.Id );
+			hash.Add( rack.TierLabel );
+			hash.Add( rack.ClockLabel );
+			hash.Add( rack.RateLabel );
+			hash.Add( rack.MinedBtc );
+			hash.Add( rack.IsMining );
+		}
+		return hash.ToHashCode();
+	}
+}

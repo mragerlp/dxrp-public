@@ -4,6 +4,7 @@
 // "LIFEPUNCH Player Hub for DXRP" (s&box ident: lifepunch.playerhub · addon ident: playerhub)
 // ─────────────────────────────────────────────────────────────────────────────
 
+using System;
 using System.Linq;
 using Sandbox;
 using Sandbox.UI;
@@ -53,6 +54,31 @@ public static class LpPlayerHubHost
 
 	[ConCmd( "hub" )]
 	public static void HubConCmd() => Toggle();
+
+	/// <summary>
+	/// Deep link: open the hub (if closed) straight onto a tab. <c>playerhub_tab btc</c>, <c>bind b "playerhub_tab btc"</c>.
+	/// Tab names are the <see cref="LpPlayerHubTab"/> members, case-insensitive. Unknown name = open on the default tab.
+	/// </summary>
+	[ConCmd( "playerhub_tab" )]
+	public static void PlayerHubTabConCmd( string tab = "" )
+	{
+		if ( !IsOpen )
+		{
+			_instance = Mount();
+			if ( !_instance.IsValid() )
+			{
+				Log.Warning( "[playerhub] playerhub_tab: hub did not mount (see prior mount warnings)." );
+				return;
+			}
+
+			SetCursorMode( true );
+		}
+
+		if ( Enum.TryParse<LpPlayerHubTab>( tab, true, out var parsed ) )
+			_instance.SelectTab( parsed );
+		else if ( !string.IsNullOrWhiteSpace( tab ) )
+			Log.Warning( $"[playerhub] playerhub_tab: unknown tab '{tab}' (overview, btc, store, skills, stats)." );
+	}
 
 	/// <summary>Open the hub if closed, else close it.</summary>
 	public static void Toggle()

@@ -3,31 +3,45 @@
 //
 // Player Hub locked token surface. Component styles import these variables and
 // contain no raw colour literals.
+//
+// 2026-10-16: values moved to the ULX grammar (lifepunchulx/StaffMenu.razor.scss
+// at workbench HEAD d9c08031). Names kept so every tab sheet compiles unchanged.
+// FLAG: $lp-blue follows ULX (#1689ff), not LIFEPUNCH_UI_STANDARD (#017AEF);
+// canon question recorded in docs/superpowers/specs/2026-10-16-playerhub-ulx-btc-design.md.
 // -----------------------------------------------------------------------------
 
-$lp-blue: #017AEF;
-$lp-blue-hover: #33A0FF;
-$accent-soft: rgba(1, 122, 239, 0.08);
-$accent-soft-strong: rgba(1, 122, 239, 0.14);
-$accent-focus: rgba(1, 122, 239, 0.28);
+$canvas: #0f1011;
+$bg: #17181a;
+$surface: #1e1f21;
+$surface-inset: #1e1f21;
+$card-header: #272829;
+$border: #343536;
 
-$bg: #000000;
-$surface: #1a1d23;
-$surface-inset: #12151a;
-$card-header: #22262e;
-$border: #374151;
+$lp-blue: #1689ff;
+$lp-blue-hover: #55aaff;
+$accent-soft: rgba(22, 137, 255, 0.09);
+$accent-soft-strong: rgba(22, 137, 255, 0.14);
+$accent-focus: rgba(22, 137, 255, 0.28);
 
-$text-main: #ffffff;
-$text-dim: #9ca3af;
+$text-main: #e4e6e8;
+$text-dim: #8d8f90;
 $good: #199c3b;
-$bad: #931010;
+$bad: #c05f5f;
+$amber: #d99a3f;
+$btc: #f7931a;
+$cash: #5fd38d;
 $good-soft: rgba(25, 156, 59, 0.14);
-$bad-soft: rgba(147, 16, 16, 0.14);
-$dim-soft: rgba(156, 163, 175, 0.08);
-$dim-soft-strong: rgba(156, 163, 175, 0.14);
+$bad-soft: rgba(192, 95, 95, 0.14);
+$dim-soft: rgba(141, 143, 144, 0.08);
+$dim-soft-strong: rgba(141, 143, 144, 0.14);
+
+$font-mono: "Roboto Mono", "Courier New", monospace;
 
 $radius: 6px;
-$radius-card: 12px;
+$radius-chip: 7px;
+$radius-card: 10px;
+$radius-switch: 14px;
+$switch-travel: 24px;
 $hit: 44px;
 $gap-control: 8px;
 $gap-content: 12px;
@@ -35,5 +49,5 @@ $gap-dense: 10px;
 $panel-pad: 12px;
 $bar-h: 34px;
 $row-h: 44px;
-$sidebar-w: 190px;
-$header-h: 64px;
+$header-h: 82px;
+$tabs-h: 43px;

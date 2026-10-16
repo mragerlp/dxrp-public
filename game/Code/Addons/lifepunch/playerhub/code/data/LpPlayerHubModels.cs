@@ -17,7 +17,40 @@ public enum LpPlayerHubTab
 	Skills,
 	Store,
 	Stats,
+	Btc,
 }
+
+/// <summary>
+/// The $BTC tab model. LIVE: built every render by <see cref="LpPlayerHubBtcSource"/> from the
+/// viewer's Bitcoin Hub and its linked racks. Display strings are formatted on the data side so
+/// the view cannot invent a precision or a sign. Actions call EXISTING host rails only.
+/// </summary>
+public sealed record LpBtcVm(
+	bool HasHub,
+	bool IsPowered,
+	bool PinSet,
+	bool CanManage,
+	string WalletBtc,
+	string WalletUsd,
+	string PendingBtc,
+	int RackCount,
+	IReadOnlyList<LpBtcRackVm> Racks,
+	Action? TogglePower,
+	Action? DepositAll,
+	Action? CashOutAll,
+	string Note);
+
+public sealed record LpBtcRackVm(
+	string Id,
+	string Label,
+	string TierLabel,
+	string ClockLabel,
+	string RateLabel,
+	string MinedBtc,
+	string MinedUsd,
+	bool IsMining,
+	bool Advanced,
+	Action? ToggleMining);
 
 public sealed record LpPlayerHubShellVm(
 	string PlayerName,
@@ -580,6 +613,7 @@ public static class LpPlayerHubTabInfo
 	public static string Label( LpPlayerHubTab tab ) => tab switch
 	{
 		LpPlayerHubTab.Overview => "Overview",
+		LpPlayerHubTab.Btc => "$BTC",
 		LpPlayerHubTab.Skills => "Skills",
 		LpPlayerHubTab.Store => "$LP Store",
 		LpPlayerHubTab.Stats => "Stats",
@@ -589,6 +623,7 @@ public static class LpPlayerHubTabInfo
 	public static string Icon( LpPlayerHubTab tab ) => tab switch
 	{
 		LpPlayerHubTab.Overview => "dashboard",
+		LpPlayerHubTab.Btc => "currency_bitcoin",
 		LpPlayerHubTab.Skills => "account_tree",
 		LpPlayerHubTab.Store => "storefront",
 		LpPlayerHubTab.Stats => "insights",
@@ -597,6 +632,7 @@ public static class LpPlayerHubTabInfo
 
 	public static string Blurb( LpPlayerHubTab tab ) => tab switch
 	{
+		LpPlayerHubTab.Btc => "Your Bitcoin Hub and GPU racks. Power, mining, deposit and cash-out on the live rails.",
 		LpPlayerHubTab.Overview => "Fixture-backed progression, currency and route-readiness placeholders.",
 		LpPlayerHubTab.Skills => "Browse five tracks, independent skill ranks and mastery status.",
 		LpPlayerHubTab.Store => "Browse the $LP preview catalog. Purchasing is not open.",
