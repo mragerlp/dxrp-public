@@ -1,0 +1,161 @@
+@*
+	PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+	BANKER-HUB-1 skeleton (DRIVE-AWAY-1-D): the lifepunch.banker menu in the house top-tab shell (R-2832-A),
+	ported from _dev/btcui2/LpBtcHubSkeleton.razor (proven in the editor 2026-10-17, DRIVE-AWAY-1-A).
+	No money path: every row is a PLACEHOLDER, every action is inert. Rulings: DIRECTION_BANKER-HUB_R1 section 8.
+*@
+@namespace LifePunch.DXRP.Addons.Banker
+@using System
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits PanelComponent
+
+@attribute [StyleSheet]
+
+<root class="lp-bankerhub">
+	<div class="window">
+		<div class="hub-shell-header">
+			<div class="hub-shell-title">
+				<div class="title-stack">
+					<span class="title-primary brand-wordmark"><span class="wordmark-life">@LpBankerIdent.Wordmark</span><span class="wordmark-accent">@LpBankerIdent.WordmarkAccent</span></span>
+					<span class="title-sub">BANKER HUB</span>
+				</div>
+			</div>
+			<div class="header-actions">
+				<div class="header-chip header-chip-warn" tooltip="@GateTooltip">BANKER ONLY</div>
+				<button class="lp-ui-chrome-btn chrome-close" tooltip="Close the Banker hub (Esc)" onclick="@Close">
+					<i class="material-icons">close</i>
+				</button>
+			</div>
+		</div>
+
+		<div class="hub-shell-tabs">
+			@foreach ( var tab in Tabs )
+			{
+				<button class="@TabClass( tab )" onclick="@( () => SetTab( tab ) )">
+					<span>@LpBankerHubTabInfo.Label( tab )</span>
+				</button>
+			}
+		</div>
+
+		<div class="hub-workspace">
+			<div class="hub-page-head">
+				<div class="hub-title">@LpBankerHubTabInfo.Label( _activeTab )</div>
+				<div class="hub-blurb">@LpBankerHubTabInfo.Blurb( _activeTab )</div>
+				<div class="header-chip skeleton-chip" tooltip="@SkeletonTooltip">@SkeletonChipText</div>
+			</div>
+
+			<div class="hub-tabhost">
+				<div class="bank-card">
+					<div class="bank-card-head">
+						<span>@LpBankerHubTabInfo.Label( _activeTab )</span>
+						<span class="bank-card-hint">@LpBankerHubTabInfo.Ruling( _activeTab )</span>
+					</div>
+					@foreach ( var row in LpBankerHubTabInfo.Rows( _activeTab ) )
+					{
+						<div class="bank-row">
+							<span class="bank-row-label">@row</span>
+							<span class="bank-row-value">PLACEHOLDER</span>
+						</div>
+					}
+					<div class="bank-empty">@LpBankerHubTabInfo.Empty( _activeTab )</div>
+					<div class="bank-actions">
+						@foreach ( var action in LpBankerHubTabInfo.Actions( _activeTab ) )
+						{
+							<button class="bank-action-inert" tooltip="Inert in the skeleton: binds after its ruling and its own GO">@action</button>
+						}
+					</div>
+				</div>
+			</div>
+		</div>
+
+		<LifePunchUiFooter Product="Banker Hub" />
+	</div>
+</root>
+
+@code
+{
+	private static readonly string MidDot = ((char)0x00B7).ToString();
+
+	private const string SkeletonTooltip =
+		"Skeleton: no balance, no rail, no money path. Every figure is a placeholder until its ruling and its own GO.";
+	private const string GateTooltip =
+		"Banker-only: the job system enforces the one Banker slot. No Banker job exists in this tree yet, so the gate opens in the editor only.";
+
+	// Instance, not static readonly: hotload keeps a static readonly field's old value (LpPlayerHubRoot.razor:97-99).
+	private readonly LpBankerHubTab[] Tabs =
+	{
+		LpBankerHubTab.Overview,
+		LpBankerHubTab.Vault,
+		LpBankerHubTab.Investments,
+		LpBankerHubTab.Premiums,
+		LpBankerHubTab.Upgrades,
+		LpBankerHubTab.Security,
+		LpBankerHubTab.Logs,
+	};
+
+	private LpBankerHubTab _activeTab = LpBankerHubTab.Overview;
+
+	/// <summary>Tab to show when mounted (0 = Overview .. 6 = Logs); the deep link sets it before OnStart.</summary>
+	[Property] public int InitialTabIndex { get; set; }
+
+	private string SkeletonChipText => $"SKELETON {MidDot} NO MONEY PATHS";
+
+	private string TabClass( LpBankerHubTab tab ) => tab == _activeTab ? "tab tab-sel" : "tab";
+
+	/// <summary>Deep link for a tab route; same path as a tab click.</summary>
+	public void SelectTabIndex( int index )
+	{
+		if ( index >= 0 && index < Tabs.Length )
+			SetTab( Tabs[index] );
+	}
+
+	private void SetTab( LpBankerHubTab tab )
+	{
+		if ( _activeTab == tab )
+			return;
+
+		_activeTab = tab;
+		StateHasChanged();
+	}
+
+	private void Close()
+	{
+		if ( GameObject.IsValid() )
+			GameObject.Destroy();
+	}
+
+	protected override void OnStart()
+	{
+		if ( InitialTabIndex >= 0 && InitialTabIndex < Tabs.Length )
+			_activeTab = Tabs[InitialTabIndex];
+
+		LifePunchUiScrollPolicy.Apply( Panel );
+		Log.Info( "[lpbanker] " + LpBankerIdent.SkeletonMark + " shell=house tabs=" + Tabs.Length + " money=none" );
+	}
+
+	protected override void OnUpdate()
+	{
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			Close();
+			return;
+		}
+
+		LifePunchUiScrollPolicy.Apply( Panel );
+	}
+
+	protected override void OnEnabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuOpened();
+	}
+
+	protected override void OnDisabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuClosed();
+	}
+
+	protected override int BuildHash() => HashCode.Combine( (int)_activeTab );
+}
