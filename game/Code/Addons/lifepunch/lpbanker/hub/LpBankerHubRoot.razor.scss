@@ -322,6 +322,23 @@
 		letter-spacing: 0.06em;
 	}
 
+	.bank-row-right {
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.bank-row-ruling {
+		min-width: 44px;
+		padding: 1px 6px;
+		justify-content: center;
+		border: 1px solid $border;
+		border-radius: 3px;
+		font-size: 10px;
+		letter-spacing: 0.06em;
+		color: $text-dim;
+	}
+
 	.bank-empty {
 		padding: $gap-dense;
 		font-size: 11px;
