@@ -1,0 +1,59 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Bitcoin Hub UI skeleton - Racks tab. Tokens only; standalone state classes.
+// No fixed height - slot cards size to content inside the tab scroll region (root PANE-BUDGET).
+// UNVERIFIED in the editor.
+// -----------------------------------------------------------------------------
+
+@import "LpBtcHubTabParts.scss";
+
+.rack-slots {
+	flex-direction: row;
+	flex-shrink: 0;
+	gap: $gap-content;
+}
+
+.rack-slot {
+	flex: 1 1 0;
+}
+
+.rack-slot-live {
+	cursor: pointer;
+}
+
+.rack-slot-live:hover {
+	border-color: $text-dim;
+}
+
+// Switch grammar from playerhub/code/ui/Btc/LpPlayerHubBtc.razor.scss:113-153. Shown, not clickable.
+.lp-switch {
+	flex-direction: row;
+	align-items: center;
+	flex-shrink: 0;
+	width: 52px;
+	height: 28px;
+	padding: 3px;
+	border: 1px solid $border;
+	border-radius: $radius-switch;
+	background-color: $bg;
+	opacity: 0.45;
+}
+
+.lp-switch-knob {
+	width: 20px;
+	height: 20px;
+	margin-left: 0px;
+	border-radius: 50%;
+	background-color: $text-dim;
+}
+
+.lp-switch-on {
+	background-color: rgba($good, 0.22);
+	border-color: rgba($good, 0.6);
+}
+
+.lp-switch-on .lp-switch-knob {
+	margin-left: $switch-travel;
+	background-color: $good;
+}

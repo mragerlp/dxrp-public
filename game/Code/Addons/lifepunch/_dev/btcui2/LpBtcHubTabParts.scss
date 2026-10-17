@@ -1,0 +1,214 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Bitcoin Hub UI skeleton - tab body parts shared by the seven tab sheets (slice SHELL-1b).
+// Self-contained for s&box resource compile (pattern - playerhub/code/ui/LpPlayerHubPrimitives.scss).
+// Tokens only. Every state is a standalone class. UNVERIFIED in the editor.
+// -----------------------------------------------------------------------------
+
+@import "../../playerhub/code/ui/LpPlayerHubTokens.scss";
+@import "../../playerhub/code/ui/LpPlayerHubPrimitives.scss";
+
+// One scroll region per tab - the tab host clips, this scrolls (root PANE-BUDGET).
+.btchub-tab {
+	flex: 1 1 auto;
+	flex-direction: column;
+	min-height: 0;
+	min-width: 0;
+	gap: $gap-content;
+	padding: $panel-pad;
+	overflow-y: scroll;
+	overflow-x: hidden;
+}
+
+.btchub-panel-title {
+	font-size: 12px;
+	font-weight: 700;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: $text-main;
+}
+
+.btchub-panel-note {
+	font-size: 11px;
+	color: $text-dim;
+}
+
+.btchub-row {
+	flex-direction: row;
+	align-items: center;
+	justify-content: space-between;
+	gap: $gap-content;
+	min-height: $row-h;
+	padding-left: $panel-pad;
+	padding-right: $panel-pad;
+	border-bottom: 1px solid $border;
+}
+
+.btchub-row:last-child {
+	border-bottom: 0;
+}
+
+.btchub-label {
+	font-size: 13px;
+	color: $text-dim;
+}
+
+.btchub-value {
+	flex-direction: row;
+	align-items: center;
+	gap: $gap-control;
+	font-size: 13px;
+	color: $text-main;
+}
+
+.btchub-hint {
+	padding: $gap-control $panel-pad;
+	font-size: 12px;
+	color: $text-dim;
+}
+
+.btchub-eyebrow {
+	font-size: 11px;
+	letter-spacing: 0.08em;
+	text-transform: uppercase;
+	color: $text-dim;
+}
+
+.btchub-chip-row {
+	flex-direction: row;
+	align-items: center;
+	gap: $gap-control;
+}
+
+// Chips - Law 13 state colours, one standalone class per state.
+.btchub-chip {
+	flex-direction: row;
+	align-items: center;
+	padding: 2px $gap-control;
+	border: 1px solid $border;
+	border-radius: $radius-chip;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	color: $text-dim;
+}
+
+.btchub-chip-good {
+	flex-direction: row;
+	align-items: center;
+	padding: 2px $gap-control;
+	border: 1px solid rgba($good, 0.45);
+	border-radius: $radius-chip;
+	background-color: $good-soft;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	color: $text-main;
+}
+
+.btchub-chip-warn {
+	flex-direction: row;
+	align-items: center;
+	padding: 2px $gap-control;
+	border: 1px solid rgba($amber, 0.45);
+	border-radius: $radius-chip;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	color: $amber;
+}
+
+.btchub-chip-bad {
+	flex-direction: row;
+	align-items: center;
+	padding: 2px $gap-control;
+	border: 1px solid rgba($bad, 0.45);
+	border-radius: $radius-chip;
+	background-color: $bad-soft;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+	color: $text-main;
+}
+
+// Inert action - the skeleton binds no rail. Its own base class, not an override on a live one.
+.btchub-action-inert {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: $gap-control;
+	min-height: $hit;
+	padding: 0 $panel-pad;
+	border: 1px solid $border;
+	border-radius: $radius-chip;
+	background-color: transparent;
+	color: $text-dim;
+	font-size: 13px;
+	opacity: 0.45;
+	cursor: default;
+}
+
+// Local navigation only (no rail) - a flat button.
+.btchub-nav-btn {
+	flex-direction: row;
+	align-items: center;
+	justify-content: center;
+	gap: $gap-control;
+	min-height: $hit;
+	padding: 0 $panel-pad;
+	border: 1px solid $border;
+	border-radius: $radius-chip;
+	background-color: transparent;
+	color: $text-main;
+	font-size: 13px;
+	cursor: pointer;
+}
+
+.btchub-nav-btn:hover {
+	background-color: $card-header;
+}
+
+.btchub-actions {
+	flex-direction: row;
+	align-items: center;
+	gap: $gap-control;
+	padding: $gap-control $panel-pad;
+}
+
+.btchub-empty {
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	gap: $gap-control;
+	padding: $panel-pad;
+	font-size: 13px;
+	color: $text-dim;
+	text-align: center;
+}
+
+.btchub-planned {
+	color: $text-dim;
+	font-size: 11px;
+	letter-spacing: 0.06em;
+}
+
+// Law 17. The sign carries the colour and the amount stays white.
+.lp-money-btc {
+	font-weight: 900;
+	color: $btc;
+}
+
+.lp-money-cash {
+	font-weight: 900;
+	color: $cash;
+}
+
+.lp-money-amt {
+	color: $text-main;
+}
+
+.lp-money-unit {
+	color: $text-main;
+}
+
+.lp-money-divider {
+	color: $text-dim;
+	padding: 0 4px;
+}

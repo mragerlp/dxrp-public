@@ -1,0 +1,307 @@
+@* -----------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* - addon ident: lifepunch)
+   BTC-UI-2 pre-build (slice SHELL-1b): the Bitcoin Hub UI skeleton in the house shell, per
+   docs/superpowers/specs/2026-10-17-btc-ui-design.md section 6.1. Markup ports
+   playerhub/code/ui/LpPlayerHubRoot.razor (the ULX grammar, R-2832-A) through
+   _dev/shellkit/ShellKitSample.razor. Seven tabs read ILpBitcoinHubState through ILpBitcoinHubFormat.
+   NO rails, NO money paths: every action control is inert and says which rail the build slice binds.
+   Fixture data only. UNVERIFIED in the editor until the driving seat proves it (README.md).
+   ----------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
+@using System
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits PanelComponent
+
+@attribute [StyleSheet]
+
+<root class="lp-btchub">
+	<div class="window">
+		<div class="hub-shell-header">
+			<div class="hub-shell-title">
+				<div class="title-stack">
+					<span class="title-primary brand-wordmark"><span class="wordmark-life">lifepunch</span><span class="wordmark-accent">.btc</span></span>
+					<span class="title-sub">BITCOIN HUB</span>
+				</div>
+			</div>
+			<div class="header-actions">
+				<div class="@PinChipClass" tooltip="Hub PIN state">@PinChipText</div>
+				<div class="header-chip" tooltip="Linked racks out of the slot cap">@RackChipText</div>
+				<button class="header-chip header-chip-btn" tooltip="Hub wallet; opens the Wallet tab" onclick="@OpenWallet">
+					<LifePunchCurrencyToken Sign="@BtcSign" Amount="@WalletText" />
+				</button>
+				<div class="header-power" tooltip="@PowerTooltip">
+					<span class="@PowerLabelClass">@PowerLabelText</span>
+					<div class="@PowerSwitchClass">
+						<div class="lp-switch-knob"></div>
+					</div>
+				</div>
+				<button class="lp-ui-chrome-btn chrome-close" tooltip="Close the Bitcoin Hub (Esc)" onclick="@Close">
+					<i class="material-icons">close</i>
+				</button>
+			</div>
+		</div>
+
+		@if ( !_pinView )
+		{
+			<div class="hub-shell-tabs">
+				@foreach ( var tab in Tabs )
+				{
+					<button class="@TabClass( tab )" onclick="@( () => SetTab( tab ) )">
+						<span>@LpBtcHubTabInfo.Label( tab )</span>
+					</button>
+				}
+			</div>
+		}
+
+		<div class="hub-workspace">
+			<div class="hub-page-head">
+				<div class="hub-title">@PageTitle</div>
+				<div class="hub-blurb">@PageBlurb</div>
+				<div class="header-chip skeleton-chip" tooltip="@SkeletonTooltip">@SkeletonChipText</div>
+			</div>
+
+			<div class="hub-tabhost">
+				@if ( _pinView )
+				{
+					<div class="pin-view">
+						<div class="pin-title">@PinTitle</div>
+						<div class="pin-sub">@PinSubText</div>
+						<div class="pin-dots">
+							@for ( var i = 0; i < PinLength; i++ )
+							{
+								<div class="@DotClass( i )"></div>
+							}
+						</div>
+						@if ( !string.IsNullOrEmpty( _pinError ) )
+						{
+							<div class="pin-error">@_pinError</div>
+						}
+						<div class="pin-pad">
+							@foreach ( var row in PadRows )
+							{
+								<div class="pin-pad-row">
+									@foreach ( var key in row )
+									{
+										<button class="pin-key" onclick="@( () => PressKey( key ) )">
+											<span>@key</span>
+										</button>
+									}
+								</div>
+							}
+						</div>
+						<div class="pin-note">@PinNote</div>
+					</div>
+				}
+				else if ( _activeTab == LpBtcHubTab.Overview )
+				{
+					<LpBtcHubOverview Model="@State" Format="@Format" OnOpenRacks="@(() => SetTab( LpBtcHubTab.Racks ))" />
+				}
+				else if ( _activeTab == LpBtcHubTab.Racks )
+				{
+					<LpBtcHubRacks Model="@State" Format="@Format" SelectedToken="@_selectedRackToken" OnSelectRack="@((string token) => SelectRack( token ))" />
+				}
+				else if ( _activeTab == LpBtcHubTab.Terminal )
+				{
+					<LpBtcHubTerminal Model="@State" Format="@Format" />
+				}
+				else if ( _activeTab == LpBtcHubTab.Wallet )
+				{
+					<LpBtcHubWallet Model="@State" Format="@Format" />
+				}
+				else if ( _activeTab == LpBtcHubTab.Transfers )
+				{
+					<LpBtcHubTransfers Model="@State" Format="@Format" />
+				}
+				else if ( _activeTab == LpBtcHubTab.Logs )
+				{
+					<LpBtcHubLogs Model="@State" Format="@Format" />
+				}
+				else
+				{
+					<LpBtcHubSettings Model="@State" Format="@Format" />
+				}
+			</div>
+		</div>
+
+		<LifePunchUiFooter Product="Bitcoin Hub" />
+	</div>
+</root>
+
+@code
+{
+	/// <summary>Positive code-string ID for this skeleton. Exists nowhere else in the tree.</summary>
+	public const string SkeletonMark = "LP_BTCUI2_SKELETON_20261017";
+
+	private const int PinLength = 4;
+
+	// Display glyphs are built from their code points so this block stays ASCII.
+	private static readonly string BtcSign = ((char)0x20BF).ToString();
+	private static readonly string MidDot = ((char)0x00B7).ToString();
+
+	private const string SkeletonTooltip =
+		"Skeleton: every figure is a fixture and every action is inert. The build slice binds live state and the rails after its own GO.";
+	private const string PinNote =
+		"Skeleton: any 4 digits continue and nothing is sent. The host check (unlock, set, change, lockout) binds in the build slice.";
+
+	// Instance, not static readonly: hotload keeps a static readonly field's old value
+	// (LpPlayerHubRoot.razor:97-99). The skeleton is rebuilt on every mount.
+	private readonly LpBtcHubTab[] Tabs =
+	{
+		LpBtcHubTab.Overview,
+		LpBtcHubTab.Racks,
+		LpBtcHubTab.Terminal,
+		LpBtcHubTab.Wallet,
+		LpBtcHubTab.Transfers,
+		LpBtcHubTab.Logs,
+		LpBtcHubTab.Settings,
+	};
+
+	private readonly string[][] PadRows =
+	{
+		new[] { "1", "2", "3" },
+		new[] { "4", "5", "6" },
+		new[] { "7", "8", "9" },
+		new[] { "clr", "0", "ok" },
+	};
+
+	private static bool _announced;
+
+	private readonly ILpBitcoinHubState State = new LpBitcoinHubStateFixture();
+	private readonly ILpBitcoinHubFormat Format = LpBitcoinHubFormatUnruled.Instance;
+
+	private LpBtcHubTab _activeTab = LpBtcHubTab.Overview;
+	private string _selectedRackToken = string.Empty;
+	private bool _pinView = true;
+	private string _pinEntry = string.Empty;
+	private string _pinError = string.Empty;
+
+	private string PinChipText => State.PinSet ? "PIN SET" : "NO PIN";
+	private string PinChipClass => State.PinSet ? "header-chip header-chip-good" : "header-chip header-chip-warn";
+	private string RackChipText => State.RackCount + "/" + State.RackMax + " RACKS";
+	private string WalletText => Format.Btc( State.WalletBtc );
+	private string PowerLabelText => State.IsPowered ? "ON" : "OFF";
+	private string PowerLabelClass => State.IsPowered ? "power-label power-label-on" : "power-label";
+	// Inert in the skeleton: the switch shows state and binds SetPowered (HE:321) only in the build slice (R-BTCUI-5).
+	private string PowerSwitchClass => State.IsPowered ? "lp-switch lp-switch-on" : "lp-switch";
+	private string PowerTooltip => "Hub power, the one writer in this UI (R-BTCUI-5). Inert in the skeleton.";
+	private string SkeletonChipText => $"SKELETON {MidDot} FIXTURE DATA";
+
+	private string PinTitle => State.PinSet ? "Enter hub PIN" : "Set a hub PIN";
+	private string PinSubText => State.PinNeedsReEnroll ? "Your PIN must be set again." : "4 digits";
+
+	private string PageTitle => _pinView ? "Hub PIN" : LpBtcHubTabInfo.Label( _activeTab );
+	private string PageBlurb => _pinView ? "Unlock to open the hub" : LpBtcHubTabInfo.Blurb( _activeTab );
+
+	private string TabClass( LpBtcHubTab tab ) => tab == _activeTab ? "tab tab-sel" : "tab";
+
+	private string DotClass( int index ) => index < _pinEntry.Length ? "pin-dot pin-dot-on" : "pin-dot";
+
+	/// <summary>Deep-link entry for a future tab route; same path as a tab click.</summary>
+	public void SelectTab( LpBtcHubTab tab ) => SetTab( tab );
+
+	private void SetTab( LpBtcHubTab tab )
+	{
+		if ( _pinView || _activeTab == tab )
+			return;
+
+		_activeTab = tab;
+		_selectedRackToken = string.Empty;
+		StateHasChanged();
+	}
+
+	private void OpenWallet() => SetTab( LpBtcHubTab.Wallet );
+
+	private void SelectRack( string token )
+	{
+		_selectedRackToken = token ?? string.Empty;
+		StateHasChanged();
+	}
+
+	private void PressKey( string key )
+	{
+		if ( key == "clr" )
+		{
+			// Backspace one digit: the R-BTCUI-6 recommendation, recorded open.
+			if ( _pinEntry.Length > 0 )
+				_pinEntry = _pinEntry.Substring( 0, _pinEntry.Length - 1 );
+			_pinError = string.Empty;
+		}
+		else if ( key == "ok" )
+		{
+			if ( _pinEntry.Length < PinLength )
+			{
+				_pinError = "Enter all " + PinLength + " digits.";
+			}
+			else
+			{
+				_pinEntry = string.Empty;
+				_pinError = string.Empty;
+				_pinView = false;
+			}
+		}
+		else if ( _pinEntry.Length < PinLength )
+		{
+			_pinEntry += key;
+			_pinError = string.Empty;
+		}
+		else
+		{
+			_pinError = "The PIN is " + PinLength + " digits.";
+		}
+
+		StateHasChanged();
+	}
+
+	private void Close()
+	{
+		if ( GameObject.IsValid() )
+			GameObject.Destroy();
+	}
+
+	protected override void OnStart()
+	{
+		LifePunchUiScrollPolicy.Apply( Panel );
+		if ( !_announced )
+		{
+			_announced = true;
+			Log.Info( "[btcui2] " + SkeletonMark + " shell=house tabs=" + Tabs.Length + " rails=none" );
+		}
+	}
+
+	protected override void OnUpdate()
+	{
+		// Esc closes the innermost layer first (spec section 11): rack detail, then the panel.
+		// Pattern: lptags/tags/code/ui/LpTagsMenu.razor:311-319.
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			if ( !_pinView && !string.IsNullOrEmpty( _selectedRackToken ) )
+			{
+				SelectRack( string.Empty );
+				return;
+			}
+
+			Close();
+			return;
+		}
+
+		LifePunchUiScrollPolicy.Apply( Panel );
+	}
+
+	protected override void OnEnabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuOpened();
+	}
+
+	protected override void OnDisabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuClosed();
+	}
+
+	protected override int BuildHash() =>
+		HashCode.Combine( (int)_activeTab, _selectedRackToken, _pinView, _pinEntry, _pinError, State.StateHash );
+}

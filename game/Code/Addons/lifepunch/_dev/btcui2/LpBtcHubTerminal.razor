@@ -1,0 +1,89 @@
+@* -----------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Bitcoin Hub UI skeleton - Terminal tab (spec 6.1 row Terminal; keep list K9, K10).
+   A read-only page about the linked HASHD terminal entity; it opens nothing (R-BTCUI-15). Link,
+   Online (= linked and hub powered, HP:2107) and Secured (= PIN set). Six security tracks as PLANNED
+   rows; names port lpbitcoin/bitcoinhub/code/ui/LpHashdPanel.razor:984-994. The donor skin row is
+   cosmetic and carries no economy reference. Link / Unlink is inert. UNVERIFIED in the editor.
+   ----------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="btchub-tab">
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">HASHD terminal</div>
+			<div class="btchub-chip-row">
+				<span class="@( Model.TerminalLinked ? "btchub-chip-good" : "btchub-chip-warn" )">@( Model.TerminalLinked ? "LINKED" : "NOT LINKED" )</span>
+				<span class="@( Online ? "btchub-chip-good" : "btchub-chip" )">@( Online ? "ONLINE" : "OFFLINE" )</span>
+				<span class="@( Model.PinSet ? "btchub-chip-good" : "btchub-chip-warn" )">@( Model.PinSet ? "SECURED" : "NO PIN" )</span>
+			</div>
+		</div>
+		<div class="lp-hub-field-row">
+			<div class="lp-hub-field">
+				<span class="btchub-eyebrow">Link</span>
+				<span class="btchub-value">@LinkText</span>
+			</div>
+			<div class="lp-hub-field">
+				<span class="btchub-eyebrow">Access</span>
+				<span class="btchub-value">@( Model.PinSet ? "PIN required" : "Open: set a PIN in Settings" )</span>
+			</div>
+			<div class="lp-hub-field">
+				<span class="btchub-eyebrow">Power</span>
+				<span class="btchub-value">@( Model.IsPowered ? "Hub on" : "Hub off" )</span>
+			</div>
+		</div>
+		<div class="btchub-actions">
+			<button class="btchub-action-inert" tooltip="Binds RequestLinkNearbyTerminal / RequestUnlinkTerminal (HE:551-553) in the build slice">
+				<span>@( Model.TerminalLinked ? "Unlink terminal" : "Link terminal" )</span>
+			</button>
+		</div>
+	</div>
+
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Security tracks</div>
+			<div class="btchub-panel-note">No effects yet</div>
+		</div>
+		@foreach ( var track in SecurityTracks )
+		{
+			<div class="btchub-row">
+				<div class="btchub-value">
+					<i class="material-icons">@track.Icon</i>
+					<span>@track.Name</span>
+				</div>
+				<span class="btchub-planned">@track.State</span>
+			</div>
+		}
+	</div>
+</root>
+
+@code
+{
+	[Property] public ILpBitcoinHubState Model { get; set; } = null!;
+	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
+
+	// LpHashdPanel.razor:984-994. Instance, not static readonly (hotload).
+	private readonly (string Name, string Icon, string State)[] SecurityTracks =
+	{
+		( "Endpoint Firewall", "shield", "PLANNED" ),
+		( "Command Authentication", "key", "PLANNED" ),
+		( "Intrusion Detection", "radar", "PLANNED" ),
+		( "Audit Retention", "history", "PLANNED" ),
+		( "Monitoring Suite", "monitor_heart", "PLANNED" ),
+		( "HASHD donor skins", "brush", "NOT ENABLED" ),
+	};
+
+	private bool Online => Model.TerminalLinked && Model.IsPowered;
+
+	private string LinkText => Model.TerminalLinked ? "Linked to this hub"
+		: Model.TerminalInRange ? "A terminal is in range" : "No terminal in range";
+
+	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0 );
+}

@@ -1,0 +1,111 @@
+@* -----------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Bitcoin Hub UI skeleton - Overview tab (spec 6.1 row Overview; keep list K1, K2).
+   Checklist power -> link terminal -> link racks, and the snapshot. Hub wallet $ is the wallet only;
+   pending is its own row (R-BTCUI-3 option c). No "Upgrades" copy (HP:1055-1058 is stale).
+   Inert actions name their rail; the Racks button is local navigation. UNVERIFIED in the editor.
+   ----------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
+@using System
+@using System.Linq
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="btchub-tab">
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Getting started</div>
+			<div class="btchub-panel-note">@ChecklistNote</div>
+		</div>
+		<div class="btchub-row">
+			<div class="btchub-value">
+				<span class="@StepChipClass( Model.IsPowered )">@StepChipText( Model.IsPowered )</span>
+				<span>Power on hub</span>
+			</div>
+			<button class="btchub-action-inert" tooltip="Binds SetPowered (HE:321) in the build slice">
+				<span>@( Model.IsPowered ? "Power off" : "Power on" )</span>
+			</button>
+		</div>
+		<div class="btchub-row">
+			<div class="btchub-value">
+				<span class="@StepChipClass( Model.TerminalLinked )">@StepChipText( Model.TerminalLinked )</span>
+				<span>Link terminal</span>
+			</div>
+			<button class="btchub-action-inert" tooltip="@LinkTooltip">
+				<span>@LinkLabel</span>
+			</button>
+		</div>
+		<div class="btchub-row">
+			<div class="btchub-value">
+				<span class="@StepChipClass( RacksDone )">@StepChipText( RacksDone )</span>
+				<span>Link GPU racks</span>
+			</div>
+			<button class="btchub-nav-btn" tooltip="Open the Racks tab" onclick="@OpenRacks">
+				<span>Racks</span>
+			</button>
+		</div>
+	</div>
+
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Snapshot</div>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Setup</span>
+			<span class="btchub-value">@( SetupReady ? "Ready" : "In progress" )</span>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Linked racks</span>
+			<span class="btchub-value">@RackCountText</span>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Hub wallet</span>
+			<div class="btchub-value">
+				<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.WalletBtc ) )" />
+				<span class="lp-money-divider">|</span>
+				<LifePunchCurrencyToken Sign="$" Amount="@( Format.Usd( Model.WalletUsd ) )" SignClass="lp-money-cash" />
+			</div>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Pending on racks</span>
+			<div class="btchub-value">
+				<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.PendingBtc ) )" />
+				<span class="lp-money-divider">|</span>
+				<LifePunchCurrencyToken Sign="$" Amount="@( Format.Usd( Model.PendingUsd ) )" SignClass="lp-money-cash" />
+			</div>
+		</div>
+	</div>
+</root>
+
+@code
+{
+	[Property] public ILpBitcoinHubState Model { get; set; } = null!;
+	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
+	public Action? OnOpenRacks { get; set; }
+
+	private static readonly string BtcSign = ((char)0x20BF).ToString();
+
+	// Slot tokens the hub UI maps by (ID:143-155). Instance, not static readonly (hotload).
+	private readonly string[] SlotTokens = { "gpurack-1", "gpurack-2", "advancedgpurack" };
+
+	// Racks read Done only when the count is above 0 AND every rack sits in a known token slot (spec 6.1).
+	private bool RacksDone => Model.RackCount > 0 && Model.Racks.All( r => SlotTokens.Contains( r.Token ) );
+	private bool SetupReady => Model.IsPowered && Model.TerminalLinked && RacksDone;
+	private string RackCountText => Model.RackCount + " / " + Model.RackMax;
+	private string ChecklistNote => SetupReady ? "All three steps done" : "Complete all three steps to start mining";
+
+	private string LinkLabel => Model.TerminalLinked ? "Unlink" : Model.TerminalInRange ? "Link" : "No terminal in range";
+	private string LinkTooltip => "Binds RequestLinkNearbyTerminal / RequestUnlinkTerminal (HE:551-553) in the build slice";
+
+	private static string StepChipText( bool done ) => done ? "DONE" : "REQUIRED";
+	private static string StepChipClass( bool done ) => done ? "btchub-chip-good" : "btchub-chip-warn";
+
+	private void OpenRacks() => OnOpenRacks?.Invoke();
+
+	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0 );
+}

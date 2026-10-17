@@ -1,0 +1,445 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Bitcoin Hub UI skeleton (BTC-UI-2 pre-build, slice SHELL-1b). Flex-only s&box SCSS.
+// The shell block (window .. tab host) is the house shell ported verbatim from
+// _dev/shellkit/ShellKitSample.razor.scss, itself a port of playerhub/code/ui/LpPlayerHubRoot.razor.scss.
+// Its literal sizes are the shell's own (spec 6.0 lists them - PRS:183-199); tokenising them or moving
+// them into a shared partial is R-BTCUI-10, open. New rules below the shell use tokens only.
+// No colour is declared here - every colour is a token from LpPlayerHubTokens.scss.
+// UNVERIFIED in the editor until the driving seat proves it.
+// -----------------------------------------------------------------------------
+
+@import "../../playerhub/code/ui/LpPlayerHubTokens.scss";
+
+// Sizes with no token yet (R-BTCUI-10 asks for keypad dot and key tokens). One declaration each.
+$pin-dot-size: 14px;
+$pin-key-w: 72px;
+
+.lp-btchub {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba($canvas, 0.86);
+	font-family: $font-mono;
+	color: $text-main;
+	pointer-events: all;
+
+	.material-icons {
+		font-family: Material Icons;
+		font-weight: normal;
+		font-style: normal;
+		text-transform: none;
+		letter-spacing: normal;
+		white-space: nowrap;
+		line-height: 1;
+		font-size: 18px;
+	}
+
+	// PANE-BUDGET worst case, every tab and the PIN view. Window 700 = header 82 + tabs 43 + footer 32
+	// + workspace 543. Workspace 543 = padding 26 + page head 32 + gap 10 + tab host 475. The PIN view
+	// hides the tab strip, so it has 518. Every tab body is one scroll region; nothing overflows the window.
+	.window {
+		position: relative;
+		flex-direction: column;
+		flex-shrink: 0;
+		width: 1160px;
+		height: 700px;
+		max-width: 94%;
+		max-height: 92%;
+		background-color: $bg;
+		border: 1px solid $border;
+		border-radius: $radius-card;
+		overflow: hidden;
+		box-shadow: 0 18px 44px rgba($canvas, 0.64);
+	}
+
+	.hub-shell-header {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		flex-shrink: 0;
+		min-height: $header-h;
+		padding: 15px 20px;
+		border-bottom: 1px solid $border;
+		background-color: $bg;
+	}
+
+	.hub-shell-title {
+		flex-direction: row;
+		align-items: center;
+		gap: 18px;
+		min-width: 0;
+	}
+
+	.title-stack {
+		flex-direction: column;
+		gap: 3px;
+	}
+
+	.title-primary {
+		font-size: 24px;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		color: $text-main;
+	}
+
+	.brand-wordmark {
+		flex-direction: row;
+		white-space: nowrap;
+	}
+
+	.wordmark-life {
+		color: $text-main;
+	}
+
+	// R-BTCUI-8 - lifepunch.btc with lp-blue chrome; btc orange only on the sign.
+	.wordmark-accent {
+		color: $lp-blue;
+		text-shadow: 0 0 12px rgba($lp-blue, 0.58);
+	}
+
+	.title-sub {
+		font-size: 13px;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: $text-dim;
+	}
+
+	.header-actions {
+		flex-direction: row;
+		align-items: center;
+		gap: 7px;
+	}
+
+	.header-chip {
+		flex-direction: row;
+		align-items: center;
+		gap: 6px;
+		min-height: 32px;
+		padding: 0 10px;
+		border: 1px solid $border;
+		border-radius: $radius-chip;
+		background-color: transparent;
+		color: $text-dim;
+		font-size: 13px;
+		white-space: nowrap;
+	}
+
+	.lp-ui-chrome-btn {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		border: 1px solid rgba($text-dim, 0.28);
+		border-radius: $radius-chip;
+		background-color: rgba($text-dim, 0.07);
+		color: $text-dim;
+		cursor: pointer;
+		transition: background-color 140ms ease-out, color 140ms ease-out, border-color 140ms ease-out;
+	}
+
+	.lp-ui-chrome-btn:hover {
+		background-color: $surface;
+		color: $text-main;
+	}
+
+	.chrome-close .material-icons {
+		font-size: 22px;
+		color: rgba($bad, 0.82);
+	}
+
+	.chrome-close:hover {
+		background-color: rgba($bad, 0.16);
+		border-color: rgba($bad, 0.45);
+	}
+
+	.chrome-close:hover .material-icons {
+		color: $bad;
+	}
+
+	.hub-shell-tabs {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		gap: 18px;
+		padding: 0 20px;
+		min-height: $tabs-h;
+		border-bottom: 1px solid $border;
+		background-color: $bg;
+	}
+
+	.tab {
+		flex-direction: row;
+		align-items: center;
+		height: $tabs-h;
+		padding: 0 1px;
+		border: 0;
+		border-bottom: 2px solid transparent;
+		background-color: transparent;
+		color: $text-dim;
+		font-size: 13px;
+		cursor: pointer;
+		transition: color 130ms ease-out, border-color 130ms ease-out;
+	}
+
+	.tab:hover {
+		color: $text-main;
+	}
+
+	// Standalone state class emitted by the razor; bold text and an accent underline, no fill.
+	.tab-sel {
+		color: $text-main;
+		font-weight: 700;
+		border-bottom-color: $lp-blue;
+	}
+
+	.hub-workspace {
+		flex: 1 1 0;
+		flex-direction: column;
+		min-height: 0;
+		min-width: 0;
+		padding: 14px 20px 12px 20px;
+		gap: $gap-dense;
+		overflow: hidden;
+	}
+
+	.hub-page-head {
+		flex-direction: row;
+		align-items: center;
+		min-height: 32px;
+		flex-shrink: 0;
+		gap: 12px;
+	}
+
+	.hub-title {
+		font-size: 18px;
+		font-weight: 700;
+		color: $text-main;
+	}
+
+	.hub-blurb {
+		padding-left: 12px;
+		border-left: 1px solid $border;
+		font-size: 11px;
+		color: $text-dim;
+	}
+
+	.hub-tabhost {
+		flex-direction: column;
+		flex-grow: 1;
+		min-height: 0;
+		min-width: 0;
+		overflow: hidden;
+		background-color: $surface;
+		border: 1px solid $border;
+		border-radius: $radius-card;
+	}
+
+	// ---- new rules (tokens only) ----
+
+	.skeleton-chip {
+		margin-left: auto;
+		font-size: 11px;
+		letter-spacing: 0.06em;
+	}
+
+	.header-chip-good {
+		flex-direction: row;
+		align-items: center;
+		min-height: 32px;
+		padding: 0 $gap-dense;
+		border: 1px solid rgba($good, 0.45);
+		border-radius: $radius-chip;
+		background-color: $good-soft;
+		color: $text-main;
+		font-size: 12px;
+		white-space: nowrap;
+	}
+
+	.header-chip-warn {
+		flex-direction: row;
+		align-items: center;
+		min-height: 32px;
+		padding: 0 $gap-dense;
+		border: 1px solid rgba($amber, 0.45);
+		border-radius: $radius-chip;
+		background-color: transparent;
+		color: $amber;
+		font-size: 12px;
+		white-space: nowrap;
+	}
+
+	.header-chip-btn {
+		cursor: pointer;
+	}
+
+	.header-chip-btn:hover {
+		background-color: $card-header;
+		color: $text-main;
+	}
+
+	.header-power {
+		flex-direction: row;
+		align-items: center;
+		gap: $gap-control;
+		padding: 0 $gap-control;
+	}
+
+	.power-label {
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		color: $text-dim;
+	}
+
+	.power-label-on {
+		color: $text-main;
+	}
+
+	// Switch grammar from playerhub/code/ui/Btc/LpPlayerHubBtc.razor.scss:113-153. Shown, not clickable.
+	.lp-switch {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		width: 52px;
+		height: 28px;
+		padding: 3px;
+		border: 1px solid $border;
+		border-radius: $radius-switch;
+		background-color: $bg;
+	}
+
+	.lp-switch-knob {
+		width: 20px;
+		height: 20px;
+		margin-left: 0px;
+		border-radius: 50%;
+		background-color: $text-dim;
+	}
+
+	.lp-switch-on {
+		background-color: rgba($good, 0.22);
+		border-color: rgba($good, 0.6);
+	}
+
+	.lp-switch-on .lp-switch-knob {
+		margin-left: $switch-travel;
+		background-color: $good;
+	}
+
+	// PIN view - replaces the tab host body; header and footer stay (spec 6.1).
+	.pin-view {
+		flex-grow: 1;
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: $gap-content;
+		padding: $panel-pad;
+	}
+
+	.pin-title {
+		font-size: 18px;
+		font-weight: 700;
+		color: $text-main;
+	}
+
+	.pin-sub {
+		font-size: 12px;
+		color: $text-dim;
+	}
+
+	.pin-dots {
+		flex-direction: row;
+		gap: $gap-content;
+	}
+
+	.pin-dot {
+		width: $pin-dot-size;
+		height: $pin-dot-size;
+		border: 1px solid $text-dim;
+		border-radius: 50%;
+		background-color: transparent;
+	}
+
+	.pin-dot-on {
+		width: $pin-dot-size;
+		height: $pin-dot-size;
+		border: 1px solid $lp-blue;
+		border-radius: 50%;
+		background-color: $lp-blue;
+	}
+
+	.pin-error {
+		font-size: 12px;
+		color: $bad;
+	}
+
+	.pin-pad {
+		flex-direction: column;
+		gap: $gap-control;
+	}
+
+	.pin-pad-row {
+		flex-direction: row;
+		gap: $gap-control;
+	}
+
+	.pin-key {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		width: $pin-key-w;
+		height: $hit;
+		border: 1px solid $border;
+		border-radius: $radius-chip;
+		background-color: transparent;
+		color: $text-main;
+		font-size: 16px;
+		cursor: pointer;
+	}
+
+	.pin-key:hover {
+		background-color: $card-header;
+	}
+
+	.pin-note {
+		font-size: 11px;
+		color: $text-dim;
+		text-align: center;
+	}
+
+	// Law 17. The sign carries the colour and the amount stays white.
+	.lp-money-btc {
+		font-weight: 900;
+		color: $btc;
+	}
+
+	.lp-money-cash {
+		font-weight: 900;
+		color: $cash;
+	}
+
+	.lp-money-amt {
+		color: $text-main;
+	}
+
+	.lp-money-unit {
+		color: $text-main;
+	}
+
+	.lp-money-divider {
+		color: $text-dim;
+		padding: 0 4px;
+	}
+
+	.lp-source-footer .lp-mark {
+		color: $lp-blue;
+	}
+}

@@ -1,0 +1,70 @@
+@* -----------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Bitcoin Hub UI skeleton - Logs tab (spec 6.1 row Logs; keep list K18).
+   Feed rows: kind icon, message, relative time, plus the empty state. Opening the tab marks alerts
+   read (HE:812) only in the build slice; here nothing is sent. Relative time across host and client
+   clocks is UNVERIFIED (HP:1900-1910). UNVERIFIED in the editor.
+   ----------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
+@using System
+@using Sandbox
+@using Sandbox.UI
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="btchub-tab">
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Alerts</div>
+			<div class="btchub-panel-note">@UnreadText</div>
+		</div>
+		@if ( Model.Alerts.Count == 0 )
+		{
+			<div class="btchub-empty">
+				<i class="material-icons">notifications_none</i>
+				<span>No alerts yet. Terminal commands, full racks, intrusions and transfers show here.</span>
+			</div>
+		}
+		@foreach ( var alert in Model.Alerts )
+		{
+			<div class="btchub-row">
+				<div class="btchub-value">
+					<i class="material-icons">@KindIcon( alert.Kind )</i>
+					<span class="btchub-eyebrow">@KindLabel( alert.Kind )</span>
+					<span>@alert.Message</span>
+				</div>
+				<span class="btchub-label">@( Format.Age( alert.AgeSeconds ) )</span>
+			</div>
+		}
+	</div>
+</root>
+
+@code
+{
+	[Property] public ILpBitcoinHubState Model { get; set; } = null!;
+	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
+
+	private string UnreadText => Model.UnreadAlerts == 1 ? "1 unread" : Model.UnreadAlerts + " unread";
+
+	private static string KindIcon( LpBitcoinHubAlertKind kind ) => kind switch
+	{
+		LpBitcoinHubAlertKind.TerminalCommand => "terminal",
+		LpBitcoinHubAlertKind.RackCapacity => "inventory_2",
+		LpBitcoinHubAlertKind.HackAttack => "gpp_bad",
+		LpBitcoinHubAlertKind.HubTransfer => "swap_horiz",
+		_ => "info",
+	};
+
+	private static string KindLabel( LpBitcoinHubAlertKind kind ) => kind switch
+	{
+		LpBitcoinHubAlertKind.TerminalCommand => "Command",
+		LpBitcoinHubAlertKind.RackCapacity => "Capacity",
+		LpBitcoinHubAlertKind.HackAttack => "Intrusion",
+		LpBitcoinHubAlertKind.HubTransfer => "Transfer",
+		_ => "Alert",
+	};
+
+	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0 );
+}

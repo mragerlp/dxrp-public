@@ -1,0 +1,125 @@
+@* -----------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Bitcoin Hub UI skeleton - Wallet tab (spec 6.1 row Wallet; keep list K11, K12).
+   Hub wallet, still on racks, terminal linked, USD value (wallet only), exchange rate, your cash
+   (on-hand, NOT the bank the cash-out pays). Amount input with local bad-input feedback (spec 11:
+   unparseable -> a visible message; over the wallet -> "Insufficient funds"), a preview labelled
+   "est. before bonuses" (R-BTCUI-14). Cash out, Cash out all and Deposit all are inert: nothing is
+   sent, no value moves. UNVERIFIED in the editor.
+   ----------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
+@using System
+@using System.Globalization
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="btchub-tab">
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Wallet</div>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Hub wallet</span>
+			<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.WalletBtc ) )" />
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Still on racks</span>
+			<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.PendingBtc ) )" />
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Terminal linked</span>
+			<span class="btchub-value">@( Model.TerminalLinked ? "Yes" : "No - link on Overview" )</span>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">USD value (hub wallet)</span>
+			<LifePunchCurrencyToken Sign="$" Amount="@( Format.Usd( Model.WalletUsd ) )" SignClass="lp-money-cash" />
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Exchange rate</span>
+			<span class="btchub-value">@RateText</span>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Your cash</span>
+			<LifePunchCurrencyToken Sign="$" Amount="@( Format.Usd( Model.LocalCashUsd ) )" SignClass="lp-money-cash" />
+		</div>
+	</div>
+
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Cash out to bank</div>
+			<div class="btchub-panel-note">The bank pays whole dollars</div>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">BTC amount</span>
+			<TextEntry class="wallet-input" Placeholder="0.0025" Value:bind="@AmountText" />
+		</div>
+		@if ( !string.IsNullOrEmpty( AmountError ) )
+		{
+			<div class="btchub-hint wallet-error">@AmountError</div>
+		}
+		else if ( HasAmount )
+		{
+			<div class="btchub-row">
+				<span class="btchub-label">Bank deposit, est. before bonuses</span>
+				<LifePunchCurrencyToken Sign="$" Amount="@( Format.Usd( PreviewUsd ) )" SignClass="lp-money-cash" />
+			</div>
+		}
+		<div class="btchub-actions">
+			<button class="btchub-action-inert" tooltip="Binds RequestCashOutHub (HE:440) in the build slice">
+				<span>Cash out</span>
+			</button>
+			<button class="btchub-action-inert" tooltip="Binds RequestCashOutAllHub (HE:442) in the build slice">
+				<span>Cash out all</span>
+			</button>
+			<button class="btchub-action-inert" tooltip="@DepositTooltip">
+				<span>Deposit all</span>
+			</button>
+		</div>
+	</div>
+</root>
+
+@code
+{
+	[Property] public ILpBitcoinHubState Model { get; set; } = null!;
+	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
+
+	private static readonly string BtcSign = ((char)0x20BF).ToString();
+
+	private string AmountText { get; set; } = string.Empty;
+
+	// Invariant parse, as the hub cash-out does today (HP:2934-2938). Display-only check; the host re-checks.
+	private bool TryAmount( out float btc ) =>
+		float.TryParse( AmountText?.Trim(), NumberStyles.Float, CultureInfo.InvariantCulture, out btc ) && btc > 0f;
+
+	private bool HasAmount => !string.IsNullOrWhiteSpace( AmountText ) && TryAmount( out _ );
+
+	private string AmountError
+	{
+		get
+		{
+			if ( string.IsNullOrWhiteSpace( AmountText ) )
+				return string.Empty;
+			if ( !TryAmount( out var btc ) )
+				return "Enter a BTC amount like 0.0025.";
+			return btc > Model.WalletBtc ? "Insufficient funds." : string.Empty;
+		}
+	}
+
+	private float PreviewUsd => TryAmount( out var btc ) ? btc * Model.UsdPerBtc : 0f;
+
+	private string RateText => Model.RateEventActive
+		? $"${Format.Usd( Model.UsdPerBtc )} / {BtcSign} ({Format.Yield( Model.RateEventMultiplier )})"
+		: $"${Format.Usd( Model.UsdPerBtc )} / {BtcSign}";
+
+	// R-BTCUI-11: the enable rule mirrors the host (terminal linked, HE:1147) with a visible reason.
+	private string DepositTooltip => Model.TerminalLinked
+		? "Binds RequestDepositRacksToHub (HE:436) in the build slice, if R-BTCUI-11 adds it"
+		: "Link a terminal to deposit";
+
+	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0, AmountText );
+}
