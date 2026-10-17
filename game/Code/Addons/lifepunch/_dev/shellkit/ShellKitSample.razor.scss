@@ -1,0 +1,409 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Shell kit in the house grammar (docs/ui/SHELL_CONTRACT.md Part A). Flex-only s&box SCSS.
+// Shell rules port playerhub/code/ui/LpPlayerHubRoot.razor.scss (which mirrors
+// lifepunchulx/StaffMenu.razor.scss); money rules port Btc/LpPlayerHubBtc.razor.scss:188-205.
+// No colour is declared here. Every value comes from the imported token surface, so the
+// open rulings (R-2 lp-blue, R-3 palette) flip this sheet with no edit.
+// UNVERIFIED in the editor until the driving seat proves it.
+// -----------------------------------------------------------------------------
+
+@import "../../playerhub/code/ui/LpPlayerHubTokens.scss";
+
+.lp-shellkit {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba($canvas, 0.86);
+	font-family: $font-mono;
+	color: $text-main;
+	pointer-events: all;
+
+	.material-icons {
+		font-family: Material Icons;
+		font-weight: normal;
+		font-style: normal;
+		text-transform: none;
+		letter-spacing: normal;
+		white-space: nowrap;
+		line-height: 1;
+		font-size: 18px;
+	}
+
+	// PANE-BUDGET worst case, every tab and state. Window 700 = header 82 + tabs 43 + footer 32
+	// + workspace 543. Workspace 543 = padding 26 + page head 32 + gap 10 + tab host 475.
+	// The tab host clips and its only child (kit-scroll) scrolls, so no tab can overflow the window.
+	.window {
+		position: relative;
+		flex-direction: column;
+		flex-shrink: 0;
+		width: 1160px;
+		height: 700px;
+		max-width: 94%;
+		max-height: 92%;
+		background-color: $bg;
+		border: 1px solid $border;
+		border-radius: $radius-card;
+		overflow: hidden;
+		box-shadow: 0 18px 44px rgba($canvas, 0.64);
+	}
+
+	// header
+	.hub-shell-header {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		flex-shrink: 0;
+		min-height: $header-h;
+		padding: 15px 20px;
+		border-bottom: 1px solid $border;
+		background-color: $bg;
+	}
+
+	.hub-shell-title {
+		flex-direction: row;
+		align-items: center;
+		gap: 18px;
+		min-width: 0;
+	}
+
+	.title-stack {
+		flex-direction: column;
+		gap: 3px;
+	}
+
+	.title-primary {
+		font-size: 24px;
+		font-weight: 700;
+		letter-spacing: 0.02em;
+		color: $text-main;
+	}
+
+	.brand-wordmark {
+		flex-direction: row;
+		white-space: nowrap;
+	}
+
+	.wordmark-life {
+		color: $text-main;
+	}
+
+	.wordmark-accent {
+		color: $lp-blue;
+		text-shadow: 0 0 12px rgba($lp-blue, 0.58);
+	}
+
+	.title-sub {
+		font-size: 13px;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: $text-dim;
+	}
+
+	.header-actions {
+		flex-direction: row;
+		align-items: center;
+		gap: 7px;
+	}
+
+	.header-chip {
+		flex-direction: row;
+		align-items: center;
+		gap: 6px;
+		min-height: 32px;
+		padding: 0 10px;
+		border: 1px solid $border;
+		border-radius: $radius-chip;
+		background-color: transparent;
+		color: $text-dim;
+		font-size: 13px;
+		white-space: nowrap;
+	}
+
+	.kit-sample-chip {
+		margin-left: auto;
+		font-size: 11px;
+		letter-spacing: 0.06em;
+	}
+
+	.lp-ui-chrome-btn {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		width: 32px;
+		height: 32px;
+		border: 1px solid rgba($text-dim, 0.28);
+		border-radius: $radius-chip;
+		background-color: rgba($text-dim, 0.07);
+		color: $text-dim;
+		cursor: pointer;
+		transition: background-color 140ms ease-out, color 140ms ease-out, border-color 140ms ease-out;
+	}
+
+	.lp-ui-chrome-btn:hover {
+		background-color: $surface;
+		color: $text-main;
+	}
+
+	.chrome-close .material-icons {
+		font-size: 22px;
+		color: rgba($bad, 0.82);
+	}
+
+	.chrome-close:hover {
+		background-color: rgba($bad, 0.16);
+		border-color: rgba($bad, 0.45);
+	}
+
+	.chrome-close:hover .material-icons {
+		color: $bad;
+	}
+
+	// tab strip
+	.hub-shell-tabs {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		gap: 18px;
+		padding: 0 20px;
+		min-height: $tabs-h;
+		border-bottom: 1px solid $border;
+		background-color: $bg;
+	}
+
+	.tab {
+		flex-direction: row;
+		align-items: center;
+		height: $tabs-h;
+		padding: 0 1px;
+		border: 0;
+		border-bottom: 2px solid transparent;
+		background-color: transparent;
+		color: $text-dim;
+		font-size: 13px;
+		cursor: pointer;
+		transition: color 130ms ease-out, border-color 130ms ease-out;
+	}
+
+	.tab:hover {
+		color: $text-main;
+	}
+
+	// Standalone state class emitted by the razor; bold text and an accent underline, no fill.
+	.tab-sel {
+		color: $text-main;
+		font-weight: 700;
+		border-bottom-color: $lp-blue;
+	}
+
+	// workspace
+	.hub-workspace {
+		flex: 1 1 0;
+		flex-direction: column;
+		min-height: 0;
+		min-width: 0;
+		padding: 14px 20px 12px 20px;
+		gap: $gap-dense;
+		overflow: hidden;
+	}
+
+	.hub-page-head {
+		flex-direction: row;
+		align-items: center;
+		min-height: 32px;
+		flex-shrink: 0;
+		gap: 12px;
+	}
+
+	.hub-title {
+		font-size: 18px;
+		font-weight: 700;
+		color: $text-main;
+	}
+
+	.hub-blurb {
+		padding-left: 12px;
+		border-left: 1px solid $border;
+		font-size: 11px;
+		color: $text-dim;
+	}
+
+	.hub-tabhost {
+		flex-direction: column;
+		flex-grow: 1;
+		min-height: 0;
+		min-width: 0;
+		overflow: hidden;
+		background-color: $surface;
+		border: 1px solid $border;
+		border-radius: $radius-card;
+	}
+
+	// kit body, one scroll region per tab
+	.kit-scroll {
+		flex: 1 1 auto;
+		flex-direction: column;
+		min-height: 0;
+		min-width: 0;
+		gap: 12px;
+		padding: 16px;
+		overflow-y: scroll;
+		overflow-x: hidden;
+	}
+
+	// A section carries a hairline and no fill.
+	.kit-section {
+		flex-direction: column;
+		flex-shrink: 0;
+		gap: 8px;
+		padding: 12px;
+		border: 1px solid $border;
+		border-radius: $radius;
+	}
+
+	.kit-section-title {
+		flex-direction: row;
+		font-size: 12px;
+		font-weight: 700;
+		letter-spacing: 0.08em;
+		text-transform: uppercase;
+		color: $text-dim;
+	}
+
+	.kit-row {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		gap: 12px;
+		min-height: 32px;
+	}
+
+	.kit-label {
+		font-size: 13px;
+		color: $text-dim;
+	}
+
+	.kit-value {
+		font-size: 13px;
+		color: $text-main;
+	}
+
+	.kit-dual {
+		flex-direction: row;
+		align-items: center;
+	}
+
+	.kit-note {
+		flex-direction: row;
+		flex-shrink: 0;
+		font-size: 12px;
+		color: $text-dim;
+	}
+
+	.kit-stepper {
+		flex-direction: row;
+		align-items: center;
+		gap: 8px;
+	}
+
+	.kit-stepper-value {
+		flex-direction: row;
+		justify-content: center;
+		min-width: 24px;
+		font-size: 14px;
+		font-weight: 700;
+		color: $text-main;
+	}
+
+	.kit-btn {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		width: $hit;
+		height: $hit;
+		border: 1px solid $border;
+		border-radius: $radius-chip;
+		background-color: transparent;
+		color: $text-dim;
+		cursor: pointer;
+	}
+
+	.kit-btn:hover {
+		background-color: $card-header;
+		color: $text-main;
+	}
+
+	// The inert state is its own base class (no override stacked on kit-btn).
+	.kit-btn-locked {
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+		min-height: $hit;
+		padding: 0 16px;
+		border: 1px solid $border;
+		border-radius: $radius-chip;
+		background-color: transparent;
+		color: $text-dim;
+		font-size: 13px;
+		opacity: 0.45;
+		cursor: default;
+	}
+
+	.kit-error {
+		flex-direction: row;
+		flex-shrink: 0;
+		font-size: 12px;
+		color: $bad;
+	}
+
+	.kit-empty {
+		flex-direction: column;
+		align-items: center;
+		justify-content: center;
+		gap: 8px;
+		padding: 24px 16px;
+		color: $text-dim;
+		font-size: 13px;
+		text-align: center;
+	}
+
+	.kit-empty .material-icons {
+		font-size: 32px;
+		color: $text-dim;
+	}
+
+	// Law 17. The sign carries the colour and the amount stays white.
+	.lp-money-btc {
+		font-weight: 900;
+		color: $btc;
+	}
+
+	.lp-money-cash {
+		font-weight: 900;
+		color: $cash;
+	}
+
+	.lp-money-amt {
+		color: $text-main;
+	}
+
+	.lp-money-unit {
+		color: $text-main;
+	}
+
+	.lp-money-divider {
+		color: $text-dim;
+		padding: 0 4px;
+	}
+
+	// Footer mark follows the PlayerHub port (LpPlayerHubRoot.razor.scss:258-260); ruling R-5 is open.
+	.lp-source-footer .lp-mark {
+		color: $lp-blue;
+	}
+}

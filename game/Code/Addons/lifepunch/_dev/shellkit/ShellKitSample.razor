@@ -1,0 +1,345 @@
+@* -----------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   "LIFEPUNCH DXRP Addons" (s&box ident: lifepunch.* - addon ident: lifepunch) is the sole-owned
+   intellectual property of lifepunch.co. It is NOT licensed for resale, redistribution,
+   sublicensing, copying, or reuse by ANY person or entity - including DXRP and
+   LifePunch staff, contributors, or community - EXCEPT the owner (lifepunch.co).
+   Author account: mrragerlp - Public alias (in-game - Steam - Discord): Bloodwave
+   Presence in this repository or on the DXRP portal grants no rights to anyone else.
+
+   Shell kit (lifepunch.sample): a dev-only menu that exercises every part of the house shell,
+   docs/ui/SHELL_CONTRACT.md Part A. Markup ports playerhub/code/ui/LpPlayerHubRoot.razor (itself the
+   ULX grammar of lifepunchulx/StaffMenu.razor). Every figure is a constant; nothing here reads or
+   moves game state. UNVERIFIED in the editor until the driving seat proves it (README.md).
+   ----------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.ShellKit
+@using System
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits PanelComponent
+
+@attribute [StyleSheet]
+
+<root class="lp-shellkit">
+	<div class="window">
+		<div class="hub-shell-header">
+			<div class="hub-shell-title">
+				<div class="title-stack">
+					<span class="title-primary brand-wordmark"><span class="wordmark-life">lifepunch</span><span class="wordmark-accent">.sample</span></span>
+					<span class="title-sub">SHELL KIT</span>
+				</div>
+			</div>
+			<div class="header-actions">
+				<div class="header-chip" tooltip="Sample pill: an icon and a short value">
+					<i class="material-icons">science</i>
+					<span>@StepperPillText</span>
+				</div>
+				<div class="header-chip" tooltip="Sample money pill: the same wallet figure as the Readouts tab">
+					<LifePunchCurrencyToken Sign="@BtcSign" Amount="@WalletBtcText" />
+				</div>
+				<button class="lp-ui-chrome-btn chrome-close" tooltip="Close the shell kit (Esc)" onclick="@Close">
+					<i class="material-icons">close</i>
+				</button>
+			</div>
+		</div>
+
+		<div class="hub-shell-tabs">
+			@foreach ( var tab in Tabs )
+			{
+				<button class="@TabClass( tab )" onclick="@( () => SetTab( tab ) )">
+					<span>@TabLabel( tab )</span>
+				</button>
+			}
+		</div>
+
+		<div class="hub-workspace">
+			<div class="hub-page-head">
+				<div class="hub-title">@TabLabel( _activeTab )</div>
+				<div class="hub-blurb">@TabBlurb( _activeTab )</div>
+				<div class="header-chip kit-sample-chip" tooltip="Every figure in this menu is a constant in ShellKitSample.razor">@SampleChipText</div>
+			</div>
+
+			<div class="hub-tabhost">
+				<div class="kit-scroll">
+					@if ( _activeTab == ShellKitTab.Overview )
+					{
+						<div class="kit-section">
+							<div class="kit-section-title">Shell parts on this page</div>
+							@foreach ( var part in Parts )
+							{
+								<div class="kit-row">
+									<span class="kit-label">@part.Name</span>
+									<span class="kit-value">@part.Where</span>
+								</div>
+							}
+						</div>
+					}
+					else if ( _activeTab == ShellKitTab.Readouts )
+					{
+						<div class="kit-section">
+							<div class="kit-section-title">Currency token</div>
+							<div class="kit-row">
+								<span class="kit-label">Wallet</span>
+								<LifePunchCurrencyToken Sign="@BtcSign" Amount="@WalletBtcText" />
+							</div>
+							<div class="kit-row">
+								<span class="kit-label">Bank</span>
+								<LifePunchCurrencyToken Sign="$" Amount="@BankCashText" SignClass="lp-money-cash" />
+							</div>
+							<div class="kit-row">
+								<span class="kit-label">Dual price</span>
+								<div class="kit-dual">
+									<LifePunchCurrencyToken Sign="@BtcSign" Amount="@PriceBtcText" />
+									<span class="lp-money-divider">|</span>
+									<LifePunchCurrencyToken Sign="$" Amount="@PriceCashText" SignClass="lp-money-cash" />
+								</div>
+							</div>
+							<div class="kit-row">
+								<span class="kit-label">Rate</span>
+								<LifePunchCurrencyToken Sign="@BtcSign" Amount="@RateBtcText" Label="/min" />
+							</div>
+						</div>
+						<div class="kit-note">@OneSourceNote</div>
+					}
+					else if ( _activeTab == ShellKitTab.States )
+					{
+						<div class="kit-section">
+							<div class="kit-section-title">Bad input feedback</div>
+							<div class="kit-row">
+								<span class="kit-label">Sample count</span>
+								<div class="kit-stepper">
+									<button class="kit-btn" tooltip="Decrease" onclick="@StepDown">
+										<i class="material-icons">remove</i>
+									</button>
+									<span class="kit-stepper-value">@_stepper</span>
+									<button class="kit-btn" tooltip="Increase" onclick="@StepUp">
+										<i class="material-icons">add</i>
+									</button>
+								</div>
+							</div>
+							@if ( !string.IsNullOrEmpty( _stepperError ) )
+							{
+								<div class="kit-error">@_stepperError</div>
+							}
+						</div>
+						<div class="kit-section">
+							<div class="kit-section-title">Disabled action</div>
+							<div class="kit-row">
+								<span class="kit-label">Locked until a ruling exists</span>
+								<button class="kit-btn-locked" disabled="@(!_lockedEnabled)" tooltip="@LockedTooltip">
+									<span>Locked</span>
+								</button>
+							</div>
+						</div>
+						<div class="kit-section">
+							<div class="kit-section-title">Empty state</div>
+							<div class="kit-empty">
+								<i class="material-icons">inbox</i>
+								<span>@EmptyCopy</span>
+							</div>
+						</div>
+					}
+					else
+					{
+						<div class="kit-section">
+							<div class="kit-section-title">Keys and commands</div>
+							@foreach ( var row in HelpRows )
+							{
+								<div class="kit-row">
+									<span class="kit-value">@row.Key</span>
+									<span class="kit-label">@row.Action</span>
+								</div>
+							}
+						</div>
+					}
+				</div>
+			</div>
+		</div>
+
+		<LifePunchUiFooter Product="Shell Kit" />
+	</div>
+</root>
+
+@code
+{
+	/// <summary>Positive code-string ID for the shell kit. Exists nowhere else in the tree.</summary>
+	public const string KitMark = "LP_SHELLKIT_20261017";
+
+	public enum ShellKitTab
+	{
+		Overview,
+		Readouts,
+		States,
+		Help,
+	}
+
+	// Display glyphs are built from their code points so this block stays ASCII.
+	private static readonly string BtcSign = ((char)0x20BF).ToString();
+	private static readonly string MidDot = ((char)0x00B7).ToString();
+
+	private const int StepperMin = 0;
+	private const int StepperMax = 5;
+
+	// Sample figures. Every readout of the same figure formats it through the same method.
+	private const decimal SampleWalletBtc = 0.012345m;
+	private const decimal SampleBankCash = 2500m;
+	private const decimal SamplePriceBtc = 4m;
+	private const decimal SamplePriceCash = 20000m;
+	private const decimal SampleRateBtc = 0.000125m;
+
+	private const string LockedTooltip = "Disabled on purpose: shows the locked state a real menu uses while an action is unavailable.";
+	private const string EmptyCopy = "Nothing to show yet. A real menu says what fills this space and how to fill it.";
+	private const string OneSourceNote =
+		"The header pill and the Wallet row read one property with one precision: one state source per readout.";
+
+	// Instance, not static readonly: hotload keeps a static readonly field's old value
+	// (LpPlayerHubRoot.razor:97-99). The kit is rebuilt on every open.
+	private readonly ShellKitTab[] Tabs =
+	{
+		ShellKitTab.Overview,
+		ShellKitTab.Readouts,
+		ShellKitTab.States,
+		ShellKitTab.Help,
+	};
+
+	private readonly (string Name, string Where)[] Parts =
+	{
+		( "Brand slot", "lifepunch + .sample, SHELL KIT subtitle" ),
+		( "Header pills", "count pill, money pill" ),
+		( "Close", "header button and the Esc key" ),
+		( "Tab strip", "four tabs, tab-sel underline" ),
+		( "Page head", "title, blurb, sample chip" ),
+		( "Tab host", "one scroll region per tab" ),
+		( "Currency token", "Readouts tab" ),
+		( "States", "bad input, disabled, empty" ),
+		( "Footer", "LifePunchUiFooter, Product Shell Kit" ),
+		( "Deep link", "lp_shellkit_tab, see Help" ),
+	};
+
+	private readonly (string Key, string Action)[] HelpRows =
+	{
+		( "lp_shellkit", "open or close this menu" ),
+		( "lp_shellkit_tab <name>", "open on a tab: overview, readouts, states, help" ),
+		( "Esc", "close" ),
+		( "Close button", "close" ),
+	};
+
+	private static bool _announced;
+
+	private ShellKitTab _activeTab = ShellKitTab.Overview;
+	private int _stepper = 2;
+	private string _stepperError = string.Empty;
+	// Always false in the kit; a real menu derives it from state.
+	private readonly bool _lockedEnabled = false;
+
+	private string WalletBtcText => FormatBtc( SampleWalletBtc );
+	private string RateBtcText => FormatBtc( SampleRateBtc );
+	private string BankCashText => SampleBankCash.ToString( "N2" );
+	private string PriceBtcText => SamplePriceBtc.ToString( "0.######" );
+	private string PriceCashText => SamplePriceCash.ToString( "N0" );
+	private string StepperPillText => "COUNT " + _stepper;
+	private string SampleChipText => $"SAMPLE {MidDot} NO LIVE DATA";
+
+	private static string FormatBtc( decimal value ) => value.ToString( "0.000000" );
+
+	private static string TabLabel( ShellKitTab tab ) => tab switch
+	{
+		ShellKitTab.Overview => "Overview",
+		ShellKitTab.Readouts => "Readouts",
+		ShellKitTab.States => "States",
+		ShellKitTab.Help => "Help",
+		_ => tab.ToString(),
+	};
+
+	private static string TabBlurb( ShellKitTab tab ) => tab switch
+	{
+		ShellKitTab.Overview => "Every shell part this page exercises",
+		ShellKitTab.Readouts => "Currency token, dual price, one state source",
+		ShellKitTab.States => "Bad input, disabled and empty states",
+		ShellKitTab.Help => "How to open, deep link and close",
+		_ => string.Empty,
+	};
+
+	private string TabClass( ShellKitTab tab ) => tab == _activeTab ? "tab tab-sel" : "tab";
+
+	/// <summary>Deep-link entry used by <c>lp_shellkit_tab</c>; same path as a tab click.</summary>
+	public void SelectTab( ShellKitTab tab ) => SetTab( tab );
+
+	private void SetTab( ShellKitTab tab )
+	{
+		if ( _activeTab == tab )
+			return;
+
+		_activeTab = tab;
+		StateHasChanged();
+	}
+
+	private void StepUp()
+	{
+		if ( _stepper >= StepperMax )
+		{
+			_stepperError = "The sample allows at most " + StepperMax + ".";
+		}
+		else
+		{
+			_stepper++;
+			_stepperError = string.Empty;
+		}
+
+		StateHasChanged();
+	}
+
+	private void StepDown()
+	{
+		if ( _stepper <= StepperMin )
+		{
+			_stepperError = "The sample allows no fewer than " + StepperMin + ".";
+		}
+		else
+		{
+			_stepper--;
+			_stepperError = string.Empty;
+		}
+
+		StateHasChanged();
+	}
+
+	private void Close() => ShellKitHost.RequestClose();
+
+	protected override void OnStart()
+	{
+		LifePunchUiScrollPolicy.Apply( Panel );
+		if ( !_announced )
+		{
+			_announced = true;
+			Log.Info( "[shellkit] " + KitMark + " shell=house tabs=" + Tabs.Length );
+		}
+	}
+
+	protected override void OnUpdate()
+	{
+		// Esc closes, as in lptags/tags/code/ui/LpTagsMenu.razor:311-319.
+		if ( Input.EscapePressed )
+		{
+			Input.EscapePressed = false;
+			Close();
+			return;
+		}
+
+		LifePunchUiScrollPolicy.Apply( Panel );
+	}
+
+	protected override void OnEnabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuOpened();
+	}
+
+	protected override void OnDisabled()
+	{
+		LifePunchMenuInputBlock.NotifyMenuClosed();
+	}
+
+	protected override int BuildHash() => HashCode.Combine( (int)_activeTab, _stepper, _stepperError, _lockedEnabled );
+}
