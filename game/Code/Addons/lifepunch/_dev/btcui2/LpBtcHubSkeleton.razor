@@ -52,6 +52,10 @@
 				{
 					<button class="@TabClass( tab )" onclick="@( () => SetTab( tab ) )">
 						<span>@LpBtcHubTabInfo.Label( tab )</span>
+						@if ( tab == LpBtcHubTab.Logs && State.UnreadAlerts > 0 )
+						{
+							<span class="tab-dot" tooltip="Unread alerts">@State.UnreadAlerts</span>
+						}
 					</button>
 				}
 			</div>
@@ -223,6 +227,8 @@
 
 		_live = new LpBitcoinHubStateLive( hub );
 		Log.Info( "[btcui2] " + LpBitcoinHubStateLive.LiveMark + " hub=" + hub.GameObject.Id + " racks=" + _live.RackCount + " source=live" );
+		var top = LpBitcoinHubStateLive.TrackTopTier( out var fromTrack );
+		Log.Info( "[btcui2] " + LpBitcoinHubStateLive.PolishMark + " maxTier=" + top + " tierSource=" + ( fromTrack ? "track" : "fallback" ) + " unread=" + _live.UnreadAlerts + " panels=noshrink" );
 		StateHasChanged();
 	}
 

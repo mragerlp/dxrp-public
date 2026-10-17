@@ -21,6 +21,12 @@
 	overflow-x: hidden;
 }
 
+// BTC-UI-3: a panel keeps its height so the tab scrolls instead of clipping the panel's last rows
+// (F-AWAY1-A2: Wallet "Your cash", Transfers example; house precedent .rack-slots, LpBtcHubRacks.razor.scss:13).
+.btchub-tab .lp-hub-panel {
+	flex-shrink: 0;
+}
+
 .btchub-panel-title {
 	font-size: 12px;
 	font-weight: 700;

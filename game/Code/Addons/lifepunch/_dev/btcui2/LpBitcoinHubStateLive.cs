@@ -19,8 +19,19 @@ public sealed class LpBitcoinHubStateLive : ILpBitcoinHubState
 	/// <summary>Positive code-string ID for the live binding. Exists nowhere else in the tree.</summary>
 	public const string LiveMark = "LP_BTCUI2_LIVE_STATE_20261017";
 
-	// PLACEHOLDER: the top tier has no named constant; the ladder clamps at 5 (CT:131, HP:1233).
+	/// <summary>Positive code-string ID for the BTC-UI-3 polish (live top tier, unread dot, unclipped panels).</summary>
+	public const string PolishMark = "LP_BTCUI3_POLISH_20261017";
+
+	// Fallback only: the ladder clamps at 5 (CT:131, HP:1233) when the compute track is not registered on this client.
 	private const int LadderTopTier = 5;
+
+	/// <summary>BTC-UI-3: the ladder's top tier from the registered compute track (CT:53-56), else the clamp.</summary>
+	public static int TrackTopTier( out bool fromTrack )
+	{
+		var def = LifePunchUpgradeTracks.Get( LpBitcoinComputeTrack.TrackId );
+		fromTrack = def is not null;
+		return def is not null ? def.MaxTier : LadderTopTier;
+	}
 
 	private readonly LpBitcoinHubEntity? _hub;
 
@@ -214,6 +225,7 @@ public sealed class LpBitcoinHubStateLive : ILpBitcoinHubState
 				|| string.Equals( token, LpBitcoinIdent.AdvancedRackTerminalToken, StringComparison.OrdinalIgnoreCase );
 
 			var tier = rack.ComputeTier;
+			var top = TrackTopTier( out _ );
 			var cap = LpBitcoinEconomy.RackBtcCapacityFor( rack );
 			var btc = rack.BitcoinAmount;
 
@@ -225,9 +237,9 @@ public sealed class LpBitcoinHubStateLive : ILpBitcoinHubState
 					invested += quote;
 			}
 
-			var nextQuote = tier >= LadderTopTier ? 0L : Math.Max( 0L, LpBitcoinComputeTrack.QuoteSats( rack, tier + 1 ) );
-			var nextClock = tier >= LadderTopTier ? rack.ClockGhz : ProjectedClockGhz( tier + 1 );
-			var delta = tier >= LadderTopTier
+			var nextQuote = tier >= top ? 0L : Math.Max( 0L, LpBitcoinComputeTrack.QuoteSats( rack, tier + 1 ) );
+			var nextClock = tier >= top ? rack.ClockGhz : ProjectedClockGhz( tier + 1 );
+			var delta = tier >= top
 				? 0f
 				: LpBitcoinEconomy.MiningRatePerMinute( ProjectedClockGhz( tier + 1 ), rack.CoreCount, rack.YieldMultiplier )
 					- LpBitcoinEconomy.MiningRatePerMinute( ProjectedClockGhz( tier ), rack.CoreCount, rack.YieldMultiplier );
@@ -245,7 +257,7 @@ public sealed class LpBitcoinHubStateLive : ILpBitcoinHubState
 				Full = cap > 0f && btc >= cap,
 				InvestedBtc = invested / 100_000_000f,
 				Tier = tier,
-				MaxTier = LadderTopTier,
+				MaxTier = top,
 				ClockGhz = rack.ClockGhz,
 				RateBtcPerMin = rack.MiningRatePerMinute,
 				Yield = rack.YieldMultiplier,
