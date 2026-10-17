@@ -1,7 +1,7 @@
 # Package readiness: the addons after lifepunch.ulx
 
-LifePunch internal working doc (not a dxrp.net/docs page). Sensed 2026-10-17 by seat CC-SIDE-PKG-1 (dispatch CC-SIDE-PKG-1 R1), read-only.
-**This page recommends. The principal rules** on every identity, order and publish act.
+LifePunch internal working doc (not a dxrp.net/docs page). Sensed 2026-10-17, read-only.
+**This page recommends. The owner decides** every identity, order and publish act.
 
 Read with `PACKAGE_SHAPE.md`, which defines the two systems (Portal Code mode vs s&box Package mode) and the checklist, and `CODE_CENSUS.md`, which has the dependency graph and rails. Source keys are those in `PACKAGE_SHAPE.md`.
 
@@ -12,10 +12,10 @@ Read with `PACKAGE_SHAPE.md`, which defines the two systems (Portal Code mode vs
 | S1 | Portal limits: code package <= 50 MB, asset package <= 300 MB | `dev:docs/developers/creating-addons.md:45` |
 | S2 | Addon code on `develop` equals the live compile tree, 220/220 files, LF-normalized | per-file SHA-256, 2026-10-17 |
 | S3 | `develop` carries addon **assets** only for `ak47` (49 files, 11,867,810 B), `deserteagle` (2, 2,993 B), `lpbitcoin` (216, 532,643,087 B), `lplockpick` (2, 2,680 B), `lptags` (2, 130,236 B) | `Get-ChildItem dev:game/Assets/addons/lifepunch` |
-| S4 | **R-f identity drift**: the live `game/rp.sbproj` (1936 B, SHA-256 `48B583D4...EF9F`) says Title `LifePunch`, Org `lifepunch`, `Metadata.ParentPackage: dxura.rp`, and has an `AI` block. `develop`'s (1840 B, `243626EB...0601`) says Title `DXRP`, Org `dxura`, with no ParentPackage. Resources are the same | own-sensed pins; full hashes in the seat RETURN |
+| S4 | **Identity drift**: the live `game/rp.sbproj` (1936 B, SHA-256 `48B583D4...EF9F`) says Title `LifePunch`, Org `lifepunch`, `Metadata.ParentPackage: dxura.rp`, and has an `AI` block. `develop`'s (1840 B, `243626EB...0601`) says Title `DXRP`, Org `dxura`, with no ParentPackage. Resources are the same | own-sensed pins; full hashes in the local release record |
 | S5 | Only `lifepunchulx` has a `LIFEPUNCH_PACKAGE` code path (26 preprocessor lines). Every other candidate has never been compiled as its own assembly, as far as the tree shows | `CODE_CENSUS.md` method notes |
 | S6 | The house rule is that shared primitives (`lifepunchcore`, loose root shell files) are **copied into each package** | `lp:lifepunchaddons/docs/DXRP_ADDON_PUBLISH_DOCTRINE.md:169`; the ULX harness bundles `lifepunchcore` |
-| S7 | House asset posture: ownership defaults to ours unless the owner flags external work | `lp:lifepunch/docs/AGENT_ONBOARDING.md:262-264`. The licence column below reports what the files say; it is not a provenance ruling |
+| S7 | House asset posture: ownership defaults to ours unless the owner flags external work | `lp:lifepunch/docs/AGENT_ONBOARDING.md:262-264`. The licence column below reports what the files say; it is not a provenance decision |
 
 ## Per addon
 
@@ -29,7 +29,7 @@ Read with `PACKAGE_SHAPE.md`, which defines the two systems (Portal Code mode vs
 | Package-mode blockers | no package branch (S5); the coupling above |
 | Licence lines | n/a (code only) |
 | Identity | not in `lp:lifepunchaddons/config/packages.json` (no row) |
-| Verdict | **Not ready alone.** Ships inside or after the bitcoin package. Option for the principal: put the $BTC tab behind an interface so the hub can ship without bitcoin |
+| Verdict | **Not ready alone.** Ships inside or after the bitcoin package. Option for the owner: put the $BTC tab behind an interface so the hub can ship without bitcoin |
 
 ### lifepunch.btc candidate (lpbitcoin + bitcoinmining)
 
@@ -42,9 +42,9 @@ Read with `PACKAGE_SHAPE.md`, which defines the two systems (Portal Code mode vs
 | Dev surfaces in shipping folders | `lpbitcoin/bitcoinhub/code/components/LpBitcoinDevSpawn.cs`: 52 ConCmds. `bitcoinmining/LpBitcoinLedgerDevSpawn.cs`: 5 dev ConCmds + `LpBitcoinPurchaseDebugListener`. Exclude or gate |
 | Package-mode blockers | no package branch (S5); entity bases split on `LIFEPUNCH_LOCAL` (`LpBitcoinHubEntity.cs:22-26`); Portal economy depends on a Portal inventory item and `ServerApiClient` (`LpBitcoinPortalEconomySync.cs:30`), so the Portal content must exist on the target game mode |
 | Licence lines | 16 non-archive `ATTRIBUTION.md` files under `Assets/addons/lifepunch/lpbitcoin` say "Origin and licence left blank." (bitcoinhub 3, gpurack 11, hashdterminal 2) |
-| Identity | `packages.json:23-24` names `lifepunchbitcoin` / **`lifepunch.bitcoin`**; the dispatch candidate name is `lifepunch.btc`. Needs a ruling |
+| Identity | `packages.json:23-24` names `lifepunchbitcoin` / **`lifepunch.bitcoin`**; the package name in use is `lifepunch.btc`; the `packages.json` row needs that update (`../packaging/packages.proposed.json`) |
 | Stale procedure | `DXRP_ADDON_PUBLISH_DOCTRINE.md:118-136` describes a Code-mode bitcoin publish from the Steam tree (`D:\Steam\...\sbox\dxrp\game`). The editor now mounts the workbench; treat that section as historical |
-| Verdict | **Highest value, most blockers.** Ready after: identity ruling, dev-surface exclusion, source strip (to ~181 MB), the attribution fields, a package build pass |
+| Verdict | **Highest value, most blockers.** Ready after: the `packages.json` ident update, dev-surface exclusion, source strip (to ~181 MB), the attribution fields, a package build pass |
 
 ### lplockpick
 
@@ -104,19 +104,19 @@ Read with `PACKAGE_SHAPE.md`, which defines the two systems (Portal Code mode vs
 
 ## Recommended order after lifepunch.ulx
 
-A recommendation by packaging readiness only; product readiness and value are the principal's call.
+A recommendation by packaging readiness only; product readiness and value are the owner's call.
 
-1. **lptags** (`lifepunch.tags`): self-contained, about 0.4 MB of code plus a font, licence evidenced, ident already declared. Work: a `packages.json` row, bring the font `ATTRIBUTION.md` onto develop, exclude `LpTagDevChecks.cs`, a first package-mode build, Dev game mode proof.
+1. **lptags** (`lifepunch.tags`): self-contained, about 0.4 MB of code plus a font, licence evidenced, ident already declared. Work: a `packages.json` row (proposed in `../packaging/packages.proposed.json`), bring the font `ATTRIBUTION.md` onto develop, exclude `LpTagDevChecks.cs`, a first package-mode build, Dev game mode proof.
 2. **serverhub**: self-contained, no assets, a public DXRP rail. Its own README calls it a v1 shell, so it ships when the product is wanted.
-3. **lifepunch.btc** (`lpbitcoin` + `bitcoinmining`, with `lifepunchcore` and the shell files copied in): rule the ident (`lifepunch.bitcoin` per `packages.json` vs `lifepunch.btc`), strip dev ConCmds and sources (to ~181 MB), fill the 16 blank attribution fields, decide the core-bundling question above, then a package build.
+3. **lifepunch.btc** (`lpbitcoin` + `bitcoinmining`, with the shell files copied in and `lifepunch.core` as a dependency): update the `packages.json` ident from `lifepunch.bitcoin` to `lifepunch.btc`, strip dev ConCmds and sources (the runtime subset measured 322.8 MB, over the 300 MB bar, so more must leave), sign the attribution fields, depend on `lifepunch.core` (`../packaging/LIFEPUNCH_CORE.md`), then a package build.
 4. **playerhub**: with or after the btc package, unless it is decoupled.
 5. **lplockpick**: Portal Code mode only, unless the `Door` partial is redesigned; its assets reach develop first.
-6. **keypadcracker, safe**: not before code exists and Q1 is ruled.
+6. **keypadcracker, safe**: not before code exists and their folder and portal identifier are decided.
 
-## Rulings this page needs from the principal
+## Decisions
 
-- ULX's live s&box ident (the conflict table in `PACKAGE_SHAPE.md` section 2), before the next package copies its naming.
-- R-f: which `rp.sbproj` identity (live `lifepunch`/`LifePunch` + ParentPackage, or develop `dxura`/`DXRP`) is the compile of record for package builds.
-- The bitcoin package ident.
-- Bundle `lifepunchcore` per package (current doctrine) or publish one `lifepunch.core` library.
-- `packages.json` rows for `lptags`, `serverhub`, `playerhub`, `lplockpick`.
+- Settled: the ULX s&box ident is `lifepunch.ulx`; `lifepunch.lifepunchulx` is retired (`PACKAGE_SHAPE.md` section 2).
+- Settled: `develop`'s `game/rp.sbproj` now carries Title `LifePunch`, Org `lifepunch` and ParentPackage `dxura.rp` (commit `112008c`). Row S4 above describes the state before that change.
+- Settled: the bitcoin package is `lifepunch.btc`.
+- Settled: one shared `lifepunch.core` library instead of bundling `lifepunchcore` into each package. The proposal and its dependency list are in `../packaging/LIFEPUNCH_CORE.md`.
+- Open: the `packages.json` rows for `lptags`, `serverhub`, `playerhub`, `lplockpick` (and the `lifepunch.ulx`, `lifepunch.btc`, `lifepunch.core` updates) are proposed in `../packaging/packages.proposed.json`. The owner adds them to `lp:lifepunchaddons/config/packages.json`.

@@ -1,0 +1,68 @@
+{
+  "schemaVersion": 1,
+  "purpose": "Proposed rows for lp:lifepunchaddons/config/packages.json (owner-edited; not applied). Read with ../packages/PACKAGE_READINESS.md.",
+  "basedOn": {
+    "file": "lp:lifepunchaddons/config/packages.json",
+    "bytes": 3358,
+    "sha256": "7AAE833F49C77F98A2ADC8A86C5F918F28B3D303B8D579CBA43E90427773D30E",
+    "read": "2026-10-17"
+  },
+  "add": [
+    {
+      "packageSlug": "lifepunchtags",
+      "sboxIdentifier": "lifepunch.tags",
+      "repoIdent": "lptags",
+      "title": "LIFEPUNCH™ Tags for DXRP",
+      "status": "active-dev",
+      "notes": "Ident declared in lptags/tags/README.md:4. First package after ULX by readiness. Font licence OFL 1.1 evidenced."
+    },
+    {
+      "packageSlug": "lifepunchserverhub",
+      "sboxIdentifier": "lifepunch.serverhub",
+      "repoIdent": "serverhub",
+      "title": "LIFEPUNCH™ Server Hub for DXRP",
+      "status": "active-dev",
+      "notes": "No assets; rides GameManager.PurchaseMarketItemHost. README calls it a v1 shell. Ident proposed from the naming rule, not yet declared in-tree."
+    },
+    {
+      "packageSlug": "lifepunchplayerhub",
+      "sboxIdentifier": "lifepunch.playerhub",
+      "repoIdent": "playerhub",
+      "title": "LIFEPUNCH™ Player Hub for DXRP",
+      "status": "active-dev",
+      "notes": "Compile-depends on lifepunch.btc and lifepunch.core. Ident proposed from the naming rule, not yet declared in-tree."
+    },
+    {
+      "packageSlug": "lifepunchlockpick",
+      "sboxIdentifier": "lifepunch.lockpick",
+      "repoIdent": "lplockpick",
+      "title": "LIFEPUNCH™ Lockpick for DXRP",
+      "status": "active-dev",
+      "notes": "Portal Code mode only while it extends DXRP Door as a partial. Ident proposed from the naming rule, not yet declared in-tree."
+    },
+    {
+      "packageSlug": "lifepunchcore",
+      "sboxIdentifier": "lifepunch.core",
+      "repoIdent": "lifepunchcore",
+      "title": "LIFEPUNCH™ Core for DXRP",
+      "status": "active-dev",
+      "notes": "One shared library for every LifePunch package. See LIFEPUNCH_CORE.md."
+    }
+  ],
+  "update": [
+    {
+      "packageSlug": "lifepunchulx",
+      "field": "sboxIdentifier",
+      "from": "lifepunch.lifepunchulx",
+      "to": "lifepunch.ulx",
+      "notes": "lifepunch.ulx is the live ident; lifepunch.lifepunchulx is retired (PACKAGE_SHAPE.md section 2)."
+    },
+    {
+      "packageSlug": "lifepunchbitcoin",
+      "field": "sboxIdentifier",
+      "from": "lifepunch.bitcoin",
+      "to": "lifepunch.btc",
+      "notes": "Open: the file's naming rule derives the s&box suffix from the slug, which would make the slug lifepunchbtc. Whether the slug changes too is the owner's call; a Portal addon identifier, once created, is immutable."
+    }
+  ]
+}

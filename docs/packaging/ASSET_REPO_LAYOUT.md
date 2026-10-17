@@ -1,10 +1,10 @@
 # lifepunch-assets - layout and manifest (prep only)
 
-Status: PREP. `mragerlp/lifepunch-assets` does not exist yet. The principal creates it. Nothing is pushed there until it exists and he says "go ASSET-REPO-1" (R-2840-C A2). This page and `tools/packaging/New-AssetRepoManifest.ps1` are the prep.
+Status: PREP. `mragerlp/lifepunch-assets` does not exist yet. The owner creates it. Nothing is pushed there until it exists and the owner approves the first push. This page and `tools/packaging/New-AssetRepoManifest.ps1` are the prep.
 
 ## Why a second repo
 
-R-2840-C A2: weapon assets live in a separate private LFS repo, and the fork (`mragerlp/dxrp-public`, public) stays code plus small assets. A7: the fork is the single source for what the workbench compiles. The asset repo holds what the fork does not carry:
+Weapon assets live in a separate private LFS repo, and the fork (`mragerlp/dxrp-public`, public) stays code plus small assets. The fork is the single source for what the workbench compiles. The asset repo holds what the fork does not carry:
 
 - `lpweapons/`: the whole `game/Assets/addons/lifepunch/lpweapons` tree.
 - `lpbitcoin/`: the lpbitcoin files the fork excludes. These are any folder named `_archive`, `audit`, `source` or `provenance`, plus any file over 50,000,000 B. This is the CP2 rule; see `CP2_SCREENS.md` on the CP2 branch.
@@ -36,7 +36,7 @@ The licence column comes from the nearest `ATTRIBUTION*` / `LICENSE*` / `PROVENA
 
 ATTRIBUTION and MANIFEST content authored by others is never edited. The licence column only reports what those files say.
 
-Never-list: files named in a local never-list file (`-NeverListPath`, kept outside every repo) are not opened, not hashed and not named. Each becomes a `WITHHELD-<set>-<n>` row with an empty size and hash. AGENTS.md: the sr25 AD source pair is sole copy, and is never touched, opened, listed or compared. The dispatch asked for that pair "by sha only". Hashing means opening the file, so the pair is withheld without a sha. That is a ruling owed.
+Never-list: files named in a local never-list file (`-NeverListPath`, kept outside every repo) are not opened, not hashed and not named. Each becomes a `WITHHELD-<set>-<n>` row with an empty size and hash. AGENTS.md: the sr25 AD source pair is sole copy, and is never touched, opened, listed or compared. Hashing means opening the file, so the pair is withheld without a sha, by that house rule.
 
 ## Dry-run (2026-10-17, live workbench tree, read only)
 
@@ -77,11 +77,11 @@ powershell -NoProfile -ExecutionPolicy Bypass -File tools\packaging\New-AssetRep
   -GameRoot D:\Cavelux\dxrp-workbench\game -OutDir <a folder outside the game tree> -NeverListPath <local never-list>
 ```
 
-It writes `MANIFEST.txt`, `gitattributes.proposed` and `DRYRUN_SUMMARY.txt` to `-OutDir`, and refuses an `-OutDir` inside `-GameRoot`. It never copies, moves, deletes or runs git. The full dry-run MANIFEST is not committed here, because this fork is public. It lives with the seat's return and belongs in the private repo.
+It writes `MANIFEST.txt`, `gitattributes.proposed` and `DRYRUN_SUMMARY.txt` to `-OutDir`, and refuses an `-OutDir` inside `-GameRoot`. It never copies, moves, deletes or runs git. The full dry-run MANIFEST is not committed here, because this fork is public. It lives with the local release record and belongs in the private repo.
 
-## Populating (after "go ASSET-REPO-1", not before)
+## Populating (after the owner approves, not before)
 
-1. The principal creates `mragerlp/lifepunch-assets` (private) and enables LFS.
+1. The owner creates `mragerlp/lifepunch-assets` (private) and enables LFS.
 2. Clone it; commit `.gitattributes` first, so every later add goes through LFS.
 3. Re-run the generator (a fresh sense; the dry-run above is a photograph of 2026-10-17).
 4. Copy by explicit path from the MANIFEST rows. Re-hash each copy against its row.

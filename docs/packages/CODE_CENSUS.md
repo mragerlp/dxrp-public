@@ -1,6 +1,6 @@
 # Code census: game/Code/Addons/lifepunch
 
-LifePunch internal working doc (not a dxrp.net/docs page). Sensed 2026-10-17 by seat CC-SIDE-PKG-1 (dispatch CC-SIDE-PKG-1 R1), read-only. Feeds the BTC-UI spec, the banker port and the package plan (`PACKAGE_SHAPE.md`, `PACKAGE_READINESS.md`).
+LifePunch internal working doc (not a dxrp.net/docs page). Sensed 2026-10-17, read-only. Feeds the BTC-UI spec, the banker port and the package plan (`PACKAGE_SHAPE.md`, `PACKAGE_READINESS.md`).
 
 All paths are relative to `game/Code/Addons/lifepunch/` unless they start with `game/`. Line numbers are against `develop` at `b3d3b525`. The live workbench tree is content-identical for this folder: 220/220 files are equal after LF normalization (SHA-256 per file, 2026-10-17).
 
@@ -164,7 +164,7 @@ Types `AK47` (`AK47.cs:14`), `AK47WeaponStats` (`:53`), `AK47Weapon : Component`
 - **Depends on**: `lifepunchcore` (e.g. `LpBitcoinHubLogsScrollPanel : LifePunchScrollRegionPanel`, `LpBitcoinHubLogsScrollPanel.cs:20`; `ILifePunchPurchaseEvent`, `LpBitcoinLedgerDevSpawn.cs:206`), `lpbitcoin` (both ways).
 
 ### `keypadcracker`, `lockpick`, `safe`
-Design placeholders only. Each README says "No code copied", module class equipment, models principal-sourced, folder and portal identifier **OPEN (Q1)** (`*/README_DESIGN.md:1-14`).
+Design placeholders only. Each README says "No code copied", module class equipment, models owner-sourced, folder and portal identifier **OPEN (Q1)** (`*/README_DESIGN.md:1-14`).
 
 ### `lifepunchcore`
 - **Public API**: `ILifePunchPurchaseEvent : ISceneEvent<...>` (`ILifePunchPurchaseEvent.cs:25`), `LifePunchEntityOwnership`, `LifePunchGroundContact`, `LifePunchInteractTags`, `LifePunchMachineDestroyFx`, `LifePunchMenuInputBlock` (+ internal `LifePunchMenuInputGuard : Component`), `LifePunchMenuInteractGate`, `LifePunchMenuInteractRange`, `LifePunchPropPhysics`, `LifePunchScrollRegionPanel : Panel` + `LifePunchScrollRegionBootstrap`, `LifePunchSourceMark`, `LifePunchTerminalLcd`, `LifePunchUiScale` / `LifePunchUiScaleSize`, `LifePunchUiScrollPolicy`, `LifePunchUpgradeLedger` + `LifePunchPurchaseRecord`, `LifePunchUpgradeTracks` + `LifePunchTrackDef` + `LifePunchTrackSubjectKind`.

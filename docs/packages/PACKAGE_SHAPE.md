@@ -1,8 +1,8 @@
 # Package shape: what a LifePunch addon package is
 
 LifePunch internal working doc. It is not a dxrp.net/docs page (it is not listed in `docs/manifest.json`), the same as `docs/superpowers/`.
-Sensed 2026-10-17 by seat CC-SIDE-PKG-1 (dispatch CC-SIDE-PKG-1 R1). Every claim cites a source. **UNKNOWN** means no source read in this pass settles it. **UNVERIFIED** means a source says it but this seat did not re-sense it.
-This page recommends and records. It rules on nothing: identity, publishing and ordering are the principal's calls.
+Sensed 2026-10-17. Every claim cites a source. **UNKNOWN** means no source read in this pass settles it. **UNVERIFIED** means a source says it but this pass did not re-sense it.
+This page recommends and records. It rules on nothing: identity, publishing and ordering are the project owner's calls.
 
 ## Source keys
 
@@ -13,7 +13,7 @@ This page recommends and records. It rules on nothing: identity, publishing and 
 | `lp:` | the private `mragerlp/lifepunch` repo (read-only checkout) |
 | `sb:` | the private `mragerlp/cavelux-switchboard` repo at `83f4891b` (head of PR #21, merged) |
 | `ulx:` | the ULX package harness, a git checkout with remote `mragerlp/lifepunch.ulx`, HEAD `42bc387` |
-| `rec:` | CAVELUX comms records (local files, not in git), named by file |
+| `rec:` | local release and acceptance records (not in git) |
 
 ## 1. There are two distribution systems. Do not mix them up.
 
@@ -51,18 +51,18 @@ This page recommends and records. It rules on nothing: identity, publishing and 
 |---|---|
 | `lp:lifepunchaddons/config/packages.json:15-16` | slug `lifepunchulx`, s&box `lifepunch.lifepunchulx` |
 | `lp:lifepunch/docs/PUBLISH_REPO_LANE.md:13` | s&box `lifepunch.ulx` |
-| Portal reading 2026-09-26 (`rec:...ACCEPTANCE_RECORD_20260928_W1.md:95`) | "Addon Identifier lifepunchulx; S&box Identifier lifepunch.ulx" |
-| `rec:FABLE-CLI_CHARM-SYNC-1_RETURN_2026-10-01-R1.md:137`, `:412` | `lifepunch.lifepunchulx` retired and replaced by `lifepunch.ulx` (RULE-B, board 2698) |
+| Portal reading 2026-09-26 (`rec:W1.md:95`, the ULX acceptance record) | "Addon Identifier lifepunchulx; S&box Identifier lifepunch.ulx" |
+| owner decision, 2026-10-01 | `lifepunch.lifepunchulx` retired and replaced by `lifepunch.ulx` |
 | `sb:FORK_WORKFLOW.md:46` (2026-10-17) | Portal addon `lifepunchulx`, "collection shell `lifepunch.lifepunchulx`; the hidden `lifepunch.ulx` stays untouched" |
 
-The next package should not copy ULX's naming until the principal states which s&box ident is live and which is retired.
+Settled: `lifepunch.ulx` is the live s&box ident and `lifepunch.lifepunchulx` is retired. The next package uses the same `lifepunch.<product>` form.
 
 ## 3. Dependencies on DXRP
 
 - A package declares `Metadata.ParentPackage: dxura.rp` (`ulx:ulx.sbproj:14`). Both listed `lifepunch.ulx` revisions declare it, with no numeric parent revision (`rec:...W1.md:27`).
 - The harness compiles the addon as **its own assembly** against `package.dxura.rp.dll` (`ulx:Code/lifepunchulx.csproj`: AssemblyName `lifepunchulx`, a Reference to `.sbox/bin/package.dxura.rp.dll` in the last ItemGroup). In Portal Code mode, the same folder compiles **inside** the game project (`creating-addons.md:11`). Three consequences follow for package mode:
   1. **No `partial` extension of DXRP types.** C# partial classes cannot span assemblies. `dev:game/Code/Addons/lifepunch/lplockpick/Door.Lockpick.cs:12-18` declares `namespace Dxura.RP.Game; public partial class Door`, the second half of DXRP's own `partial class Door` (`dev:game/Code/World/Door/Door.cs:5` and six sibling files). This works in Code mode and cannot work in Package mode.
-  2. **No `internal` DXRP members.** ULX's in-game money grant calls `Player.PayHostStrictAudited` (`lifepunchulx/StaffMenuBridgeService.cs:433`), which is `internal` (`dev:game/Code/Player/Player.Roleplay.cs:304`) and was added on this fork (`git log -S PayHostStrictAudited` -> `5eeb6bf`). ULX fences that path with `#if !LIFEPUNCH_PACKAGE` (`StaffMenuBridgeService.cs:419`). This seat did not read the package-side branch.
+  2. **No `internal` DXRP members.** ULX's in-game money grant calls `Player.PayHostStrictAudited` (`lifepunchulx/StaffMenuBridgeService.cs:433`), which is `internal` (`dev:game/Code/Player/Player.Roleplay.cs:304`) and was added on this fork (`git log -S PayHostStrictAudited` -> `5eeb6bf`). ULX fences that path with `#if !LIFEPUNCH_PACKAGE` (`StaffMenuBridgeService.cs:419`). This pass did not read the package-side branch.
   3. **Package builds take a different code path.** `LIFEPUNCH_PACKAGE` appears on 26 preprocessor lines (18 `#if` + 8 `#elif`), all in `lifepunchulx` (Select-String over the compile tree). No other addon has a package branch yet. A second symbol, `LIFEPUNCH_LOCAL` (255 `#if`/`#elif` lines across 9 addon folders and `LifePunchMarketSpawn.cs`), swaps entity bases, e.g. `LpBitcoinHubEntity : Component` vs `: BaseEntity` (`lpbitcoin/bitcoinhub/code/components/LpBitcoinHubEntity.cs:22-26`). Neither symbol is defined in `dev:game/rp.sbproj:29`, and no `#define` was found. Where `LIFEPUNCH_LOCAL` gets defined is UNKNOWN.
 
 ## 4. Code and asset layout
@@ -88,16 +88,16 @@ UNKNOWN for the s&box package: neither `ulx.sbproj` nor `libstates.sbproj` carri
 ## 7. How lifepunch.ulx was published (the record, 2026-09-23 .. 2026-09-28)
 
 1. A dedicated harness project holds `ulx.sbproj` (Type addon, ParentPackage `dxura.rp`), `Code/Addons/lifepunch/{lifepunchcore,lifepunchulx}`, an empty `Assets/`, tests, and `release-candidates/` (`ulx:` listing).
-2. The s&box package `lifepunch.ulx` was published under the `lifepunch` org: revision 394876 on 2026-09-23, then 397048 on 2026-09-26 with changes "Revision 2: package-mode Store reads and website saves" (`W1.md:70-74`). Per a relayed screenshot, the upload wizard's pending files were `package.lifepunch.ulx.cll` + `.xml`, with four SCSS files and `manifest.json` uploaded or reused (`W1.md:77`). That item is PACKET-FACT; this seat inspected no screenshot.
+2. The s&box package `lifepunch.ulx` was published under the `lifepunch` org: revision 394876 on 2026-09-23, then 397048 on 2026-09-26 with changes "Revision 2: package-mode Store reads and website saves" (`W1.md:70-74`). Per a relayed screenshot, the upload wizard's pending files were `package.lifepunch.ulx.cll` + `.xml`, with four SCSS files and `manifest.json` uploaded or reused (`W1.md:77`). That item is relayed, not sensed; this pass inspected no screenshot.
 3. The Portal addon (identifier `lifepunchulx`, Visibility Public) Rev 18 pins s&box revision 394876 in Package mode (`W1.md:95-98`).
 4. Game-mode mapping: the Dev game mode `lifepunch.dxrpdev` lists `lifepunch.ulx` at Rev 18; the Official game mode `lifepunch.dxrp` did not carry ULX at that reading (`W1.md:91-105`).
-5. Publishing is the principal's act; a seat prepares the candidate and the record, and no seat publishes to sbox.game (`sb:FORK_WORKFLOW.md:46`).
+5. Publishing is the owner's act; contributors prepare the candidate and the record, and only the owner publishes to sbox.game (`sb:FORK_WORKFLOW.md:46`).
 
-What has changed since 2026-09-28 (current revision, Official mapping, whether 397048 was accepted) is UNVERIFIED: this seat made no Portal or sbox.game reading.
+What has changed since 2026-09-28 (current revision, Official mapping, whether 397048 was accepted) is UNVERIFIED: this pass made no Portal or sbox.game reading.
 
 ## 8. Checklist a next addon must satisfy
 
-- [ ] **Identity ruled**: Portal addon identifier (immutable) and s&box ident under org `lifepunch`, per `packages.json:4-11`. The ULX conflict in section 2 is settled first.
+- [ ] **Identity ruled**: Portal addon identifier (immutable) and s&box ident under org `lifepunch`, per `packages.json:4-11`. ULX's live ident is `lifepunch.ulx` (section 2).
 - [ ] **Mode chosen**: Portal Code mode (folder compiled into the game) or Package mode (s&box package + Portal pin). The rest of this list is for Package mode, the ULX road.
 - [ ] **Own assembly compiles** against `package.dxura.rp.dll`: no `partial` extension of DXRP types, no `internal` DXRP members, a `LIFEPUNCH_PACKAGE` branch where the in-tree code relies on either.
 - [ ] **No cross-addon compile dependency** that does not ship inside the same package. Shared primitives (`lifepunchcore`, loose root files the addon uses) are copied in (`DXRP_ADDON_PUBLISH_DOCTRINE.md:169`). See the graph in `CODE_CENSUS.md`.
@@ -107,7 +107,7 @@ What has changed since 2026-09-28 (current revision, Official mapping, whether 3
 - [ ] **Attribution/licence fields** recorded for every third-party file that ships. The house default is that assets are ours unless the owner flags them (`AGENT_ONBOARDING.md:262-264`); `PACKAGE_READINESS.md` lists what the files say today.
 - [ ] **Proof** before "done": runtime proof on a low-demand map (`lp:lifepunch/docs/START_HERE_AGENTS.md:65`), on the Dev game mode before Official (the ULX precedent, `W1.md:60`).
 - [ ] **Record**: a baseline commit per published revision in the package harness; the revision ids written down; a rollback target named.
-- [ ] **Publish by the principal's hand**: s&box package -> Portal addon -> New Revision (Package pin or Code/Assets upload, changelog, target s&box version) -> content entries if any -> visibility -> game-mode mapping (`creating-addons.md:16-57`, `FORK_WORKFLOW.md:46`).
+- [ ] **Publish by the owner's hand**: s&box package -> Portal addon -> New Revision (Package pin or Code/Assets upload, changelog, target s&box version) -> content entries if any -> visibility -> game-mode mapping (`creating-addons.md:16-57`, `FORK_WORKFLOW.md:46`).
 
 ## 9. Unknowns this page leaves open
 

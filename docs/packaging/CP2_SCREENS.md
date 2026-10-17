@@ -23,9 +23,9 @@ Source: the live workbench tree `D:\Cavelux\dxrp-workbench\game`, read only, sen
 | `.gitignore:500 game/Assets/**/*.prefab_c` | 6 |
 | `.gitignore:505 *.bak` | 1 |
 
-One of the 178 is the lptags extra `tags/ui/fonts/robotomono-license-ofl-1.1.txt.meta`, which the dispatch named. It is not force-added; that is a ruling owed.
+One of the 178 is the lptags extra `tags/ui/fonts/robotomono-license-ofl-1.1.txt.meta`. It is not force-added: develop's `.gitignore` excludes `*.meta`, and the `.gitignore` is law.
 
-Review changes (FABLE, board 2842): `lplockpick/lockpick/crowbar_2.fbx` is byte-identical to `lockpick/crowbar.fbx` (SHA-256 9B0DAF3A41FE62E87510528A0C3A13EC7D66935873084737733DC18D1EC3DBDF, 108,844 B). `crowbar.fbx` is kept and `crowbar_2.fbx` is not carried. `lockpick/source/crowbar.vmdl` keeps develop's `import_scale = 0.256`; the live 1.0 is not carried. The only remaining delta from develop is the three `align_origin_*_type = "None"` lines on the physics hull.
+Review changes: `lplockpick/lockpick/crowbar_2.fbx` is byte-identical to `lockpick/crowbar.fbx` (SHA-256 9B0DAF3A41FE62E87510528A0C3A13EC7D66935873084737733DC18D1EC3DBDF, 108,844 B). `crowbar.fbx` is kept and `crowbar_2.fbx` is not carried. `lockpick/source/crowbar.vmdl` keeps develop's `import_scale = 0.256`; the live 1.0 is not carried. The only remaining delta from develop is the three `align_origin_*_type = "None"` lines on the physics hull.
 
 ## Exclusion rule (lpbitcoin only)
 
