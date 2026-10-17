@@ -1,0 +1,117 @@
+@* -----------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Bitcoin Hub UI skeleton - Transfers tab (spec 6.1 row Transfers; keep list K13-K17).
+   Receive id, hub wallet, the send grammar with an example, the live rate table, still on racks.
+   Send stays terminal-only (DIRECTION:9, R-BTCUI-11): no send control here. Copy is clipboard-only
+   (exemplar bitcoinmining/LpBitcoinTerminalLogPanel.cs:126). UNVERIFIED in the editor.
+   ----------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
+@using System
+@using System.Globalization
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="btchub-tab">
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Receive</div>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Your receive id</span>
+			<div class="btchub-value">
+				<span>@ReceiveIdText</span>
+				<button class="btchub-nav-btn" tooltip="Copy your receive id" onclick="@CopyReceiveId">
+					<i class="material-icons">content_copy</i>
+				</button>
+			</div>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Hub wallet</span>
+			<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.WalletBtc ) )" />
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Still on racks</span>
+			<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.PendingBtc ) )" />
+		</div>
+	</div>
+
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Send</div>
+			<div class="btchub-panel-note">Only from the linked HASHD terminal</div>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Grammar</span>
+			<span class="btchub-value">@SendGrammar</span>
+		</div>
+		<div class="btchub-row">
+			<span class="btchub-label">Example</span>
+			<div class="btchub-value">
+				<span>@SendExample</span>
+				<button class="btchub-nav-btn" tooltip="Copy the example" onclick="@CopyExample">
+					<i class="material-icons">content_copy</i>
+				</button>
+			</div>
+		</div>
+		@if ( !string.IsNullOrEmpty( _copied ) )
+		{
+			<div class="btchub-hint">@_copied</div>
+		}
+	</div>
+
+	<div class="lp-hub-panel">
+		<div class="lp-hub-bar">
+			<div class="btchub-panel-title">Live hub rate</div>
+			<div class="btchub-panel-note">Display rate, before bonuses</div>
+		</div>
+		@foreach ( var btc in RateSteps )
+		{
+			<div class="btchub-row">
+				<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( btc ) )" />
+				<LifePunchCurrencyToken Sign="$" Amount="@( Format.Usd( btc * Model.UsdPerBtc ) )" SignClass="lp-money-cash" />
+			</div>
+		}
+	</div>
+</root>
+
+@code
+{
+	[Property] public ILpBitcoinHubState Model { get; set; } = null!;
+	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
+
+	private static readonly string BtcSign = ((char)0x20BF).ToString();
+
+	// Grammar as the terminal states it (bitcoinmining/LpBitcoinTerminalCommands.cs:249).
+	private const string SendGrammar = "send <steamid> <amount|all>";
+
+	// Rate table rows (spec H37, HP:791-799). Instance, not static readonly (hotload).
+	private readonly float[] RateSteps = { 0.01f, 0.05f, 0.10f, 0.25f };
+
+	private string _copied = string.Empty;
+
+	private string ReceiveIdText => Model.OwnerSteamId.ToString( CultureInfo.InvariantCulture );
+
+	// The example is built from the viewer's own id only as a shape; spec K15 flags today's as hard-coded.
+	private string SendExample => "send " + ReceiveIdText + " 0.01";
+
+	private void CopyReceiveId()
+	{
+		Clipboard.SetText( ReceiveIdText );
+		_copied = "Receive id copied.";
+		StateHasChanged();
+	}
+
+	private void CopyExample()
+	{
+		Clipboard.SetText( SendExample );
+		_copied = "Example copied. Paste it at the terminal prompt and change the id.";
+		StateHasChanged();
+	}
+
+	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0, _copied );
+}

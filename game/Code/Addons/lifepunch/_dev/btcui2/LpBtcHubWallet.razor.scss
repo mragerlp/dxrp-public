@@ -1,0 +1,23 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// Bitcoin Hub UI skeleton - Wallet tab. Tokens only. UNVERIFIED in the editor.
+// -----------------------------------------------------------------------------
+
+@import "LpBtcHubTabParts.scss";
+
+.wallet-input {
+	flex-shrink: 0;
+	width: 200px;
+	min-height: $hit;
+	padding: 0 $panel-pad;
+	border: 1px solid $border;
+	border-radius: $radius-chip;
+	background-color: $bg;
+	color: $text-main;
+	font-size: 14px;
+}
+
+.wallet-error {
+	color: $bad;
+}

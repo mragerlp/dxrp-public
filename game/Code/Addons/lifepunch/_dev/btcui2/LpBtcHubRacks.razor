@@ -1,0 +1,211 @@
+@* -----------------------------------------------------------------------------
+   PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+
+   Bitcoin Hub UI skeleton - Racks tab (spec 6.1 row Racks; keep list K3-K8).
+   Three fixed slots mapped BY TOKEN (gpurack-1, gpurack-2, advancedgpurack), never by list position
+   (R-BTCUI-4; HP:1983-2022 retires). Detail: chips (+FULL), compute / rate / buffer / yield from the
+   view model (synced clock, no projection, no TH/s), the upgrade ladder with its PLANNED rows.
+   Upgrade and the mining switch are inert (rails bind in the build slice; R-BTCUI-11).
+   Track names port lpbitcoin/bitcoinhub/code/ui/LpHashdPanel.razor:996-1006. UNVERIFIED in the editor.
+   ----------------------------------------------------------------------------- *@
+@namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
+@using System
+@using System.Linq
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits Panel
+
+@attribute [StyleSheet]
+
+<root class="btchub-tab">
+	@if ( Detail is null )
+	{
+		<div class="rack-slots">
+			@foreach ( var slot in Slots )
+			{
+				var rack = RackFor( slot.Token );
+				if ( rack is null )
+				{
+					<div class="rack-slot lp-hub-panel">
+						<div class="lp-hub-bar">
+							<div class="btchub-panel-title">@slot.Name</div>
+							<span class="btchub-chip">EMPTY</span>
+						</div>
+						<div class="btchub-hint">@EmptySlotHint</div>
+					</div>
+				}
+				else
+				{
+					<div class="rack-slot lp-hub-panel rack-slot-live" onclick="@( () => Select( slot.Token ) )">
+						<div class="lp-hub-bar">
+							<div class="btchub-panel-title">@rack.Name</div>
+							<span class="btchub-chip">@( Format.Tier( rack.Tier ) )</span>
+						</div>
+						<div class="btchub-row">
+							<div class="btchub-chip-row">
+								<span class="btchub-chip-good">LINKED</span>
+								<span class="@( rack.IsMining ? "btchub-chip-good" : "btchub-chip" )">@( rack.IsMining ? "MINING" : "IDLE" )</span>
+								@if ( rack.Full )
+								{
+									<span class="btchub-chip-bad">FULL</span>
+								}
+							</div>
+						</div>
+						<div class="btchub-row">
+							<span class="btchub-label">Rate</span>
+							<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.RatePerMin( rack.RateBtcPerMin ) )" Label="/min" />
+						</div>
+						<div class="btchub-row">
+							<span class="btchub-label">Buffer</span>
+							<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( rack.Btc ) )" />
+						</div>
+					</div>
+				}
+			}
+		</div>
+	}
+	else
+	{
+		<div class="lp-hub-panel">
+			<div class="lp-hub-bar">
+				<div class="btchub-panel-title">@Detail.Name</div>
+				<button class="btchub-nav-btn" tooltip="Back to the slots (Esc)" onclick="@Back">
+					<i class="material-icons">arrow_back</i>
+					<span>Slots</span>
+				</button>
+			</div>
+			<div class="btchub-row">
+				<div class="btchub-chip-row">
+					<span class="btchub-chip-good">LINKED</span>
+					<span class="@( Detail.IsMining ? "btchub-chip-good" : "btchub-chip" )">@( Detail.IsMining ? "MINING" : "IDLE" )</span>
+					@if ( Detail.Full )
+					{
+						<span class="btchub-chip-bad">FULL</span>
+					}
+					<span class="btchub-chip">@YieldChipText</span>
+					<span class="btchub-chip">@InvestedChipText</span>
+				</div>
+				<div class="btchub-value">
+					<span class="btchub-eyebrow">Mining</span>
+					<div class="@( Detail.IsMining ? "lp-switch lp-switch-on" : "lp-switch" )" tooltip="Binds RequestSetMining (RE:310) in the build slice, if R-BTCUI-11 adds it">
+						<div class="lp-switch-knob"></div>
+					</div>
+				</div>
+			</div>
+			<div class="lp-hub-field-row">
+				<div class="lp-hub-field">
+					<span class="btchub-eyebrow">Compute</span>
+					<span class="btchub-value">@ComputeText</span>
+				</div>
+				<div class="lp-hub-field">
+					<span class="btchub-eyebrow">Rate</span>
+					<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.RatePerMin( Detail.RateBtcPerMin ) )" Label="/min" />
+				</div>
+				<div class="lp-hub-field">
+					<span class="btchub-eyebrow">Buffer</span>
+					<span class="btchub-value">@BufferText</span>
+				</div>
+				<div class="lp-hub-field">
+					<span class="btchub-eyebrow">Yield</span>
+					<span class="btchub-value">@( Format.Yield( Detail.Yield ) )</span>
+				</div>
+			</div>
+		</div>
+
+		<div class="lp-hub-panel">
+			<div class="lp-hub-bar">
+				<div class="btchub-panel-title">Upgrade tracks</div>
+				<div class="btchub-panel-note">@NextTierText</div>
+			</div>
+			<div class="btchub-row">
+				<div class="btchub-value">
+					<i class="material-icons">speed</i>
+					<span>Compute Profile</span>
+				</div>
+				<div class="btchub-value">
+					<span>@LadderText</span>
+				</div>
+				@if ( Detail.NextQuoteSats > 0 )
+				{
+					<div class="btchub-value">
+						<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.BtcPrice( Detail.NextQuoteSats ) )" />
+						<span class="lp-money-divider">|</span>
+						<LifePunchCurrencyToken Sign="$" Amount="@( Format.Usd( Detail.NextQuoteUsd ) )" SignClass="lp-money-cash" />
+					</div>
+					<span class="btchub-label">@DeltaText</span>
+					<button class="btchub-action-inert" tooltip="Binds the tier purchase rail (spec section 7) with its inline confirm in the build slice">
+						<span>Upgrade</span>
+					</button>
+				}
+				else
+				{
+					<span class="btchub-chip">MAX</span>
+				}
+			</div>
+			@foreach ( var track in PlannedTracks )
+			{
+				<div class="btchub-row">
+					<div class="btchub-value">
+						<i class="material-icons">@track.Icon</i>
+						<span>@track.Name</span>
+					</div>
+					<span class="btchub-planned">@track.State</span>
+				</div>
+			}
+		</div>
+	}
+</root>
+
+@code
+{
+	[Property] public ILpBitcoinHubState Model { get; set; } = null!;
+	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
+	[Property] public string SelectedToken { get; set; } = string.Empty;
+	public Action<string>? OnSelectRack { get; set; }
+
+	private static readonly string BtcSign = ((char)0x20BF).ToString();
+	private static readonly string MidDot = ((char)0x00B7).ToString();
+
+	private const string EmptySlotHint = "No rack in this slot. Link a GPU rack to this hub from the HASHD terminal.";
+
+	// Fixed slots by token (ID:143-155); default names follow LpHashdPanel.razor:2018-2020.
+	// Instance, not static readonly (hotload).
+	private readonly (string Token, string Name)[] Slots =
+	{
+		( "gpurack-1", "GPU Rack 1" ),
+		( "gpurack-2", "GPU Rack 2" ),
+		( "advancedgpurack", "Advanced GPU Rack" ),
+	};
+
+	// LpHashdPanel.razor:999-1006. Fan RGB is cosmetic: STYLE only, no economy reference.
+	private readonly (string Name, string Icon, string State)[] PlannedTracks =
+	{
+		( "Cooling System", "ac_unit", "PLANNED" ),
+		( "Power Delivery", "bolt", "PLANNED" ),
+		( "Efficiency Tuning", "eco", "PLANNED" ),
+		( "Payout Buffer", "savings", "PLANNED" ),
+		( "Fan RGB", "palette", "NOT ENABLED" ),
+	};
+
+	private ILpBitcoinRackState? RackFor( string token ) => Model.Racks.FirstOrDefault( r => r.Token == token );
+
+	private ILpBitcoinRackState? Detail => string.IsNullOrEmpty( SelectedToken ) ? null : RackFor( SelectedToken );
+
+	private string ComputeText => Detail is null ? string.Empty : $"{Format.Tier( Detail.Tier )} {MidDot} {Format.Clock( Detail.ClockGhz )}";
+	private string BufferText => Detail is null ? string.Empty
+		: $"{BtcSign}{Format.Btc( Detail.Btc )} / {BtcSign}{Format.Btc( Detail.CapBtc )} ({Detail.FillPct}%)";
+	private string YieldChipText => Detail is null ? string.Empty : "YIELD " + Format.Yield( Detail.Yield );
+	private string InvestedChipText => Detail is null ? string.Empty : $"{BtcSign}{Format.Btc( Detail.InvestedBtc )} invested";
+	private string NextTierText => Detail is null || Detail.Tier >= Detail.MaxTier ? "Top tier reached"
+		: "Next: " + Format.Tier( Detail.Tier + 1 );
+	private string LadderText => Detail is null ? string.Empty : $"{Format.Tier( Detail.Tier )} of {Format.Tier( Detail.MaxTier )}";
+	private string DeltaText => Detail is null ? string.Empty
+		: $"+{Format.Clock( Detail.NextClockGhz - Detail.ClockGhz )} {MidDot} ~{Format.Payback( Detail.PaybackMinutes )} payback";
+
+	private void Select( string token ) => OnSelectRack?.Invoke( token );
+
+	private void Back() => OnSelectRack?.Invoke( string.Empty );
+
+	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0, SelectedToken );
+}
