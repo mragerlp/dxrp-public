@@ -189,9 +189,24 @@ public sealed class MapFitter : SingletonComponent<MapFitter>
 	{
 		// Fill glass panes - collect placeholders first to avoid collection modification during enumeration
 		var glassMarkers = Scene.FindAllWithTag( "glass_marker" ).ToArray();
+
+		// A scene without a GlassPrefab (game.scene ships "GlassPrefab": null) must not throw here: the throw skips
+		// OnMapFitted, and the respawner then never moves to the fitted spawn points (players die on spawn).
+		if ( !GlassPrefab.IsValid() )
+		{
+			if ( glassMarkers.Length > 0 )
+				Log.Warning( $"[Fitter] GlassPrefab is not set; {glassMarkers.Length} glass marker(s) left unfilled" );
+			return;
+		}
+
 		foreach ( var glassPlaceholder in glassMarkers )
 		{
 			var glass = GlassPrefab.Clone();
+			if ( !glass.IsValid() )
+			{
+				continue;
+			}
+
 			glass.WorldPosition = glassPlaceholder.WorldPosition;
 			glass.WorldRotation = glassPlaceholder.WorldRotation;
 

@@ -78,6 +78,35 @@ public class RespawnerSystem : SingletonComponent<RespawnerSystem>, IGameEvents
 	{
 		_mapFitted = true;
 		RefreshSpawnPoints();
+		MovePlayersOffPreFitSpawns();
+	}
+
+	private bool _movedAfterFirstFit;
+
+	/// <summary>
+	/// Players created before the first map fit stand on pre-fit spawn points (in the editor the host is created about
+	/// 11 s before the fit and dies of the fall). At the first fit only, the host moves every living player onto a
+	/// fitted spawn point; later refits never move anyone.
+	/// </summary>
+	private void MovePlayersOffPreFitSpawns()
+	{
+		if ( _movedAfterFirstFit || !Networking.IsHost )
+		{
+			return;
+		}
+
+		_movedAfterFirstFit = true;
+
+		foreach ( var player in GameUtils.Players.ToList() )
+		{
+			if ( !player.IsValid() || player.IsDead )
+			{
+				continue;
+			}
+
+			player.TeleportHost( GetSpawnPoint( player ) );
+			Log.Info( $"[Respawner] SPAWN_SAFE_20261017 moved {player.DisplayName} to a fitted spawn point after the first map fit" );
+		}
 	}
 
 	public void OnGameModeUpdated( GameModeDto? before, GameModeDto? after )
