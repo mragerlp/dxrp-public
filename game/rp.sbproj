@@ -1,7 +1,7 @@
 {
-  "Title": "DXRP",
+  "Title": "LifePunch",
   "Type": "game",
-  "Org": "dxura",
+  "Org": "lifepunch",
   "Ident": "rp",
   "Schema": 1,
   "IncludeSourceFiles": false,
@@ -10,6 +10,9 @@
   "EditorReferences": null,
   "Mounts": null,
   "IsStandaloneOnly": false,
+  "AI": {
+    "EnableMcpCommunication": true
+  },
   "Metadata": {
     "MaxPlayers": 128,
     "MinPlayers": 1,
@@ -49,6 +52,7 @@
     },
     "LaunchMode": "DedicatedServerOnly",
     "DedicatedServerStartupScene": "scenes/game.scene",
-    "MapStartupScene": "scenes/game.scene"
+    "MapStartupScene": "scenes/game.scene",
+    "ParentPackage": "dxura.rp"
   }
 }
