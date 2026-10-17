@@ -7,6 +7,7 @@
 
 #if !LIFEPUNCH_LOCAL
 
+using Dxura.RP.Game;
 using Sandbox;
 
 namespace LifePunch.DXRP.Addons.Dev;
@@ -16,6 +17,9 @@ public static class LpBankerAssetDevSpawn
 {
 	/// <summary>Positive code-string ID for the lineup. Exists nowhere else in the tree.</summary>
 	public const string LineupMark = "LP_BANKER_ASSETS_LINEUP_20261017";
+
+	/// <summary>Positive code-string ID for the aim-and-floor lineup (DRIVE-AWAY-2-U4). Exists nowhere else in the tree.</summary>
+	public const string LineupPlacementMark = "LP_BANKER_LINEUP_PLACEMENT_20261017";
 
 	public const string SessionTag = "lp_banker_dev";
 
@@ -48,14 +52,17 @@ public static class LpBankerAssetDevSpawn
 			return;
 		}
 
-		if ( !LifePunchMarketSpawn.TryGetIdentitySpawnTransform( out var transform ) )
+		// QoL (DRIVE-AWAY-2-U4): lay the line across the local aim and drop each mesh to the floor. The market transform
+		// carries Rotation.Identity, so the line used to run along world +X at aim-point height (floating, often off view).
+		var player = Player.Local;
+		if ( !player.IsValid() )
 		{
-			Log.Warning( "lp_banker_spawn_lineup: no local viewer - play from game.scene first." );
+			Log.Warning( "lp_banker_spawn_lineup: no local player - play from game.scene first." );
 			return;
 		}
-
-		var rot = transform.Rotation;
-		var start = transform.Position + rot.Forward * 140f + rot.Left * 250f;
+		var flat = player.AimRay.Forward.WithZ( 0f );
+		var rot = flat.Length > 0.01f ? Rotation.LookAt( flat.Normal ) : Rotation.Identity;
+		var start = LifePunchMarketSpawn.GetSpawnPosition( player.AimRay ) + rot.Forward * 80f + rot.Left * 250f;
 		var spawned = 0;
 
 		Spawn( PawnReference, start, rot, "pawn_reference" );
@@ -68,6 +75,7 @@ public static class LpBankerAssetDevSpawn
 		}
 
 		Log.Info( $"[lpbanker] {LineupMark} models={spawned}/{BankModels.Length} reference=citizen" );
+		Log.Info( $"[lpbanker] {LineupPlacementMark} placement=aim floor=aligned start={start}" );
 	}
 
 	private static bool Spawn( string path, Vector3 position, Rotation rotation, string label )
@@ -92,6 +100,7 @@ public static class LpBankerAssetDevSpawn
 		collider.Center = bounds.Center;
 		collider.Scale = bounds.Size;
 		collider.Static = true;
+		LifePunchGroundContact.AlignMeshBottom( go );
 
 		Log.Info( $"[lpbanker] lineup {label} mesh={bounds.Size.x:F2}x{bounds.Size.y:F2}x{bounds.Size.z:F2} center={bounds.Center.x:F2},{bounds.Center.y:F2},{bounds.Center.z:F2} collider={collider.Scale.x:F2}x{collider.Scale.y:F2}x{collider.Scale.z:F2}" );
 		return true;
