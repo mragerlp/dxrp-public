@@ -48,23 +48,24 @@
 
 	private string UnreadText => Model.UnreadAlerts == 1 ? "1 unread" : Model.UnreadAlerts + " unread";
 
-	private static string KindIcon( LpBitcoinHubAlertKind kind ) => kind switch
+	// if/else, not a switch expression: razor_lint flags switch expressions in @code (Razor transpiler footgun).
+	private static string KindIcon( LpBitcoinHubAlertKind kind )
 	{
-		LpBitcoinHubAlertKind.TerminalCommand => "terminal",
-		LpBitcoinHubAlertKind.RackCapacity => "inventory_2",
-		LpBitcoinHubAlertKind.HackAttack => "gpp_bad",
-		LpBitcoinHubAlertKind.HubTransfer => "swap_horiz",
-		_ => "info",
-	};
+		if ( kind == LpBitcoinHubAlertKind.TerminalCommand ) return "terminal";
+		if ( kind == LpBitcoinHubAlertKind.RackCapacity ) return "inventory_2";
+		if ( kind == LpBitcoinHubAlertKind.HackAttack ) return "gpp_bad";
+		if ( kind == LpBitcoinHubAlertKind.HubTransfer ) return "swap_horiz";
+		return "info";
+	}
 
-	private static string KindLabel( LpBitcoinHubAlertKind kind ) => kind switch
+	private static string KindLabel( LpBitcoinHubAlertKind kind )
 	{
-		LpBitcoinHubAlertKind.TerminalCommand => "Command",
-		LpBitcoinHubAlertKind.RackCapacity => "Capacity",
-		LpBitcoinHubAlertKind.HackAttack => "Intrusion",
-		LpBitcoinHubAlertKind.HubTransfer => "Transfer",
-		_ => "Alert",
-	};
+		if ( kind == LpBitcoinHubAlertKind.TerminalCommand ) return "Command";
+		if ( kind == LpBitcoinHubAlertKind.RackCapacity ) return "Capacity";
+		if ( kind == LpBitcoinHubAlertKind.HackAttack ) return "Intrusion";
+		if ( kind == LpBitcoinHubAlertKind.HubTransfer ) return "Transfer";
+		return "Alert";
+	}
 
 	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0 );
 }
