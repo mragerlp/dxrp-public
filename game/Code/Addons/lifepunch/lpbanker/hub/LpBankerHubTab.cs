@@ -1,7 +1,9 @@
 // PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
 //
-// BANKER-HUB-1 tabs (DRIVE-AWAY-1-D). Labels, blurbs and placeholder rows live here once (pattern: _dev/btcui2
-// LpBtcHubTab.cs). Every row is a PLACEHOLDER; every action is inert. Rulings cite DIRECTION_BANKER-HUB_R1 section 8.
+// BANKER-HUB-1 tabs (DRIVE-AWAY-1-D), reshaped in BANKER-HUB-2 (DRIVE-AWAY-2-U1) to DIRECTION_BANKER-HUB_R1 section 2:
+// the cash side (Investments -> Dividends; Premiums -> the Banker), hub upgrades (the pile itself) and the vault
+// (crypto vault = sequence 2, security = sequence 3, both stubs). Labels, blurbs and inert actions live here once
+// (pattern: _dev/btcui2 LpBtcHubTab.cs); the figures live in the view model (LpBankerHubState.cs).
 
 using System;
 
@@ -10,11 +12,11 @@ namespace LifePunch.DXRP.Addons.Banker;
 public enum LpBankerHubTab
 {
 	Overview,
-	Vault,
 	Investments,
+	Dividends,
 	Premiums,
 	Upgrades,
-	Security,
+	Vault,
 	Logs,
 }
 
@@ -24,52 +26,41 @@ public static class LpBankerHubTabInfo
 
 	public static string Blurb( LpBankerHubTab tab ) => tab switch
 	{
-		LpBankerHubTab.Overview => "The bank at a glance: reserve, investments, premiums and security",
-		LpBankerHubTab.Vault => "The Banker's cash pile: what it holds and what a raid can take",
-		LpBankerHubTab.Investments => "Player investments and their dividends",
-		LpBankerHubTab.Premiums => "Insurance premiums the bank collects",
-		LpBankerHubTab.Upgrades => "Vault and branch upgrades",
-		LpBankerHubTab.Security => "Vault security tiers, guards and alarms",
-		LpBankerHubTab.Logs => "Deposits, withdrawals, raids and payouts",
+		LpBankerHubTab.Overview => "The bank at a glance: reserve, investments, dividends, premiums and security",
+		LpBankerHubTab.Investments => "Players put money in; dividends pay it back over time",
+		LpBankerHubTab.Dividends => "What the bank pays investors, tick by tick",
+		LpBankerHubTab.Premiums => "What the Banker collects",
+		LpBankerHubTab.Upgrades => "Hub upgrades: the pile itself",
+		LpBankerHubTab.Vault => "The crypto vault (sequence 2) and vault security (sequence 3): stubs",
+		LpBankerHubTab.Logs => "Investments, payouts, premiums and raids",
 		_ => string.Empty,
 	};
 
 	public static string Ruling( LpBankerHubTab tab ) => tab switch
 	{
-		LpBankerHubTab.Overview => "waits on rulings 1, 2, 3, 6",
-		LpBankerHubTab.Vault => "waits on rulings 3, 6",
-		LpBankerHubTab.Investments => "waits on rulings 1, 2",
-		LpBankerHubTab.Premiums => "waits on ruling 1",
-		LpBankerHubTab.Upgrades => "waits on ruling 5",
-		LpBankerHubTab.Security => "waits on ruling 5",
+		LpBankerHubTab.Overview => "waits on I1, I2, I3, I5, I6",
+		LpBankerHubTab.Investments => "waits on I1, I2",
+		LpBankerHubTab.Dividends => "waits on I1",
+		LpBankerHubTab.Premiums => "waits on I1",
+		LpBankerHubTab.Upgrades => "waits on I1, I4, R-M6-1",
+		LpBankerHubTab.Vault => "sequence 2 and 3; waits on I3, I5",
 		LpBankerHubTab.Logs => "waits on the rails",
 		_ => string.Empty,
 	};
 
-	public static string[] Rows( LpBankerHubTab tab ) => tab switch
-	{
-		LpBankerHubTab.Overview => new[] { "Vault reserve", "Open investments", "Premiums due", "Security tier" },
-		LpBankerHubTab.Vault => new[] { "Cash pile", "Pile cap", "Last raid" },
-		LpBankerHubTab.Investments => new[] { "Dividend rate", "Tick", "Cap" },
-		LpBankerHubTab.Premiums => new[] { "Premium rate", "Insured value" },
-		LpBankerHubTab.Upgrades => new[] { "Vault tier", "Next tier" },
-		LpBankerHubTab.Security => new[] { "Security tier", "Guards", "Alarm" },
-		_ => Array.Empty<string>(),
-	};
-
 	public static string[] Actions( LpBankerHubTab tab ) => tab switch
 	{
-		LpBankerHubTab.Vault => new[] { "Deposit to pile", "Withdraw" },
 		LpBankerHubTab.Investments => new[] { "Invest", "Withdraw" },
+		LpBankerHubTab.Dividends => new[] { "Claim dividends" },
 		LpBankerHubTab.Premiums => new[] { "Set premium" },
-		LpBankerHubTab.Upgrades => new[] { "Upgrade" },
-		LpBankerHubTab.Security => new[] { "Raise tier" },
+		LpBankerHubTab.Upgrades => new[] { "Upgrade pile" },
+		LpBankerHubTab.Vault => new[] { "Open crypto vault" },
 		_ => Array.Empty<string>(),
 	};
 
 	public static string Empty( LpBankerHubTab tab ) => tab switch
 	{
-		LpBankerHubTab.Logs => "No log rows: deposits, raids and payouts log here once their rails exist.",
-		_ => "Skeleton: no balance, no rail, no money path. Each row binds after its ruling and its own GO.",
+		LpBankerHubTab.Logs => "No log rows: investments, payouts and raids log here once their rails exist.",
+		_ => "Fixture data: no balance, no rail, no money path. Each figure binds after its ruling and its own GO.",
 	};
 }
