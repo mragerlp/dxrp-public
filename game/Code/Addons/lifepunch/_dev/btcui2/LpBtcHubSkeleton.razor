@@ -203,6 +203,31 @@
 	/// <summary>Deep-link entry for a future tab route; same path as a tab click.</summary>
 	public void SelectTab( LpBtcHubTab tab ) => SetTab( tab );
 
+	// Proof seams (DRIVE-AWAY-1 A): OS-synthesised clicks do not reach panels, so a tool call drives the
+	// same local paths a click would. Local state only: no rail, no network, no ConCmd, nothing sent.
+	/// <summary>Proof: four digits and ok through the keypad path (PressKey), as a player would.</summary>
+	public void ProofUnlock()
+	{
+		PressKey( "1" );
+		PressKey( "2" );
+		PressKey( "3" );
+		PressKey( "4" );
+		PressKey( "ok" );
+	}
+
+	/// <summary>Proof: select a tab by its index in Tabs (0 = Overview .. 6 = Settings).</summary>
+	public void ProofSelectTabIndex( int index )
+	{
+		if ( index >= 0 && index < Tabs.Length )
+			SetTab( Tabs[index] );
+	}
+
+	/// <summary>Proof: open a rack detail through the slot-card path.</summary>
+	public void ProofSelectRack( string token ) => SelectRack( token );
+
+	/// <summary>Proof: raise Esc so OnUpdate runs the real Esc branch (rack detail first, then close).</summary>
+	public void ProofEscape() => Input.EscapePressed = true;
+
 	private void SetTab( LpBtcHubTab tab )
 	{
 		if ( _pinView || _activeTab == tab )
