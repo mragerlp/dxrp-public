@@ -1,0 +1,29 @@
+// Cavelux voxel-eye green — original mark, not a Deus Ex face.
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	F_SELF_ILLUM 1
+
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[0.150000 1.000000 0.120000 1.000000]"
+	TextureColor "[0.150000 1.000000 0.120000 1.000000]"
+
+	g_flMetalness "0.000"
+	g_flRoughnessScaleFactor "1.000"
+	TextureNormal "materials/default/default_normal.tga"
+	TextureRoughness "materials/default/default_rough.tga"
+
+	g_flAmbientOcclusionDirectDiffuse "0.000"
+	g_flAmbientOcclusionDirectSpecular "0.000"
+	TextureAmbientOcclusion "materials/default/default_ao.tga"
+
+	g_flSelfIllumAlbedoFactor "1.000"
+	g_flSelfIllumBrightness "2.400"
+	g_flSelfIllumScale "1.000"
+	g_vSelfIllumTint "[0.180000 1.000000 0.140000 0.000000]"
+	TextureSelfIllumMask "materials/default/default_selfillum.tga"
+
+	g_bFogEnabled "0"
+}

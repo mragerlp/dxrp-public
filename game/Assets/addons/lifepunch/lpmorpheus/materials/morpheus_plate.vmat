@@ -1,0 +1,23 @@
+// In-house Morpheus plate — dark cool metal. Not an Ion Storm material.
+// Keeps the hologram box on the chamber body color so the Cavelux voxels stay readable.
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[0.035000 0.055000 0.075000 1.000000]"
+	TextureColor "materials/default/default_color.tga"
+
+	g_flMetalness "0.900"
+	g_flRoughnessScaleFactor "1.000"
+	g_flRoughness "0.380"
+	TextureRoughness "materials/default/default_rough.tga"
+	TextureNormal "materials/default/default_normal.tga"
+
+	g_flAmbientOcclusionDirectDiffuse "0.000"
+	g_flAmbientOcclusionDirectSpecular "0.000"
+	TextureAmbientOcclusion "materials/default/default_ao.tga"
+
+	g_bFogEnabled "1"
+}

@@ -1,0 +1,1 @@
+LifePunch / Cavelux original. Hologram face is the Cavelux voxel-eye mark (cavelux_logo.png). Pedestal, cave-rim, and CRT slats rebuilt as clean geometry. Meshy stills were silhouette reference only; that mesh was not imported.

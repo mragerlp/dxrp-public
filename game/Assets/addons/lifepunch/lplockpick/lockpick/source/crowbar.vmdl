@@ -23,6 +23,9 @@
 				[
 					{
 						_class = "PhysicsHullFromRender"
+						align_origin_z_type = "None"
+						align_origin_y_type = "None"
+						align_origin_x_type = "None"
 						parent_bone = ""
 						surface_prop = "default"
 						collision_tags = "solid"
