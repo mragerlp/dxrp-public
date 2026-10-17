@@ -6,7 +6,7 @@ Source: the live workbench tree `D:\Cavelux\dxrp-workbench\game`, read only, sen
 
 | Unit | Live files | Copied | Excluded | Staged on this branch |
 |---|---:|---:|---:|---:|
-| lplockpick | 35 | 35 | 0 | 12 (11 new + source/crowbar.vmdl modified) |
+| lplockpick | 35 | 35 | 0 | 11 (10 new + source/crowbar.vmdl modified; crowbar_2.fbx dropped, see note) |
 | lpmorpheus | 37 | 37 | 0 | 16 new |
 | lptags extras | 4 (2 already on develop) | 2 | 2 (tracked on develop) | 1 new (ATTRIBUTION.md) |
 | lpbitcoin runtime subset | 552 | 408 | 144 | 15 new (12 ATTRIBUTION.md + 3 gpurack/assets/textures/gpu_farm_*.vmdl) |
@@ -25,6 +25,8 @@ Source: the live workbench tree `D:\Cavelux\dxrp-workbench\game`, read only, sen
 
 One of the 178 is the lptags extra `tags/ui/fonts/robotomono-license-ofl-1.1.txt.meta`, which the dispatch named. It is not force-added; that is a ruling owed.
 
+Review changes (FABLE, board 2842): `lplockpick/lockpick/crowbar_2.fbx` is byte-identical to `lockpick/crowbar.fbx` (SHA-256 9B0DAF3A41FE62E87510528A0C3A13EC7D66935873084737733DC18D1EC3DBDF, 108,844 B). `crowbar.fbx` is kept and `crowbar_2.fbx` is not carried. `lockpick/source/crowbar.vmdl` keeps develop's `import_scale = 0.256`; the live 1.0 is not carried. The only remaining delta from develop is the three `align_origin_*_type = "None"` lines on the physics hull.
+
 ## Exclusion rule (lpbitcoin only)
 
 A file is excluded if any folder in its path is `_archive`, `audit`, `source` or `provenance`, or contains `extract` (no folder of that name exists in lpbitcoin), or if it is over 50 MB. 50 MB is read as 50,000,000 bytes (decimal).
@@ -35,7 +37,7 @@ A file is excluded if any folder in its path is `_archive`, `audit`, `source` or
 
 ## Size screen
 
-- Nothing over 50,000,000 B is added by this branch. The largest staged file is 8,182,553 B. The staged set is 44 asset files, 25,251,321 B.
+- Nothing over 50,000,000 B is added by this branch. The largest staged file is 8,182,553 B. The staged set is 43 asset files, 25,142,477 B.
 - The lpbitcoin runtime subset (408 files) is 322.8 MB. That is OVER the 300 MB Portal asset bar. PKG-1 estimated ~181 MB; the gap comes mostly from the thirteen hashdterminal TGAs (each about 50 MB; 5 of them are excluded here only by the strict 50 MB reading).
 - Live lpbitcoin is 648.3 MB (552 files).
 
