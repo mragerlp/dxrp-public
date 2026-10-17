@@ -1,0 +1,27 @@
+// LIFEPUNCH lpbanker - money notes (MI_Money_New). DRAFT for DRIVE-BANK-ASSETS-2; textures not landed; ORM split R=AO G=Roughness B=Metallic UNVERIFIED
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	F_METALNESS_TEXTURE 1
+	F_SPECULAR 1
+
+	g_flAmbientOcclusionDirectDiffuse "0.000"
+	g_flAmbientOcclusionDirectSpecular "0.000"
+	TextureAmbientOcclusion "addons/lifepunch/lpbanker/bankreserve/assets/textures/T_Money_New_AO.png"
+
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+	TextureColor "addons/lifepunch/lpbanker/bankreserve/assets/textures/T_Money_New_Albedo.png"
+
+	g_flFadeExponent "1.000"
+	g_bFogEnabled "1"
+
+	TextureMetalness "addons/lifepunch/lpbanker/bankreserve/assets/textures/T_Money_New_Metallic.png"
+
+	TextureNormal "addons/lifepunch/lpbanker/bankreserve/assets/textures/T_Money_New_Normal.png"
+
+	g_flRoughnessScaleFactor "1.000"
+	TextureRoughness "addons/lifepunch/lpbanker/bankreserve/assets/textures/T_Money_New_Roughness.png"
+}
