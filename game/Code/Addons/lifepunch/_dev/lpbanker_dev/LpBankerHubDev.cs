@@ -23,6 +23,31 @@ public static class LpBankerHubDev
 	/// <summary>Positive code-string ID for the press proof. Exists nowhere else in the tree.</summary>
 	public const string PilePressMark = "LP_BANKER_PILE_PRESS_20261017";
 
+	/// <summary>Positive code-string ID for the aim-and-floor placement (DRIVE-AWAY-2-U4). Exists nowhere else in the tree.</summary>
+	public const string PlacementMark = "LP_BANKER_DEV_PLACEMENT_20261017";
+
+	/// <summary>
+	/// QoL (DRIVE-AWAY-2-U4): a point in front of where the local player aims, and the aim's yaw. The market transform
+	/// (LifePunchMarketSpawn.TryGetIdentitySpawnTransform) carries Rotation.Identity, so its offsets ran along world +X,
+	/// out of view. The floor drop is the house LifePunchGroundContact.AlignMeshBottom.
+	/// </summary>
+	public static bool TryInFrontOfLocal( out Vector3 position, out Rotation facing )
+	{
+		var player = Player.Local;
+		if ( !player.IsValid() )
+		{
+			position = default;
+			facing = Rotation.Identity;
+			return false;
+		}
+
+		var aim = player.AimRay;
+		var flat = aim.Forward.WithZ( 0f );
+		facing = flat.Length > 0.01f ? Rotation.LookAt( flat.Normal ) : Rotation.Identity;
+		position = LifePunchMarketSpawn.GetSpawnPosition( aim );
+		return true;
+	}
+
 	/// <summary>Positive code-string ID for the gate probe. Exists nowhere else in the tree.</summary>
 	public const string GateProbeMark = "LP_BANKER_GATE_PROBE_20261017";
 
@@ -74,9 +99,9 @@ public static class LpBankerHubDev
 			return;
 		}
 
-		if ( !LifePunchMarketSpawn.TryGetIdentitySpawnTransform( out var transform ) )
+		if ( !TryInFrontOfLocal( out var position, out var facing ) )
 		{
-			Log.Warning( "lp_banker_spawn_pile: no local viewer - play from game.scene first." );
+			Log.Warning( "lp_banker_spawn_pile: no local player - play from game.scene first." );
 			return;
 		}
 
@@ -89,12 +114,15 @@ public static class LpBankerHubDev
 
 		var go = new GameObject( true, "lp_banker_cash_pile" );
 		go.Tags.Add( "lp_banker_dev" );
-		go.WorldPosition = transform.Position + transform.Rotation.Forward * 60f + Vector3.Up * 40f;
-		go.WorldRotation = transform.Rotation;
+		go.WorldPosition = position;
+		go.WorldRotation = facing;
+		go.Components.Create<ModelRenderer>().Model = model;
 		go.Components.Create<LpBankerCashPileEntity>();
+		var grounded = LifePunchGroundContact.AlignMeshBottom( go );
 
 		var bounds = model.Bounds;
 		Log.Info( $"[lpbanker] {PileSpawnMark} pile={go.Id} bounds={bounds.Size.x:F2}x{bounds.Size.y:F2}x{bounds.Size.z:F2} scale={LpBankerIdent.PileScaleNote} body=self pressable=yes money=none" );
+		Log.Info( $"[lpbanker] {PlacementMark} pile placement=aim grounded={grounded} at={go.WorldPosition}" );
 	}
 
 	// Reason: proof that the pile's own Press opens the hub (OS clicks and use keys cannot be synthesised). Who: the editor only.
