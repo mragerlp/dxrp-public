@@ -1,0 +1,42 @@
+manifest_for=lpbanker bank set (DRIVE-BANK-ASSETS-2; prepared under DRIVE-MORNING-1 M6) - DRAFT, nothing landed
+landed_folder=game\Assets\addons\lifepunch\lpbanker
+folder_ruling=R-2832-D lpbanker / lpheist split (board 2832): money piles + vault door -> lpbanker (reserve); raid tools (C4, drill) -> lpheist, later
+licence_ruling=R-2832-C Fab packs owner-attested (bea59f39, 66cf0cb2)
+license_tier=owner-attested
+licence_line=Owner-attested: Fab purchases "Heist Essentials & Tools Collection" (bea59f39) and "Vault Safe + Gold & Silver" (66cf0cb2) attested by Bloodwave 2026-10-17 for LifePunch use (R-2832-C, board 2832).
+licence_line_status=DRAFT - R-2832-C carries no licence-line text of its own; composed from the principal answer recorded in CC-DRIVE-1_SESSION_2026-10-17-R1.md line 73. Replace with his wording if he gives one.
+use_scope=<OWED - the CHEMIST clause "in-game in LIFEPUNCH, not redistributed/resold as standalone asset" is not in the 2026-10-17 attestation; add only on his word>
+license_status_local=UNVERIFIED (intake fab-listings.json: license_field ABSENT for both listings; no licence file in either source)
+attestation_ref=C:\cavelux\comms\outbox\cc-drive-1\CC-DRIVE-1_DRIVE-BANK-ASSETS-1_RETURN_2026-10-17-R1.md (GO + attestation, line 8; gate B-G1, line 32)
+large_file_rule=R-b (board 2832; recommended text, ruling OWED): no file > 50 MB in git; originals in the ark, sha-referenced; no git LFS
+ark_path=<OWED - no ark path is named in any searched file>
+
+pack_1_name=Heist Essentials & Tools Collection
+pack_1_fab_listing=bea59f39 (short id; full UUID and seller absent from the intake metadata)
+pack_1_source_root=D:\Cavelux\FabExports\2026-09-03-intake-01\02-unreal-export\payload\SD_Art\Heist_Tools\Assets\
+pack_1_meshes=SM_Money_Stacked_01_..06_ (Money_Piles\), SM_Money_Bag_Closed_01_, SM_Money_Bag_Open_01_, SM_Money_Bag_Open_Full_01_ (Money_Bags\)
+
+pack_2_name=Vault Safe + Gold & Silver
+pack_2_fab_listing=66cf0cb2-65cf-4d95-a4dd-211020007d4a
+pack_2_seller=Michael Vest
+pack_2_source_root=D:\Cavelux\FabExports\2026-09-03-intake-01\01-portable\Vault_Safe_Gold_Silver-66cf0cb2\additional-files\safe_vault_extracted\Safe_Vault\
+pack_2_meshes=Safe_Vault, Safe_Vault_Door (+ Cube.013, Cylinder.017), Bullion_Gold_1, Bullion_Gold_2 (Model\Safe_Vault_FBX.fbx)
+
+hashes=
+source	Heist	7D8D5872BB7E869A05DF24A723D0FB35B5572EA709ED372B95CBADF48464F7AC	215760	Money_Piles\SM_Money_Stacked_01_.fbx
+source	Heist	BFD3A2118E278A7733E0CD228AB7B62906BA96B4161A650DFE0969EC0D703986	91296	Money_Piles\SM_Money_Stacked_02_.fbx
+source	Heist	A2AAEE053A6DE8EFD50D9D7A692F2496A3D60585D7010E3B274C64D6103C5560	55856	Money_Piles\SM_Money_Stacked_03_.fbx
+source	Heist	14D009937160209E6D1A091B670AF75296D088CA33CB1ECE86C1276114FDF447	145296	Money_Piles\SM_Money_Stacked_04_.fbx
+source	Heist	57191502C697B60816FE777BC05FA130705E4425ED2DE8535E908C38A15545C7	52224	Money_Piles\SM_Money_Stacked_05_.fbx
+source	Heist	72AA56BB90AF828DC7407E73F92509C36AE0E0B6985E9B32CAF284153A1A236C	150480	Money_Piles\SM_Money_Stacked_06_.fbx
+source	Heist	FBFB818B31B6EDA83777ED66153DCD4721771EDF7B037144DC8EE29AE4DC3D36	16312240	Money_Bags\SM_Money_Bag_Closed_01_.fbx
+source	Heist	3F27A65AF765FAA15FD82FDEE351973DD9FFAB8E76BDB6A510162C1E60515327	20951904	Money_Bags\SM_Money_Bag_Open_01_.fbx
+source	Heist	1C87B506A41BE80587463DA642EDB1C43CC242D56725CCD90A03AAEF044CAE27	28937744	Money_Bags\SM_Money_Bag_Open_Full_01_.fbx
+ark	Heist	9536F5D38B02A7CCA66B270F7B66B1A9251BA8717BDC22E0284E5A5AD13737B1	55065541	Money_Piles\Textures\T_Money_New_Normal.png (over the bar; lands derived)
+ark	Heist	D313D1136126954F833C2AF0F3753CC0F99337188A7241E5539337BB606683BC	87139025	Money_Bags\Textures\T_Money_Bags_01_Normal.png (over the bar; lands derived)
+source	Vault	C187B59376D5FA5CF9F0C7F6D85F082EFA1AD11A3B1E2283BAF170BD94D10A4F	194684	Model\Safe_Vault_FBX.fbx
+(the full texture hash list is in CC-DRIVE-1_DRIVE-MORNING-1-M6_RETURN_2026-10-17-R1.md; landed rows are added at landing)
+checks_performed=
+  - Source hashes read 2026-10-17 by the M6 helper (Python -I, read-only); paths relative to pack_N_source_root
+  - Fab metadata license_field ABSENT for both listings; licence rests on the owner attestation (R-2832-C)
+  - No file > 50 MB lands in git (R-b); over-bar originals and unused variants stay in the ark
