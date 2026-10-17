@@ -143,7 +143,7 @@
 	private static readonly string MidDot = ((char)0x00B7).ToString();
 
 	private const string SkeletonTooltip =
-		"Skeleton: every figure is a fixture and every action is inert. The build slice binds live state and the rails after its own GO.";
+		"Skeleton: every figure reads the live hub, read-only (fixture only when UseFixture is set). Every action is inert until the rails slice gets its own GO.";
 	private const string PinNote =
 		"Skeleton: any 4 digits continue and nothing is sent. The host check (unlock, set, change, lockout) binds in the build slice.";
 
@@ -170,7 +170,17 @@
 
 	private static bool _announced;
 
-	private readonly ILpBitcoinHubState State = new LpBitcoinHubStateFixture();
+	// BTC-UI-2 read-only half: the viewer's own hub, read live (LpBitcoinHubStateLive); the fixture
+	// only on request. Resolve order: BindHub, else the hub this viewer owns (BS:31-35), else NO HUB.
+	private readonly LpBitcoinHubStateFixture _fixture = new();
+	private readonly LpBitcoinHubStateLive _noHub = new LpBitcoinHubStateLive( null );
+	private LpBitcoinHubStateLive? _live;
+	private TimeSince _sinceResolve = 10f;
+
+	/// <summary>Show the literal fixture instead of the live hub (design review and proof only).</summary>
+	[Property] public bool UseFixture { get; set; }
+
+	private ILpBitcoinHubState State => UseFixture ? (ILpBitcoinHubState)_fixture : ( _live ?? _noHub );
 	private readonly ILpBitcoinHubFormat Format = LpBitcoinHubFormatUnruled.Instance;
 
 	private LpBtcHubTab _activeTab = LpBtcHubTab.Overview;
@@ -188,7 +198,9 @@
 	// Inert in the skeleton: the switch shows state and binds SetPowered (HE:321) only in the build slice (R-BTCUI-5).
 	private string PowerSwitchClass => State.IsPowered ? "lp-switch lp-switch-on" : "lp-switch";
 	private string PowerTooltip => "Hub power, the one writer in this UI (R-BTCUI-5). Inert in the skeleton.";
-	private string SkeletonChipText => $"SKELETON {MidDot} FIXTURE DATA";
+	private string SkeletonChipText => UseFixture
+		? $"SKELETON {MidDot} FIXTURE DATA"
+		: ( State.HasHub ? $"SKELETON {MidDot} LIVE STATE" : $"SKELETON {MidDot} NO HUB" );
 
 	private string PinTitle => State.PinSet ? "Enter hub PIN" : "Set a hub PIN";
 	private string PinSubText => State.PinNeedsReEnroll ? "Your PIN must be set again." : "4 digits";
@@ -202,6 +214,33 @@
 
 	/// <summary>Deep-link entry for a future tab route; same path as a tab click.</summary>
 	public void SelectTab( LpBtcHubTab tab ) => SetTab( tab );
+
+	/// <summary>Bind the hub this panel reads (pattern: LpHashdPanel BindHub). Logs the live positive ID on every bind.</summary>
+	public void BindHub( LpBitcoinHubEntity hub )
+	{
+		if ( !hub.IsValid() || ( _live is not null && _live.Hub == hub ) )
+			return;
+
+		_live = new LpBitcoinHubStateLive( hub );
+		Log.Info( "[btcui2] " + LpBitcoinHubStateLive.LiveMark + " hub=" + hub.GameObject.Id + " racks=" + _live.RackCount + " source=live" );
+		StateHasChanged();
+	}
+
+	// Once a second until bound: the hub this viewer owns (same resolver as LpPlayerHubBtcSource, BS:33-34).
+	private void ResolveHub()
+	{
+		if ( UseFixture || ( _live is not null && _live.HasHub ) || _sinceResolve < 1f )
+			return;
+
+		_sinceResolve = 0f;
+		var steamId = Game.SteamId;
+		if ( steamId == 0 )
+			return;
+
+		var hub = LpBitcoinHubEntity.FindHubByOwnerSteamId( steamId );
+		if ( hub.IsValid() )
+			BindHub( hub );
+	}
 
 	// Proof seams (DRIVE-AWAY-1 A): OS-synthesised clicks do not reach panels, so a tool call drives the
 	// same local paths a click would. Local state only: no rail, no network, no ConCmd, nothing sent.
@@ -299,6 +338,8 @@
 
 	protected override void OnUpdate()
 	{
+		ResolveHub();
+
 		// Esc closes the innermost layer first (spec section 11): rack detail, then the panel.
 		// Pattern: lptags/tags/code/ui/LpTagsMenu.razor:311-319.
 		if ( Input.EscapePressed )
