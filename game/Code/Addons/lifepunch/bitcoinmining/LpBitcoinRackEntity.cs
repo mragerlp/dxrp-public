@@ -313,11 +313,18 @@ public sealed class LpBitcoinRackEntity : BaseEntity, Component.IPressable, IAre
 	private void SetMiningHost( bool on )
 	{
 		var hub = GetLinkedHub();
-		if ( hub is null || !hub.IsPowered || !hub.CanOperateTerminal( Rpc.CallerId ) )
+		if ( hub is null || !hub.IsPowered )
 		{
 			IsMining = false;
 			ApplyRackMiningVisual( false );
 			RefreshLinkedTerminalScreens();
+			return;
+		}
+
+		// BH-S0: a caller the hub refuses changes nothing (it used to stop the rack, so any client could stop anyone's rack).
+		if ( !hub.CanOperateTerminal( Rpc.CallerId ) )
+		{
+			Log.Warning( $"[lpbitcoin] BH-S0 mining call refused caller={Rpc.CallerId} rack={GameObject.Id}" );
 			return;
 		}
 

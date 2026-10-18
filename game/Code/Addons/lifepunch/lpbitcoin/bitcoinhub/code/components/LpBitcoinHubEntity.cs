@@ -830,11 +830,16 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 	public void RequestPushTerminalCommandAlert( string command, string result )
 		=> PushTerminalCommandAlertHost( command, result );
 
-	public void ReportHackAttempt( string attackerLabel ) => ReportHackAttemptHostRpc( attackerLabel );
-
-	[Rpc.Host]
-	private void ReportHackAttemptHostRpc( string attackerLabel )
+	// BH-S0: host-only. It was an ungated [Rpc.Host] relay, so any client could push intrusion alerts onto any hub;
+	// the hacker job reports from the host.
+	public void ReportHackAttempt( string attackerLabel )
 	{
+		if ( !Networking.IsHost )
+		{
+			Log.Warning( "[lpbitcoin] BH-S0 hack report refused: not host" );
+			return;
+		}
+
 		var label = LpBitcoinHubAlertCodec.Sanitize( attackerLabel );
 		if ( string.IsNullOrWhiteSpace( label ) )
 			label = "unknown operator";
@@ -1165,6 +1170,13 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 		var callerId = Rpc.CallerId;
 		if ( !CanManageHub( callerId ) )
 			return;
+
+		// BH-S0: NaN passed both checks below; reject a non-finite amount first, as the send rail does.
+		if ( !LpBitcoinHubSendRules.IsFiniteBtc( amount ) )
+		{
+			Log.Warning( $"[lpbitcoin] BH-S0 cash-out refused: non-finite amount caller={callerId}" );
+			return;
+		}
 
 		if ( amount <= 0f || amount > HubWalletBtc )
 			return;
