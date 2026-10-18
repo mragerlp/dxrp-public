@@ -58,7 +58,7 @@
 .store-lp-sign {
 	font-size: 12px;
 	font-weight: 700;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .store-money-amount {
@@ -80,7 +80,7 @@
 
 .store-balance-note > .material-icons {
 	font-size: 17px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .store-balance-note-copy,
@@ -123,14 +123,14 @@
 }
 
 .store-category.is-active {
-	border-color: $lp-blue;
+	border-color: $hub-core;
 	background-color: $accent-soft;
 	color: $text-main;
 }
 
 .store-category > .material-icons {
 	font-size: 16px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .store-workspace {
@@ -185,7 +185,7 @@
 	flex-shrink: 0;
 	border-radius: $radius;
 	background-color: $card-header;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .store-item-icon > .material-icons {
@@ -230,7 +230,7 @@
 }
 
 .store-item-status.is-available {
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .store-detail {
@@ -255,7 +255,7 @@
 	height: 40px;
 	border-radius: $radius;
 	background-color: $accent-soft;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .store-detail-icon > .material-icons {
@@ -266,7 +266,7 @@
 	font-size: 8px;
 	font-weight: 700;
 	letter-spacing: 0.7px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .store-detail-title {

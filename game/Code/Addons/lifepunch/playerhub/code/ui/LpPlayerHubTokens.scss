@@ -19,9 +19,23 @@ $border: #343536;
 
 $lp-blue: #1689ff;
 $lp-blue-hover: #55aaff;
-$accent-soft: rgba(22, 137, 255, 0.09);
-$accent-soft-strong: rgba(22, 137, 255, 0.14);
-$accent-focus: rgba(22, 137, 255, 0.28);
+// BH-BRAND-1 (2026-10-18): product accents from the brand folder colour table
+// (cavelux brand-intake lifepunch-branding BRAND-SPEC.md): .hub #0000FF, .btc #FF7B00,
+// .banker #228B22. Ruling BH-Q2: the core carries chrome, glow, borders and headers;
+// the -text tint (same hue, lighter, >= 4.5:1 on $bg and $surface) carries small text.
+// $lp-blue stays for ULX parity; the three hubs no longer read it.
+$hub-core: #0000ff;
+$hub-text: #8080ff;
+$hub-hover: #3333ff;
+$btc-core: #ff7b00;
+$btc-text: #ff8f26;
+$banker-core: #228b22;
+$banker-text: #4ea24e;
+
+// Shared primitive alphas follow the Player Hub (.hub), the only shell that uses them.
+$accent-soft: rgba(0, 0, 255, 0.09);
+$accent-soft-strong: rgba(0, 0, 255, 0.14);
+$accent-focus: rgba(0, 0, 255, 0.28);
 
 $text-main: #e4e6e8;
 $text-dim: #8d8f90;

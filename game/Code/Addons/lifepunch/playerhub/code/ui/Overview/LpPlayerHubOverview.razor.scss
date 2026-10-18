@@ -76,7 +76,7 @@
 
 .overview-progress-fill {
 	height: 100%;
-	background-color: $lp-blue;
+	background-color: $hub-core;
 	border-radius: $radius;
 }
 
@@ -99,7 +99,7 @@
 
 .overview-next-unlock > .material-icons {
 	font-size: 18px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .overview-next-unlock-copy,
@@ -147,7 +147,7 @@
 
 .overview-summary-icon.lp {
 	background-color: $accent-soft;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .overview-money {
@@ -159,7 +159,7 @@
 .overview-lp-sign {
 	font-size: 13px;
 	font-weight: 700;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .overview-quick-card {
@@ -193,13 +193,13 @@
 }
 
 .overview-action:hover {
-	border-color: $lp-blue;
+	border-color: $hub-core;
 	background-color: $accent-soft;
 }
 
 .overview-action > .material-icons {
 	font-size: 15px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .overview-detail-grid {
@@ -231,7 +231,7 @@
 .overview-event-icon,
 .overview-earn-icon {
 	font-size: 17px;
-	color: $lp-blue;
+	color: $hub-text;
 	margin-right: 7px;
 	flex-shrink: 0;
 }
@@ -269,5 +269,5 @@
 	font-size: 8px;
 	font-weight: 700;
 	text-align: right;
-	color: $lp-blue;
+	color: $hub-text;
 }

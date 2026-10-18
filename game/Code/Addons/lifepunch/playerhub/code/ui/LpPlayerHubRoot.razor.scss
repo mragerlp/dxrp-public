@@ -91,8 +91,8 @@
 	}
 
 	.wordmark-accent {
-		color: $lp-blue;
-		text-shadow: 0 0 12px rgba($lp-blue, 0.58);
+		color: $hub-core;
+		text-shadow: 0 0 12px rgba($hub-core, 0.58);
 	}
 
 	.title-sub {
@@ -124,7 +124,7 @@
 
 	.header-chip .lp-mark {
 		font-weight: 700;
-		color: $lp-blue;
+		color: $hub-text;
 	}
 
 	.hub-preview-chip {
@@ -209,7 +209,7 @@
 	.tab-sel {
 		color: $text-main;
 		font-weight: 700;
-		border-bottom-color: $lp-blue;
+		border-bottom-color: $hub-core;
 	}
 
 	// ── workspace ─────────────────────────────────────────────────────────────
@@ -256,7 +256,7 @@
 	}
 
 	.lp-source-footer .lp-mark {
-		color: $lp-blue;
+		color: $hub-text;
 	}
 }
 

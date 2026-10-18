@@ -98,10 +98,10 @@ $pin-key-w: 72px;
 		color: $text-main;
 	}
 
-	// R-BTCUI-8 - lifepunch.btc with lp-blue chrome; btc orange only on the sign.
+	// BH-BRAND-1 - lifepunch.btc in the .btc brand core (ruling BH-Q1 supersedes R-BTCUI-8).
 	.wordmark-accent {
-		color: $lp-blue;
-		text-shadow: 0 0 12px rgba($lp-blue, 0.58);
+		color: $btc-core;
+		text-shadow: 0 0 12px rgba($btc-core, 0.58);
 	}
 
 	.title-sub {
@@ -197,7 +197,7 @@ $pin-key-w: 72px;
 	.tab-sel {
 		color: $text-main;
 		font-weight: 700;
-		border-bottom-color: $lp-blue;
+		border-bottom-color: $btc-core;
 	}
 
 	// BTC-UI-3 (H12): unread alert count on the Logs tab.
@@ -209,8 +209,8 @@ $pin-key-w: 72px;
 		justify-content: center;
 		align-items: center;
 		border-radius: 9px;
-		background-color: $lp-blue;
-		color: $text-main;
+		background-color: $btc-core;
+		color: $canvas; // BH-BRAND-1: dark count on the orange core (light text read 2.08:1)
 		font-size: 11px;
 		font-weight: 700;
 	}
@@ -386,9 +386,9 @@ $pin-key-w: 72px;
 	.pin-dot-on {
 		width: $pin-dot-size;
 		height: $pin-dot-size;
-		border: 1px solid $lp-blue;
+		border: 1px solid $btc-core;
 		border-radius: 50%;
-		background-color: $lp-blue;
+		background-color: $btc-core;
 	}
 
 	.pin-error {
@@ -455,6 +455,6 @@ $pin-key-w: 72px;
 	}
 
 	.lp-source-footer .lp-mark {
-		color: $lp-blue;
+		color: $btc-text;
 	}
 }
