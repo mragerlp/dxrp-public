@@ -83,7 +83,7 @@
 
 .skills-mastery.is-active > .material-icons,
 .skills-mastery.is-active .skills-mastery-state {
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-summary-note {
@@ -97,7 +97,7 @@
 
 .skills-summary-note > .material-icons {
 	font-size: 16px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-workspace {
@@ -144,7 +144,7 @@
 }
 
 .skills-track.is-active {
-	border-color: $lp-blue;
+	border-color: $hub-core;
 	background-color: $accent-soft;
 	color: $text-main;
 }
@@ -157,7 +157,7 @@
 	height: 28px;
 	flex-shrink: 0;
 	font-size: 17px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-track-copy {
@@ -210,7 +210,7 @@
 	font-size: 8px;
 	font-weight: 700;
 	letter-spacing: 0.7px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-skill-list {
@@ -241,7 +241,7 @@
 }
 
 .skills-skill.is-selected .skills-skill-icon {
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-skill-icon {
@@ -302,9 +302,9 @@
 }
 
 .skills-tier.is-next {
-	border-color: $lp-blue;
+	border-color: $hub-core;
 	background-color: $accent-soft;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-skill-state {
@@ -317,7 +317,7 @@
 }
 
 .skills-skill-state.is-available {
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-skill-state.is-unlocked,
@@ -358,7 +358,7 @@
 
 .skills-keystone.is-active > .material-icons,
 .skills-keystone.is-active .skills-keystone-progress {
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-detail {
@@ -383,7 +383,7 @@
 	height: 36px;
 	border-radius: $radius;
 	background-color: $accent-soft;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-detail-state {
@@ -398,9 +398,9 @@
 }
 
 .skills-detail-state.is-available {
-	border-color: $lp-blue;
+	border-color: $hub-core;
 	background-color: $accent-soft;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-detail-state.is-unlocked,
@@ -422,7 +422,7 @@
 	font-size: 9px;
 	font-weight: 700;
 	letter-spacing: 0.7px;
-	color: $lp-blue;
+	color: $hub-text;
 }
 
 .skills-detail-block {

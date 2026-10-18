@@ -78,12 +78,12 @@ Not carried, by design: H5 (stale "Upgrades" callout), H20 TH/s, H19 positional 
 ## Rulings this skeleton waits on
 
 R-BTCUI-1/2/3/4 (formats; G2), R-BTCUI-5 (power writer), R-BTCUI-6 (keypad style, clr, unlock
-lifetime; the skeleton backspaces one digit as recommended, recorded open), R-BTCUI-8 (brand:
-lifepunch.btc + lp-blue chrome used as recommended), R-BTCUI-9 (seam; G3), R-BTCUI-10 (shell
+lifetime; the skeleton backspaces one digit as recommended, recorded open), R-BTCUI-8 (brand;
+superseded 2026-10-18 by ruling BH-Q1: .btc brand core #FF7B00, see BH-BRAND-1), R-BTCUI-9 (seam; G3), R-BTCUI-10 (shell
 partial and token gaps: the root sheet copies the shell's literal sizes, and declares
 `$pin-dot-size` / `$pin-key-w` once each), R-BTCUI-11 (deposit / mining controls shown inert),
 R-BTCUI-14 (preview label), R-BTCUI-15 (tab names). Shell rulings R-1..R-13 of
-docs/ui/SHELL_CONTRACT.md still stand, incl. $lp-blue.
+docs/ui/SHELL_CONTRACT.md still stand, except the hub accent: $btc-core replaces $lp-blue here.
 
 ## How the driving seat proves it
 

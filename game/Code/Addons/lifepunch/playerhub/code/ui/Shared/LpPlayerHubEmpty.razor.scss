@@ -45,9 +45,9 @@
     display: flex;
     align-items: center;
     justify-content: center;
-    border: 1px solid $lp-blue;
+    border: 1px solid $hub-core;
     border-radius: $radius;
-    background-color: $lp-blue;
+    background-color: $hub-core;
     color: $text-main;
     font-family: Inter, Arial, sans-serif;
     font-size: 13px;
@@ -56,7 +56,7 @@
 }
 
 .lp-playerhub-empty > .hub-state-action:hover {
-    background-color: $lp-blue-hover;
+    background-color: $hub-hover;
 }
 
 .lp-playerhub-empty > .hub-state-action:focus,

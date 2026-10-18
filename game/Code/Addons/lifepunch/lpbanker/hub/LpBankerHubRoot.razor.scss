@@ -90,10 +90,10 @@
 		color: $text-main;
 	}
 
-	// R-BTCUI-8 - lifepunch.btc with lp-blue chrome; btc orange only on the sign.
+	// BH-BRAND-1 - lifepunch.banker in the .banker brand core (ruling BH-Q1/BH-Q2).
 	.wordmark-accent {
-		color: $lp-blue;
-		text-shadow: 0 0 12px rgba($lp-blue, 0.58);
+		color: $banker-core;
+		text-shadow: 0 0 12px rgba($banker-core, 0.58);
 	}
 
 	.title-sub {
@@ -189,7 +189,7 @@
 	.tab-sel {
 		color: $text-main;
 		font-weight: 700;
-		border-bottom-color: $lp-blue;
+		border-bottom-color: $banker-core;
 	}
 
 	.hub-workspace {
@@ -365,6 +365,6 @@
 	}
 
 	.lp-source-footer .lp-mark {
-		color: $lp-blue;
+		color: $banker-text;
 	}
 }
