@@ -63,6 +63,52 @@ public static class LifePunchMenuInputBlock
 
 	public static bool IsAnyMenuOpen => _openDepth > 0;
 
+	private static int _escapeClaims;
+	private static bool _escapePending;
+
+	/// <summary>True while at least one open panel closes itself on Esc.</summary>
+	public static bool IsEscapeClaimed => _escapeClaims > 0;
+
+	/// <summary>
+	/// A panel that closes on Esc calls this from <c>OnEnabled</c>, paired with
+	/// <see cref="ReleaseEscape"/> from <c>OnDisabled</c>. While a claim stands,
+	/// <see cref="LifePunchEscapeRouter"/> takes the Esc press at the start of the scene
+	/// update, before DXRP's PauseMenu reads it, and holds it for <see cref="TakeEscape"/>.
+	/// Panels that do not claim keep the engine default (Esc opens the pause menu).
+	/// </summary>
+	public static void ClaimEscape() => _escapeClaims++;
+
+	public static void ReleaseEscape()
+	{
+		if ( _escapeClaims > 0 )
+			_escapeClaims--;
+
+		if ( _escapeClaims == 0 )
+			_escapePending = false;
+	}
+
+	/// <summary>True once per routed Esc press: the first claiming panel to ask consumes it.</summary>
+	public static bool TakeEscape()
+	{
+		if ( !_escapePending )
+			return false;
+
+		_escapePending = false;
+		return true;
+	}
+
+	internal static void RouteEscape()
+	{
+		if ( _escapeClaims <= 0 || !Input.EscapePressed )
+			return;
+
+		Input.EscapePressed = false;
+		_escapePending = true;
+		Log.Info( "[lpcore] ESC-CONFLICT-1 esc routed to a LifePunch panel claims=" + _escapeClaims );
+	}
+
+	internal static void DropUntakenEscape() => _escapePending = false;
+
 	public static void NotifyMenuOpened()
 	{
 		_openDepth++;
@@ -179,5 +225,19 @@ internal sealed class LifePunchMenuInputGuard : Component
 		var go = scene.CreateObject();
 		go.Name = GuardObjectName;
 		go.AddComponent<LifePunchMenuInputGuard>();
+	}
+}
+
+/// <summary>
+/// Hands Esc to a claiming LifePunch panel before any component update runs, so DXRP's
+/// PauseMenu (which reads Input.EscapePressed in its own OnUpdate) never sees that press.
+/// A press no panel took is dropped at the end of the frame.
+/// </summary>
+public sealed class LifePunchEscapeRouter : GameObjectSystem<LifePunchEscapeRouter>
+{
+	public LifePunchEscapeRouter( Scene scene ) : base( scene )
+	{
+		Listen( Stage.StartUpdate, -1, LifePunchMenuInputBlock.RouteEscape, "LifePunch Esc Router" );
+		Listen( Stage.FinishUpdate, 1000, LifePunchMenuInputBlock.DropUntakenEscape, "LifePunch Esc Drop" );
 	}
 }
