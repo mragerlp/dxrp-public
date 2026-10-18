@@ -347,16 +347,17 @@
 		ResolveHub();
 
 		// Esc closes the innermost layer first (spec section 11): rack detail, then the panel.
-		// Pattern: lptags/tags/code/ui/LpTagsMenu.razor:311-319.
-		if ( Input.EscapePressed )
+		// Esc is routed to this panel ahead of the pause menu (LifePunchEscapeRouter).
+		if ( LifePunchMenuInputBlock.TakeEscape() )
 		{
-			Input.EscapePressed = false;
 			if ( !_pinView && !string.IsNullOrEmpty( _selectedRackToken ) )
 			{
+				Log.Info( "[btcui2] ESC-CONFLICT-1 esc closed rack detail" );
 				SelectRack( string.Empty );
 				return;
 			}
 
+			Log.Info( "[btcui2] ESC-CONFLICT-1 hub closed by Esc" );
 			Close();
 			return;
 		}
@@ -367,10 +368,12 @@
 	protected override void OnEnabled()
 	{
 		LifePunchMenuInputBlock.NotifyMenuOpened();
+		LifePunchMenuInputBlock.ClaimEscape();
 	}
 
 	protected override void OnDisabled()
 	{
+		LifePunchMenuInputBlock.ReleaseEscape();
 		LifePunchMenuInputBlock.NotifyMenuClosed();
 	}
 
