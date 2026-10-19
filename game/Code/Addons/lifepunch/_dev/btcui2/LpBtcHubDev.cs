@@ -9,6 +9,7 @@
 
 using System.Linq;
 using Sandbox;
+using LifePunch.DXRP.Addons.Bitcoin;
 using LifePunch.DXRP.Addons.Bitcoin.HubUi;
 
 namespace LifePunch.DXRP.Addons.Dev;
@@ -19,7 +20,8 @@ public static class LpBtcHubDev
 	/// <summary>Positive code-string ID for the Play-scene mount. Exists nowhere else in the tree.</summary>
 	public const string MountMark = "LP_BTCUI3_MOUNT_20261017";
 
-	private const string PanelObjectName = "LpBtcHubSkeletonDev";
+	// U2: the host's name, so LpBtcHubUiHost.Close takes this dev object with the panel.
+	private const string PanelObjectName = LpBtcHubUiHost.PanelObjectName;
 
 	private static LpBtcHubSkeleton Current => Game.ActiveScene?.GetAllComponents<LpBtcHubSkeleton>().FirstOrDefault();
 
@@ -86,18 +88,8 @@ public static class LpBtcHubDev
 
 	// Reason: close every mounted dev copy. Who: the editor only.
 	[ConCmd( "lp_btcui2_close" )]
-	public static void CloseAll()
-	{
-		var open = Game.ActiveScene?.GetAllComponents<LpBtcHubSkeleton>().ToList();
-		if ( open is null )
-			return;
-
-		foreach ( var hub in open )
-		{
-			if ( hub.IsValid() )
-				hub.GameObject.Destroy();
-		}
-	}
+	// U2: through the host, which never destroys the shared HUD object a pressed hub mounts on.
+	public static void CloseAll() => LpBtcHubUiHost.CloseOpen();
 }
 
 #endif

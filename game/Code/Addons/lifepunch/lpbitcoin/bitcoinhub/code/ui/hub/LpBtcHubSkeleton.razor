@@ -7,7 +7,9 @@
    playerhub/code/ui/LpPlayerHubRoot.razor (the ULX grammar, R-2832-A) through
    _dev/shellkit/ShellKitSample.razor. Seven tabs read ILpBitcoinHubState through ILpBitcoinHubFormat.
    NO rails, NO money paths: every action control is inert and says which rail the build slice binds.
-   Fixture data only. UNVERIFIED in the editor until the driving seat proves it (README.md).
+   BTC-HUB-OVERHAUL-1 U2: moved from _dev/btcui2; the hub press mounts it (LpBtcHubUiHost) and binds
+   the pressed hub; the PIN keypad asks the host (unlock HE:995, set / re-enroll HE:928) - the only
+   rails bound here. Every other action stays inert until U3.
    ----------------------------------------------------------------------------- *@
 @namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
 @using System
@@ -149,7 +151,7 @@
 	private const string SkeletonTooltip =
 		"Skeleton: every figure reads the live hub, read-only (fixture only when UseFixture is set). Every action is inert until the rails slice gets its own GO.";
 	private const string PinNote =
-		"Skeleton: any 4 digits continue and nothing is sent. The host check (unlock, set, change, lockout) binds in the build slice.";
+		"The hub checks every PIN; 5 wrong tries lock it briefly. Only the hub owner can set the PIN.";
 
 	// Instance, not static readonly: hotload keeps a static readonly field's old value
 	// (LpPlayerHubRoot.razor:97-99). The skeleton is rebuilt on every mount.
@@ -192,6 +194,14 @@
 	private bool _pinView = true;
 	private string _pinEntry = string.Empty;
 	private string _pinError = string.Empty;
+	private bool _pinPending;
+	private string _pinSetFirst = string.Empty;
+
+	/// <summary>The hub this panel reads, or null before a bind (U2: LpBtcHubUiHost routes the PIN result by it).</summary>
+	public LpBitcoinHubEntity? BoundHub => _live?.Hub;
+
+	// A hub with no PIN, or a legacy hub whose PIN must be set again, opens on the set flow (HP:2457).
+	private bool PinSetupMode => !UseFixture && ( !State.PinSet || State.PinNeedsReEnroll );
 
 	private string PinChipText => State.PinSet ? "PIN SET" : "NO PIN";
 	private string PinChipClass => State.PinSet ? "header-chip header-chip-good" : "header-chip header-chip-warn";
@@ -206,8 +216,12 @@
 		? $"SKELETON {MidDot} FIXTURE DATA"
 		: ( State.HasHub ? $"SKELETON {MidDot} LIVE STATE" : $"SKELETON {MidDot} NO HUB" );
 
-	private string PinTitle => State.PinSet ? "Enter hub PIN" : "Set a hub PIN";
-	private string PinSubText => State.PinNeedsReEnroll ? "Your PIN must be set again." : "4 digits";
+	private string PinTitle => !PinSetupMode ? "Enter hub PIN"
+		: string.IsNullOrEmpty( _pinSetFirst ) ? "Set a hub PIN" : "Confirm the PIN";
+	private string PinSubText => _pinPending ? "Checking with the hub..."
+		: State.PinNeedsReEnroll ? "Your PIN must be set again."
+		: PinSetupMode && !string.IsNullOrEmpty( _pinSetFirst ) ? "Enter the same 4 digits again"
+		: "4 digits";
 
 	private string PageTitle => _pinView ? "Hub PIN" : LpBtcHubTabInfo.Label( _activeTab );
 	private string PageBlurb => _pinView ? "Unlock to open the hub" : LpBtcHubTabInfo.Blurb( _activeTab );
@@ -226,6 +240,13 @@
 			return;
 
 		_live = new LpBitcoinHubStateLive( hub );
+		// A new hub starts at its own PIN gate (U2: the press binds the pressed hub, not the viewer's own).
+		_pinView = true;
+		_pinEntry = string.Empty;
+		_pinError = string.Empty;
+		_pinPending = false;
+		_pinSetFirst = string.Empty;
+		_selectedRackToken = string.Empty;
 		Log.Info( "[btcui2] " + LpBitcoinHubStateLive.LiveMark + " hub=" + hub.GameObject.Id + " racks=" + _live.RackCount + " source=live" );
 		var top = LpBitcoinHubStateLive.TrackTopTier( out var fromTrack );
 		Log.Info( "[btcui2] " + LpBitcoinHubStateLive.PolishMark + " maxTier=" + top + " tierSource=" + ( fromTrack ? "track" : "fallback" ) + " unread=" + _live.UnreadAlerts + " panels=noshrink" );
@@ -250,14 +271,18 @@
 
 	// Proof seams (DRIVE-AWAY-1 A): OS-synthesised clicks do not reach panels, so a tool call drives the
 	// same local paths a click would. Local state only: no rail, no network, no ConCmd, nothing sent.
-	/// <summary>Proof: four digits and ok through the keypad path (PressKey), as a player would.</summary>
+	/// <summary>
+	/// Proof: open the tabs past the PIN gate, visual only. U2: never through the keypad, which now asks
+	/// the host and would count a failed attempt against the hub. The host gates nothing on this view.
+	/// </summary>
 	public void ProofUnlock()
 	{
-		PressKey( "1" );
-		PressKey( "2" );
-		PressKey( "3" );
-		PressKey( "4" );
-		PressKey( "ok" );
+		_pinEntry = string.Empty;
+		_pinError = string.Empty;
+		_pinSetFirst = string.Empty;
+		_pinPending = false;
+		_pinView = false;
+		StateHasChanged();
 	}
 
 	/// <summary>Proof: select a tab by its index in Tabs (0 = Overview .. 6 = Settings).</summary>
@@ -287,6 +312,8 @@
 
 	private void SelectRack( string token )
 	{
+		// U2 sensor for ESC-PROOF-F-RACK-CARD-NO-OPEN: the parent half of a rack-card click.
+		Log.Info( "[btcui2] U2 SelectRack token=" + ( string.IsNullOrEmpty( token ) ? "(none)" : token ) + " pin=" + _pinView + " tab=" + _activeTab );
 		_selectedRackToken = token ?? string.Empty;
 		StateHasChanged();
 	}
@@ -302,15 +329,51 @@
 		}
 		else if ( key == "ok" )
 		{
-			if ( _pinEntry.Length < PinLength )
+			var hub = BoundHub;
+			if ( _pinPending )
+			{
+				// One request in flight at a time; the host answers through OnPinGateResult.
+			}
+			else if ( _pinEntry.Length < PinLength )
 			{
 				_pinError = "Enter all " + PinLength + " digits.";
 			}
-			else
+			else if ( !hub.IsValid() || UseFixture )
 			{
+				// No hub bound (dev mount with no hub, fixture): local only, nothing sent.
 				_pinEntry = string.Empty;
 				_pinError = string.Empty;
 				_pinView = false;
+			}
+			else if ( PinSetupMode )
+			{
+				// Set (or re-enroll) the PIN: enter, confirm, then the host checks owner and match
+				// (SetAccessPinHost, HE:928-960; same flow as LpHashdPanel PinSetupMode, HP:2457,2572).
+				if ( string.IsNullOrEmpty( _pinSetFirst ) )
+				{
+					_pinSetFirst = _pinEntry;
+					_pinEntry = string.Empty;
+					_pinError = string.Empty;
+				}
+				else
+				{
+					var first = _pinSetFirst;
+					var confirm = _pinEntry;
+					_pinSetFirst = string.Empty;
+					_pinEntry = string.Empty;
+					_pinError = string.Empty;
+					_pinPending = true;
+					hub.RequestSetAccessPin( first, confirm );
+				}
+			}
+			else
+			{
+				// U2: the host checks the PIN, ownership and the lockout (UnlockAccessPinHost, HE:995-1030).
+				var pin = _pinEntry;
+				_pinEntry = string.Empty;
+				_pinError = string.Empty;
+				_pinPending = true;
+				hub.RequestUnlockAccessPin( pin );
 			}
 		}
 		else if ( _pinEntry.Length < PinLength )
@@ -326,11 +389,27 @@
 		StateHasChanged();
 	}
 
-	private void Close()
+	/// <summary>The host's answer to a PIN unlock (LpBtcHubUiHost.OnPinResult). Pattern: LpHashdPanel.OnPinGateResult.</summary>
+	public void OnPinGateResult( bool ok, string message )
 	{
-		if ( GameObject.IsValid() )
-			GameObject.Destroy();
+		_pinPending = false;
+		_pinSetFirst = string.Empty;
+		Log.Info( "[btcui2] U2 pin result ok=" + ok );
+		if ( ok )
+		{
+			_pinError = string.Empty;
+			_pinView = false;
+		}
+		else
+		{
+			_pinError = string.IsNullOrEmpty( message ) ? "Incorrect PIN." : message;
+		}
+
+		StateHasChanged();
 	}
+
+	// U2: through the host - a panel mounted on the shared HUD object must never take the HUD with it.
+	private void Close() => LpBtcHubUiHost.Close( this );
 
 	protected override void OnStart()
 	{
@@ -378,5 +457,5 @@
 	}
 
 	protected override int BuildHash() =>
-		HashCode.Combine( (int)_activeTab, _selectedRackToken, _pinView, _pinEntry, _pinError, State.StateHash );
+		HashCode.Combine( (int)_activeTab, _selectedRackToken, _pinView, _pinEntry, _pinError, _pinPending, _pinSetFirst.Length, State.StateHash );
 }

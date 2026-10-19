@@ -203,7 +203,13 @@
 	private string DeltaText => Detail is null ? string.Empty
 		: $"+{Format.Clock( Detail.NextClockGhz - Detail.ClockGhz )} {MidDot} ~{Format.Payback( Detail.PaybackMinutes )} payback";
 
-	private void Select( string token ) => OnSelectRack?.Invoke( token );
+	// U2 sensor for ESC-PROOF-F-RACK-CARD-NO-OPEN: the card half of a click (bound=False means the
+	// parent's OnSelectRack never reached this panel).
+	private void Select( string token )
+	{
+		Log.Info( "[btcui2] U2 rack card click token=" + token + " bound=" + ( OnSelectRack is not null ) );
+		OnSelectRack?.Invoke( token );
+	}
 
 	private void Back() => OnSelectRack?.Invoke( string.Empty );
 
