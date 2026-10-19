@@ -312,12 +312,12 @@ public sealed class LpBitcoinRackEntity : BaseEntity, Component.IPressable, IAre
 	[Rpc.Host]
 	private void SetMiningHost( bool on )
 	{
+		// BH-S0 R2 (Codex F1): authorize before any change. A rack with no hub has no one to authorize the call,
+		// so it changes nothing; a hub that disappears stops its racks itself (LpBitcoinHubEntity.OnDestroy).
 		var hub = GetLinkedHub();
-		if ( hub is null || !hub.IsPowered )
+		if ( hub is null )
 		{
-			IsMining = false;
-			ApplyRackMiningVisual( false );
-			RefreshLinkedTerminalScreens();
+			Log.Warning( $"[lpbitcoin] BH-S0R2 mining call refused (no hub) caller={Rpc.CallerId} rack={GameObject.Id}" );
 			return;
 		}
 
@@ -325,6 +325,14 @@ public sealed class LpBitcoinRackEntity : BaseEntity, Component.IPressable, IAre
 		if ( !hub.CanOperateTerminal( Rpc.CallerId ) )
 		{
 			Log.Warning( $"[lpbitcoin] BH-S0 mining call refused caller={Rpc.CallerId} rack={GameObject.Id}" );
+			return;
+		}
+
+		if ( !hub.IsPowered )
+		{
+			IsMining = false;
+			ApplyRackMiningVisual( false );
+			RefreshLinkedTerminalScreens();
 			return;
 		}
 
