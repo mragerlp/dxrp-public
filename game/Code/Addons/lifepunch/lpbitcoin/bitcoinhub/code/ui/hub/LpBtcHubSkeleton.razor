@@ -6,7 +6,7 @@
    docs/superpowers/specs/2026-10-17-btc-ui-design.md section 6.1. Markup ports
    playerhub/code/ui/LpPlayerHubRoot.razor (the ULX grammar, R-2832-A) through
    _dev/shellkit/ShellKitSample.razor. Seven tabs read ILpBitcoinHubState through ILpBitcoinHubFormat.
-   NO rails, NO money paths: every action control is inert and says which rail the build slice binds.
+   PIN setup/unlock active; economy controls inert. No money paths are bound here.
    BTC-HUB-OVERHAUL-1 U2: moved from _dev/btcui2; the hub press mounts it (LpBtcHubUiHost) and binds
    the pressed hub; the PIN keypad asks the host (unlock HE:995, set / re-enroll HE:928) - the only
    rails bound here. Every other action stays inert until U3.
@@ -490,7 +490,7 @@
 		if ( !_announced )
 		{
 			_announced = true;
-			Log.Info( "[btcui2] " + SkeletonMark + " shell=house tabs=" + Tabs.Length + " rails=none" );
+			Log.Info( "[btcui2] " + SkeletonMark + " shell=house tabs=" + Tabs.Length + " rails=pin-only" );
 		}
 	}
 

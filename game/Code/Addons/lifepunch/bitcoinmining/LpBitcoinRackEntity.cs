@@ -313,7 +313,7 @@ public sealed class LpBitcoinRackEntity : BaseEntity, Component.IPressable, IAre
 	private void SetMiningHost( bool on )
 	{
 		// BH-S0 R2 (Codex F1): authorize before any change. A rack with no hub has no one to authorize the call,
-		// so it changes nothing; a hub that disappears stops its racks itself (LpBitcoinHubEntity.OnDestroy).
+		// so it changes nothing; a hub that disappears stops its racks itself (LpBitcoinHubEntity.OnDestroy / OnDestroyed).
 		var hub = GetLinkedHub();
 		if ( hub is null )
 		{
