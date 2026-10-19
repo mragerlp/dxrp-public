@@ -35,7 +35,7 @@
 			<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.WalletBtc ) )" />
 		</div>
 		<div class="btchub-row">
-			<span class="btchub-label">Still on racks</span>
+			<span class="btchub-label" tooltip="BTC still on the racks. It is not in the hub wallet until it is deposited.">Pending on racks</span>
 			<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.PendingBtc ) )" />
 		</div>
 	</div>

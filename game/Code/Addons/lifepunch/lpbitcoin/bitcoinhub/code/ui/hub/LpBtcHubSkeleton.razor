@@ -35,7 +35,8 @@
 				<button class="header-chip header-chip-btn" tooltip="Hub wallet; opens the Wallet tab" onclick="@OpenWallet">
 					<LifePunchCurrencyToken Sign="@BtcSign" Amount="@WalletText" />
 				</button>
-				<div class="header-power" tooltip="@PowerTooltip">
+				<div class="header-power" tooltip="@PowerTooltip" onclick="@( () => Blocked( "power" ) )">
+					<i class="material-icons inert-lock">lock</i>
 					<span class="@PowerLabelClass">@PowerLabelText</span>
 					<div class="@PowerSwitchClass">
 						<div class="lp-switch-knob"></div>
@@ -67,8 +68,15 @@
 			<div class="hub-page-head">
 				<div class="hub-title">@PageTitle</div>
 				<div class="hub-blurb">@PageBlurb</div>
-				<div class="header-chip skeleton-chip" tooltip="@SkeletonTooltip">@SkeletonChipText</div>
+				<div class="@ProvenanceClass" tooltip="@ProvenanceTooltip">@ProvenanceText</div>
 			</div>
+			@if ( !string.IsNullOrEmpty( _blockedNote ) )
+			{
+				<div class="blocked-note">
+					<i class="material-icons">lock</i>
+					<span>@_blockedNote</span>
+				</div>
+			}
 
 			<div class="hub-tabhost">
 				@if ( _pinView )
@@ -104,19 +112,19 @@
 				}
 				else if ( _activeTab == LpBtcHubTab.Overview )
 				{
-					<LpBtcHubOverview Model="@State" Format="@Format" OnOpenRacks="@(() => SetTab( LpBtcHubTab.Racks ))" />
+					<LpBtcHubOverview Model="@State" Format="@Format" OnOpenRacks="@(() => SetTab( LpBtcHubTab.Racks ))" OnBlocked="@((string action) => Blocked( action ))" />
 				}
 				else if ( _activeTab == LpBtcHubTab.Racks )
 				{
-					<LpBtcHubRacks Model="@State" Format="@Format" SelectedToken="@_selectedRackToken" OnSelectRack="@((string token) => SelectRack( token ))" />
+					<LpBtcHubRacks Model="@State" Format="@Format" SelectedToken="@_selectedRackToken" OnSelectRack="@((string token) => SelectRack( token ))" OnBlocked="@((string action) => Blocked( action ))" />
 				}
 				else if ( _activeTab == LpBtcHubTab.Terminal )
 				{
-					<LpBtcHubTerminal Model="@State" Format="@Format" />
+					<LpBtcHubTerminal Model="@State" Format="@Format" OnBlocked="@((string action) => Blocked( action ))" />
 				}
 				else if ( _activeTab == LpBtcHubTab.Wallet )
 				{
-					<LpBtcHubWallet Model="@State" Format="@Format" />
+					<LpBtcHubWallet Model="@State" Format="@Format" OnBlocked="@((string action) => Blocked( action ))" />
 				}
 				else if ( _activeTab == LpBtcHubTab.Transfers )
 				{
@@ -128,7 +136,7 @@
 				}
 				else
 				{
-					<LpBtcHubSettings Model="@State" Format="@Format" />
+					<LpBtcHubSettings Model="@State" Format="@Format" OnBlocked="@((string action) => Blocked( action ))" />
 				}
 			</div>
 		</div>
@@ -146,10 +154,7 @@
 
 	// Display glyphs are built from their code points so this block stays ASCII.
 	private static readonly string BtcSign = ((char)0x20BF).ToString();
-	private static readonly string MidDot = ((char)0x00B7).ToString();
 
-	private const string SkeletonTooltip =
-		"Skeleton: every figure reads the live hub, read-only (fixture only when UseFixture is set). Every action is inert until the rails slice gets its own GO.";
 	private const string PinNote =
 		"The hub checks every PIN; 5 wrong tries lock it briefly. Only the hub owner can set the PIN.";
 
@@ -186,7 +191,17 @@
 	/// <summary>Show the literal fixture instead of the live hub (design review and proof only).</summary>
 	[Property] public bool UseFixture { get; set; }
 
-	private ILpBitcoinHubState State => UseFixture ? (ILpBitcoinHubState)_fixture : ( _live ?? _noHub );
+	// BH-SHOWCASE-1: set on this one instance by LpBtcHubShowcase.Attach (editor only); a pressed hub
+	// mounts a new instance, which never has it, so the live path never reads showcase figures.
+	private LpBtcHubShowcaseFixture? _showcase;
+
+	private bool Preview => _showcase is not null || UseFixture;
+
+	private ILpBitcoinHubState State => _showcase is not null ? _showcase
+		: UseFixture ? (ILpBitcoinHubState)_fixture : ( _live ?? _noHub );
+
+	// The plain reason for the last inert control pressed; cleared by any navigation.
+	private string _blockedNote = string.Empty;
 	private readonly ILpBitcoinHubFormat Format = LpBitcoinHubFormatUnruled.Instance;
 
 	private LpBtcHubTab _activeTab = LpBtcHubTab.Overview;
@@ -201,7 +216,7 @@
 	public LpBitcoinHubEntity? BoundHub => _live?.Hub;
 
 	// A hub with no PIN, or a legacy hub whose PIN must be set again, opens on the set flow (HP:2457).
-	private bool PinSetupMode => !UseFixture && ( !State.PinSet || State.PinNeedsReEnroll );
+	private bool PinSetupMode => !Preview && ( !State.PinSet || State.PinNeedsReEnroll );
 
 	private string PinChipText => State.PinSet ? "PIN SET" : "NO PIN";
 	private string PinChipClass => State.PinSet ? "header-chip header-chip-good" : "header-chip header-chip-warn";
@@ -209,12 +224,17 @@
 	private string WalletText => Format.Btc( State.WalletBtc );
 	private string PowerLabelText => State.IsPowered ? "ON" : "OFF";
 	private string PowerLabelClass => State.IsPowered ? "power-label power-label-on" : "power-label";
-	// Inert in the skeleton: the switch shows state and binds SetPowered (HE:321) only in the build slice (R-BTCUI-5).
+	// Inert: the switch shows state; pressing it shows where power is switched today (LpBtcHubCommandSpy.Reason).
 	private string PowerSwitchClass => State.IsPowered ? "lp-switch lp-switch-on" : "lp-switch";
-	private string PowerTooltip => "Hub power, the one writer in this UI (R-BTCUI-5). Inert in the skeleton.";
-	private string SkeletonChipText => UseFixture
-		? $"SKELETON {MidDot} FIXTURE DATA"
-		: ( State.HasHub ? $"SKELETON {MidDot} LIVE STATE" : $"SKELETON {MidDot} NO HUB" );
+	private string PowerTooltip => "Hub power. " + LpBtcHubCommandSpy.Reason( "power" );
+
+	// Provenance in player terms (BH-SHOWCASE-1): where the figures on screen come from.
+	/// <summary>LIVE, PREVIEW or UNAVAILABLE, as the chip shows it.</summary>
+	public string ProvenanceText => Preview ? "PREVIEW" : State.HasHub ? "LIVE" : "UNAVAILABLE";
+	private string ProvenanceClass => Preview ? "header-chip provenance-chip header-chip-warn"
+		: State.HasHub ? "header-chip provenance-chip header-chip-good" : "header-chip provenance-chip";
+	private string ProvenanceTooltip => Preview ? "Example figures for a walkthrough. Nothing here is your hub."
+		: State.HasHub ? "Figures read from this hub as it is now." : "No hub is linked to this view.";
 
 	private string PinTitle => !PinSetupMode ? "Enter hub PIN"
 		: string.IsNullOrEmpty( _pinSetFirst ) ? "Set a hub PIN" : "Confirm the PIN";
@@ -256,7 +276,7 @@
 	// Once a second until bound: the hub this viewer owns (same resolver as LpPlayerHubBtcSource, BS:33-34).
 	private void ResolveHub()
 	{
-		if ( UseFixture || ( _live is not null && _live.HasHub ) || _sinceResolve < 1f )
+		if ( Preview || ( _live is not null && _live.HasHub ) || _sinceResolve < 1f )
 			return;
 
 		_sinceResolve = 0f;
@@ -298,6 +318,53 @@
 	/// <summary>Proof: raise Esc so OnUpdate runs the real Esc branch (rack detail first, then close).</summary>
 	public void ProofEscape() => Input.EscapePressed = true;
 
+	/// <summary>
+	/// BH-SHOWCASE-1 (editor only, from LpBtcHubShowcase): read the showcase fixture on this instance and
+	/// open past the PIN gate. The PIN stays out of the showcase; nothing is sent to any hub.
+	/// </summary>
+	public void AttachShowcase( LpBtcHubShowcaseFixture fixture )
+	{
+		if ( !Application.IsEditor || fixture is null )
+			return;
+
+		_showcase = fixture;
+		_blockedNote = string.Empty;
+		ProofUnlock();
+	}
+
+	/// <summary>Proof: press an inert control by its action name, the same path a click takes.</summary>
+	public void ProofPressInert( string action ) => Blocked( action );
+
+	/// <summary>
+	/// Spy positive control: one PIN unlock pushed through the spy door, which must refuse it. Showcase
+	/// only: without one this does nothing, so a proof can never spend a PIN try on a real hub.
+	/// </summary>
+	public void ProofMutationProbe()
+	{
+		if ( _showcase is null )
+		{
+			Log.Warning( "[btcui2] BH-SHOWCASE-1 probe skipped: no showcase attached" );
+			return;
+		}
+
+		LpBtcHubCommandSpy.Send( _showcase is not null, "pin-unlock-probe", () => BoundHub?.RequestUnlockAccessPin( "0000" ) );
+	}
+
+	/// <summary>The hub id on screen (the showcase's fixed id, or the bound hub's), for the walkthrough log.</summary>
+	public Guid ViewHubId => State.HubId;
+
+	public string ActiveTabName => _pinView ? "PIN" : LpBtcHubTabInfo.Label( _activeTab );
+
+	public string SelectedRackToken => _selectedRackToken;
+
+	// An inert control was pressed: count it, send nothing, say why in player terms.
+	private void Blocked( string action )
+	{
+		LpBtcHubCommandSpy.Blocked( action );
+		_blockedNote = LpBtcHubCommandSpy.Reason( action );
+		StateHasChanged();
+	}
+
 	private void SetTab( LpBtcHubTab tab )
 	{
 		if ( _pinView || _activeTab == tab )
@@ -305,6 +372,7 @@
 
 		_activeTab = tab;
 		_selectedRackToken = string.Empty;
+		_blockedNote = string.Empty;
 		StateHasChanged();
 	}
 
@@ -315,6 +383,7 @@
 		// U2 sensor for ESC-PROOF-F-RACK-CARD-NO-OPEN: the parent half of a rack-card click.
 		Log.Info( "[btcui2] U2 SelectRack token=" + ( string.IsNullOrEmpty( token ) ? "(none)" : token ) + " pin=" + _pinView + " tab=" + _activeTab );
 		_selectedRackToken = token ?? string.Empty;
+		_blockedNote = string.Empty;
 		StateHasChanged();
 	}
 
@@ -338,7 +407,7 @@
 			{
 				_pinError = "Enter all " + PinLength + " digits.";
 			}
-			else if ( !hub.IsValid() || UseFixture )
+			else if ( !hub.IsValid() || Preview )
 			{
 				// No hub bound (dev mount with no hub, fixture): local only, nothing sent.
 				_pinEntry = string.Empty;
@@ -362,8 +431,11 @@
 					_pinSetFirst = string.Empty;
 					_pinEntry = string.Empty;
 					_pinError = string.Empty;
+					// BH-SHOWCASE-1: through the spy door (pass-through on this live path). Pending is set first:
+					// on a listen host the result can arrive inside the call and must win.
 					_pinPending = true;
-					hub.RequestSetAccessPin( first, confirm );
+					if ( !LpBtcHubCommandSpy.Send( _showcase is not null, "pin-set", () => hub.RequestSetAccessPin( first, confirm ) ) )
+						_pinPending = false;
 				}
 			}
 			else
@@ -373,7 +445,8 @@
 				_pinEntry = string.Empty;
 				_pinError = string.Empty;
 				_pinPending = true;
-				hub.RequestUnlockAccessPin( pin );
+				if ( !LpBtcHubCommandSpy.Send( _showcase is not null, "pin-unlock", () => hub.RequestUnlockAccessPin( pin ) ) )
+					_pinPending = false;
 			}
 		}
 		else if ( _pinEntry.Length < PinLength )
@@ -457,5 +530,5 @@
 	}
 
 	protected override int BuildHash() =>
-		HashCode.Combine( (int)_activeTab, _selectedRackToken, _pinView, _pinEntry, _pinError, _pinPending, _pinSetFirst.Length, State.StateHash );
+		HashCode.Combine( (int)_activeTab, _selectedRackToken, _pinView, _pinEntry, _pinError, _pinPending, HashCode.Combine( _pinSetFirst.Length, _blockedNote, _showcase is not null ), State.StateHash );
 }

@@ -27,7 +27,8 @@
 				<span class="@StepChipClass( Model.IsPowered )">@StepChipText( Model.IsPowered )</span>
 				<span>Power on hub</span>
 			</div>
-			<button class="btchub-action-inert" tooltip="Binds SetPowered (HE:321) in the build slice">
+			<button class="btchub-action-inert" tooltip="@( LpBtcHubCommandSpy.Reason( "power" ) )" onclick="@( () => OnBlocked?.Invoke( "power" ) )">
+				<i class="material-icons inert-lock">lock</i>
 				<span>@( Model.IsPowered ? "Power off" : "Power on" )</span>
 			</button>
 		</div>
@@ -36,7 +37,8 @@
 				<span class="@StepChipClass( Model.TerminalLinked )">@StepChipText( Model.TerminalLinked )</span>
 				<span>Link terminal</span>
 			</div>
-			<button class="btchub-action-inert" tooltip="@LinkTooltip">
+			<button class="btchub-action-inert" tooltip="@LinkTooltip" onclick="@( () => OnBlocked?.Invoke( LinkAction ) )">
+				<i class="material-icons inert-lock">lock</i>
 				<span>@LinkLabel</span>
 			</button>
 		</div>
@@ -72,7 +74,7 @@
 			</div>
 		</div>
 		<div class="btchub-row">
-			<span class="btchub-label">Pending on racks</span>
+			<span class="btchub-label" tooltip="@PendingTooltip">Pending on racks</span>
 			<div class="btchub-value">
 				<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.PendingBtc ) )" />
 				<span class="lp-money-divider">|</span>
@@ -88,6 +90,12 @@
 	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
 	public Action? OnOpenRacks { get; set; }
 
+	/// <summary>BH-SHOWCASE-1: an inert control was pressed; the shell counts it and shows the reason.</summary>
+	public Action<string>? OnBlocked { get; set; }
+
+	// One spelling for wallet versus pending on every tab.
+	private const string PendingTooltip = "BTC still on the racks. It is not in the hub wallet until it is deposited.";
+
 	private static readonly string BtcSign = ((char)0x20BF).ToString();
 
 	// Slot tokens the hub UI maps by (ID:143-155). Instance, not static readonly (hotload).
@@ -100,7 +108,8 @@
 	private string ChecklistNote => SetupReady ? "All three steps done" : "Complete all three steps to start mining";
 
 	private string LinkLabel => Model.TerminalLinked ? "Unlink" : Model.TerminalInRange ? "Link" : "No terminal in range";
-	private string LinkTooltip => "Binds RequestLinkNearbyTerminal / RequestUnlinkTerminal (HE:551-553) in the build slice";
+	private string LinkAction => Model.TerminalLinked ? "unlink" : "link";
+	private string LinkTooltip => LpBtcHubCommandSpy.Reason( LinkAction );
 
 	private static string StepChipText( bool done ) => done ? "DONE" : "REQUIRED";
 	private static string StepChipClass( bool done ) => done ? "btchub-chip-good" : "btchub-chip-warn";

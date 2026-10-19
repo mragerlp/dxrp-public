@@ -28,9 +28,10 @@
 			<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.WalletBtc ) )" />
 		</div>
 		<div class="btchub-row">
-			<span class="btchub-label">Still on racks</span>
+			<span class="btchub-label" tooltip="@PendingTooltip">Pending on racks</span>
 			<LifePunchCurrencyToken Sign="@BtcSign" Amount="@( Format.Btc( Model.PendingBtc ) )" />
 		</div>
+		<div class="btchub-hint">@PendingTooltip</div>
 		<div class="btchub-row">
 			<span class="btchub-label">Terminal linked</span>
 			<span class="btchub-value">@( Model.TerminalLinked ? "Yes" : "No - link on Overview" )</span>
@@ -70,13 +71,16 @@
 			</div>
 		}
 		<div class="btchub-actions">
-			<button class="btchub-action-inert" tooltip="Binds RequestCashOutHub (HE:440) in the build slice">
+			<button class="btchub-action-inert" tooltip="@( LpBtcHubCommandSpy.Reason( "cashout" ) )" onclick="@( () => OnBlocked?.Invoke( "cashout" ) )">
+				<i class="material-icons inert-lock">lock</i>
 				<span>Cash out</span>
 			</button>
-			<button class="btchub-action-inert" tooltip="Binds RequestCashOutAllHub (HE:442) in the build slice">
+			<button class="btchub-action-inert" tooltip="@( LpBtcHubCommandSpy.Reason( "cashoutall" ) )" onclick="@( () => OnBlocked?.Invoke( "cashoutall" ) )">
+				<i class="material-icons inert-lock">lock</i>
 				<span>Cash out all</span>
 			</button>
-			<button class="btchub-action-inert" tooltip="@DepositTooltip">
+			<button class="btchub-action-inert" tooltip="@( LpBtcHubCommandSpy.Reason( DepositAction ) )" onclick="@( () => OnBlocked?.Invoke( DepositAction ) )">
+				<i class="material-icons inert-lock">lock</i>
 				<span>Deposit all</span>
 			</button>
 		</div>
@@ -116,10 +120,14 @@
 		? $"${Format.Usd( Model.UsdPerBtc )} / {BtcSign} ({Format.Yield( Model.RateEventMultiplier )})"
 		: $"${Format.Usd( Model.UsdPerBtc )} / {BtcSign}";
 
-	// R-BTCUI-11: the enable rule mirrors the host (terminal linked, HE:1147) with a visible reason.
-	private string DepositTooltip => Model.TerminalLinked
-		? "Binds RequestDepositRacksToHub (HE:436) in the build slice, if R-BTCUI-11 adds it"
-		: "Link a terminal to deposit";
+	/// <summary>BH-SHOWCASE-1: an inert control was pressed; the shell counts it and shows the reason.</summary>
+	public Action<string>? OnBlocked { get; set; }
+
+	// One spelling for wallet versus pending on every tab.
+	private const string PendingTooltip = "BTC still on the racks. It is not in the hub wallet until it is deposited.";
+
+	// The host needs a linked terminal to deposit (HE:1147), so the reason says so first.
+	private string DepositAction => Model.TerminalLinked ? "deposit" : "deposit-nolink";
 
 	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0, AmountText );
 }
