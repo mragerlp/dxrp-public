@@ -66,6 +66,32 @@ public static class LifePunchMenuInputBlock
 	private static int _escapeClaims;
 	private static bool _escapePending;
 
+	// ESC-FIX-2 Phase 1: the Esc trace. One Esc that closes a LifePunch panel can still open DXRP's pause
+	// menu (ESC-PROOF-1 P2), in two shapes: routed-then-pause, and never routed at all. The trace logs every
+	// frame the router sees Esc, every pause menu open/close, and every claim and menu count change, so the
+	// fix is chosen from data. Reason: diagnose the Esc / pause menu leak. Who: anyone, on their own client;
+	// it only writes log lines. Off by default.
+	[ConVar( "lp_esc_trace" )]
+	public static bool EscTrace { get; set; }
+
+	/// <summary>Positive code-string ID for the Esc trace. Exists nowhere else in the tree.</summary>
+	public const string EscTraceMark = "LP_ESC_TRACE_20261019";
+
+	private static int _frame;
+	private static bool _routerSawEsc;
+#if !LIFEPUNCH_LOCAL
+	private static bool _pauseWasOpen;
+#endif
+
+	private static void Trace( string what )
+	{
+		if ( !EscTrace )
+			return;
+
+		Log.Info( "[lpcore] " + EscTraceMark + " f=" + _frame + " t=" + RealTime.Now.ToString( "0.000" ) + " " + what
+			+ " claims=" + _escapeClaims + " depth=" + _openDepth + " pending=" + _escapePending );
+	}
+
 	/// <summary>True while at least one open panel closes itself on Esc.</summary>
 	public static bool IsEscapeClaimed => _escapeClaims > 0;
 
@@ -76,7 +102,11 @@ public static class LifePunchMenuInputBlock
 	/// update, before DXRP's PauseMenu reads it, and holds it for <see cref="TakeEscape"/>.
 	/// Panels that do not claim keep the engine default (Esc opens the pause menu).
 	/// </summary>
-	public static void ClaimEscape() => _escapeClaims++;
+	public static void ClaimEscape()
+	{
+		_escapeClaims++;
+		Trace( "claim" );
+	}
 
 	public static void ReleaseEscape()
 	{
@@ -85,6 +115,8 @@ public static class LifePunchMenuInputBlock
 
 		if ( _escapeClaims == 0 )
 			_escapePending = false;
+
+		Trace( "release" );
 	}
 
 	/// <summary>True once per routed Esc press: the first claiming panel to ask consumes it.</summary>
@@ -94,11 +126,17 @@ public static class LifePunchMenuInputBlock
 			return false;
 
 		_escapePending = false;
+		Trace( "taken by a panel" );
 		return true;
 	}
 
 	internal static void RouteEscape()
 	{
+		_frame++;
+		_routerSawEsc = Input.EscapePressed;
+		if ( _routerSawEsc )
+			Trace( "esc raised at StartUpdate" );
+
 		if ( _escapeClaims <= 0 || !Input.EscapePressed )
 			return;
 
@@ -107,7 +145,32 @@ public static class LifePunchMenuInputBlock
 		Log.Info( "[lpcore] ESC-CONFLICT-1 esc routed to a LifePunch panel claims=" + _escapeClaims );
 	}
 
-	internal static void DropUntakenEscape() => _escapePending = false;
+	/// <summary>
+	/// End of frame, before the drop: logs a pause menu open/close and whether the router saw an Esc this
+	/// frame (opened with routerSawEsc=False = a press raised after StartUpdate), and an Esc still raised.
+	/// </summary>
+	internal static void TraceFrameEnd()
+	{
+#if !LIFEPUNCH_LOCAL
+		var pauseOpen = Dxura.RP.Game.UI.PauseMenu.IsOpen;
+		if ( pauseOpen != _pauseWasOpen )
+		{
+			_pauseWasOpen = pauseOpen;
+			Trace( "pause menu " + ( pauseOpen ? "OPENED" : "closed" ) + " routerSawEsc=" + _routerSawEsc );
+		}
+#endif
+
+		if ( Input.EscapePressed )
+			Trace( "esc still raised at FinishUpdate" );
+	}
+
+	internal static void DropUntakenEscape()
+	{
+		if ( _escapePending )
+			Trace( "routed esc dropped, no panel took it" );
+
+		_escapePending = false;
+	}
 
 	public static void NotifyMenuOpened()
 	{
@@ -117,16 +180,22 @@ public static class LifePunchMenuInputBlock
 
 		LifePunchMenuInputGuard.Ensure( Game.ActiveScene );
 		Apply();
+		Trace( "menu opened" );
 	}
 
 	public static void NotifyMenuClosed()
 	{
 		if ( _openDepth <= 0 )
+		{
+			Trace( "menu closed with depth already 0" );
 			return;
+		}
 
 		_openDepth--;
 		if ( _openDepth == 0 )
 			ReleasePlayerCombatLock();
+
+		Trace( "menu closed" );
 	}
 
 	public static void Apply()
@@ -238,6 +307,7 @@ public sealed class LifePunchEscapeRouter : GameObjectSystem<LifePunchEscapeRout
 	public LifePunchEscapeRouter( Scene scene ) : base( scene )
 	{
 		Listen( Stage.StartUpdate, -1, LifePunchMenuInputBlock.RouteEscape, "LifePunch Esc Router" );
+		Listen( Stage.FinishUpdate, 999, LifePunchMenuInputBlock.TraceFrameEnd, "LifePunch Esc Trace" );
 		Listen( Stage.FinishUpdate, 1000, LifePunchMenuInputBlock.DropUntakenEscape, "LifePunch Esc Drop" );
 	}
 }
