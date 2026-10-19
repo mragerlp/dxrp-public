@@ -271,6 +271,12 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 		if ( Networking.IsHost && !_isExploding )
 		{
 			_isExploding = true;
+
+			// BH-S0 R2 (Codex F1): a destroyed hub stops its racks on the trusted host path, the same stop as
+			// power-off (SetPoweredHost), so the rack RPC never changes state for a caller it cannot check.
+			foreach ( var rack in GetLinkedRacks() )
+				rack.StopMiningHost();
+
 			LifePunchMachineDestroyFx.SpawnPrinterStyleExplosion( this, Explosion, WorldPosition );
 		}
 
