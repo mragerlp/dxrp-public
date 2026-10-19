@@ -15,6 +15,7 @@ internal static class LpBitcoinUi
 	public static void CloseAll()
 	{
 		LpHashdUiHost.CloseOpen();
+		LpBtcHubUiHost.CloseOpen();
 		LpBitcoinTerminalUiHost.CloseOpen();
 		CloseSuiPreviews();
 	}

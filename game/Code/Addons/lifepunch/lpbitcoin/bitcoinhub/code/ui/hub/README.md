@@ -2,6 +2,14 @@
 
 PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
 
+**BTC-HUB-OVERHAUL-1 U2 (2026-10-18):** moved here from `_dev/btcui2/` (ruling BH-Q9). A hub press
+now opens this UI through `components/LpBtcHubUiHost.cs` while the server convar
+`lp_btc_hub_native_ui` is 1 (the default, ruling BH-Q7); 0 restores the Bitcoin Ops app
+(`ui/LpHashdPanel.razor`, kept, not deleted). The panel binds the pressed hub. The PIN keypad now
+asks the host: unlock through `UnlockAccessPinHost`, and set / re-enroll through `SetAccessPinHost`.
+Every other action control is still inert until U3. The dev ConCmds (`lp_btcui2_*`) stay in
+`_dev/btcui2/LpBtcHubDev.cs`. The notes below describe the pre-build and are kept as written.
+
 Seat CC-SIDE-UI-1, off-tree. Source: docs/superpowers/specs/2026-10-17-btc-ui-design.md on
 cc-drive-1/DRIVE-BTC-UI-1-20261017 (commit 0ae06924, blob 6433be9f, 56417 B). Shell: the house
 top-tab grammar (R-2832-A), ported from playerhub/code/ui/LpPlayerHubRoot.razor through

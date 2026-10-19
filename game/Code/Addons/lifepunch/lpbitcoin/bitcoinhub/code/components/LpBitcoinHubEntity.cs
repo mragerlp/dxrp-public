@@ -312,16 +312,20 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 			return;
 #endif
 
-		OpenHub( Rpc.CallerId );
+		// U2 (BH-Q7): the host's lp_btc_hub_native_ui picks the UI, so a client's own value never decides.
+		OpenHub( Rpc.CallerId, LpBtcHubUiHost.NativeUi );
 	}
 
 	[Rpc.Broadcast]
-	private void OpenHub( Guid callerId )
+	private void OpenHub( Guid callerId, bool nativeUi )
 	{
 		if ( Connection.Local.Id != callerId )
 			return;
 
-		LpHashdUiHost.Open( this );
+		if ( nativeUi )
+			LpBtcHubUiHost.Open( this );
+		else
+			LpHashdUiHost.Open( this );
 	}
 
 	public void SetPowered( bool on ) => SetPoweredHost( on );
@@ -1292,6 +1296,9 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 		var panel = FindHashdPanelForCaller();
 		if ( panel.IsValid() )
 			panel.OnPinGateResult( ok, message );
+
+		// U2: the native-shell hub UI asks the same unlock / set rails.
+		LpBtcHubUiHost.OnPinResult( this, ok, message );
 	}
 
 	private void SendPinChangeResultToCaller( bool ok, string message )

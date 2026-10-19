@@ -29,6 +29,7 @@ internal static class LpHashdUiHost
 	{
 		LpBitcoinUi.CloseSuiPreviews();
 		LpBitcoinTerminalUiHost.CloseOpen();
+		LpBtcHubUiHost.CloseOpen();
 		CloseOpen();
 
 		var panel = MountPanel();

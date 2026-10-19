@@ -6,8 +6,8 @@
 // Tokens only. Every state is a standalone class. UNVERIFIED in the editor.
 // -----------------------------------------------------------------------------
 
-@import "../../playerhub/code/ui/LpPlayerHubTokens.scss";
-@import "../../playerhub/code/ui/LpPlayerHubPrimitives.scss";
+@import "../../../../../playerhub/code/ui/LpPlayerHubTokens.scss";
+@import "../../../../../playerhub/code/ui/LpPlayerHubPrimitives.scss";
 
 // One scroll region per tab - the tab host clips, this scrolls (root PANE-BUDGET).
 .btchub-tab {
