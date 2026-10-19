@@ -247,10 +247,15 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 	{
 		// Hub wallet is session/entity-bound — do not leave BTC on a destroyed hub.
 		HubWalletBtc = 0f;
-#if !LIFEPUNCH_LOCAL
 		if ( Networking.IsHost )
+		{
+			// General removal/cleanup also stops racks; OnDestroyed covers health-driven destruction.
+			foreach ( var rack in GetLinkedRacks() )
+				rack.StopMiningHost();
+#if !LIFEPUNCH_LOCAL
 			GetLinkedTerminal()?.UnlinkFromHub();
 #endif
+		}
 	}
 
 #if !LIFEPUNCH_LOCAL
@@ -272,8 +277,8 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 		{
 			_isExploding = true;
 
-			// BH-S0 R2 (Codex F1): a destroyed hub stops its racks on the trusted host path, the same stop as
-			// power-off (SetPoweredHost), so the rack RPC never changes state for a caller it cannot check.
+			// Health-driven destruction stops racks on the trusted host path before the explosion.
+			// OnDestroy also handles general removal/cleanup; StopMiningHost is safe to repeat.
 			foreach ( var rack in GetLinkedRacks() )
 				rack.StopMiningHost();
 
