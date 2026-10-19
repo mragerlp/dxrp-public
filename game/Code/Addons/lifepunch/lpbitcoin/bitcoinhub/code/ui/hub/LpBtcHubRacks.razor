@@ -88,7 +88,8 @@
 				</div>
 				<div class="btchub-value">
 					<span class="btchub-eyebrow">Mining</span>
-					<div class="@( Detail.IsMining ? "lp-switch lp-switch-on" : "lp-switch" )" tooltip="Binds RequestSetMining (RE:310) in the build slice, if R-BTCUI-11 adds it">
+					<i class="material-icons inert-lock">lock</i>
+					<div class="@( Detail.IsMining ? "lp-switch lp-switch-on" : "lp-switch" )" tooltip="@( LpBtcHubCommandSpy.Reason( "mining" ) )" onclick="@( () => OnBlocked?.Invoke( "mining" ) )">
 						<div class="lp-switch-knob"></div>
 					</div>
 				</div>
@@ -134,13 +135,15 @@
 						<LifePunchCurrencyToken Sign="$" Amount="@( Format.Usd( Detail.NextQuoteUsd ) )" SignClass="lp-money-cash" />
 					</div>
 					<span class="btchub-label">@DeltaText</span>
-					<button class="btchub-action-inert" tooltip="Binds the tier purchase rail (spec section 7) with its inline confirm in the build slice">
+					<span class="@AffordClass" tooltip="@AffordTooltip">@AffordText</span>
+					<button class="btchub-action-inert" tooltip="@( LpBtcHubCommandSpy.Reason( "upgrade" ) )" onclick="@( () => OnBlocked?.Invoke( "upgrade" ) )">
+						<i class="material-icons inert-lock">lock</i>
 						<span>Upgrade</span>
 					</button>
 				}
 				else
 				{
-					<span class="btchub-chip">MAX</span>
+					<span class="btchub-chip" tooltip="This rack is at the top Compute tier.">MAX</span>
 				}
 			</div>
 			@foreach ( var track in PlannedTracks )
@@ -163,6 +166,9 @@
 	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
 	[Property] public string SelectedToken { get; set; } = string.Empty;
 	public Action<string>? OnSelectRack { get; set; }
+
+	/// <summary>BH-SHOWCASE-1: an inert control was pressed; the shell counts it and shows the reason.</summary>
+	public Action<string>? OnBlocked { get; set; }
 
 	private static readonly string BtcSign = ((char)0x20BF).ToString();
 	private static readonly string MidDot = ((char)0x00B7).ToString();
@@ -202,6 +208,17 @@
 	private string LadderText => Detail is null ? string.Empty : $"{Format.Tier( Detail.Tier )} of {Format.Tier( Detail.MaxTier )}";
 	private string DeltaText => Detail is null ? string.Empty
 		: $"+{Format.Clock( Detail.NextClockGhz - Detail.ClockGhz )} {MidDot} ~{Format.Payback( Detail.PaybackMinutes )} payback";
+
+	// BH-SHOWCASE-1: Compute is paid from the hub wallet in BTC, and the shortfall is the quote minus the
+	// wallet in sats - the host's own test and maths (bitcoinmining/LpBitcoinPurchaseFlow.cs:88-92).
+	// Display only: the host re-checks every purchase.
+	private long WalletSats => (long)Math.Round( Model.WalletBtc * 100_000_000d );
+	private long ShortfallSats => Detail is null ? 0L : Math.Max( 0L, Detail.NextQuoteSats - WalletSats );
+	private string AffordText => ShortfallSats <= 0 ? "AFFORDABLE" : $"SHORT BY {BtcSign}{Format.BtcPrice( ShortfallSats )}";
+	private string AffordClass => ShortfallSats <= 0 ? "btchub-chip-good" : "btchub-chip-warn";
+	private string AffordTooltip => ShortfallSats <= 0
+		? "The hub wallet covers the next Compute tier."
+		: "The hub wallet is short of the next Compute tier. Deposit BTC from the racks first.";
 
 	// U2 sensor for ESC-PROOF-F-RACK-CARD-NO-OPEN: the card half of a click (bound=False means the
 	// parent's OnSelectRack never reached this panel).

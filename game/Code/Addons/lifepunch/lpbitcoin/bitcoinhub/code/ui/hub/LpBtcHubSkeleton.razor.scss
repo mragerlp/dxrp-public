@@ -259,10 +259,36 @@ $pin-key-w: 72px;
 
 	// ---- new rules (tokens only) ----
 
-	.skeleton-chip {
+	// BH-SHOWCASE-1: LIVE / PREVIEW / UNAVAILABLE (was the SKELETON chip).
+	.provenance-chip {
 		margin-left: auto;
 		font-size: 11px;
 		letter-spacing: 0.06em;
+	}
+
+	// BH-SHOWCASE-1: the plain reason shown when an inert control is pressed.
+	.blocked-note {
+		flex-direction: row;
+		align-items: center;
+		flex-shrink: 0;
+		gap: 8px;
+		padding: 6px 10px;
+		border: 1px solid $border;
+		border-radius: $radius-chip;
+		background-color: $surface;
+		color: $text-main;
+		font-size: 12px;
+	}
+
+	.blocked-note .material-icons {
+		font-size: 16px;
+		color: $text-dim;
+	}
+
+	// The lock marks an inert control without relying on colour.
+	.inert-lock {
+		font-size: 14px;
+		color: $text-dim;
 	}
 
 	.header-chip-good {
