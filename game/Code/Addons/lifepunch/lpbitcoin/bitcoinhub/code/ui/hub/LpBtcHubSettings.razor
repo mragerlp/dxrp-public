@@ -2,8 +2,9 @@
    PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
 
    Bitcoin Hub UI skeleton - Settings tab (spec 6.1 row Settings; keep list K19-K23).
-   Hub power is a read-only mirror pointing at the header switch (R-BTCUI-5). Change PIN, the terminal
-   link toggle and Clear notifications are inert. The recipe line uses the new tab names.
+   Hub power is a read-only mirror (R-BTCUI-5) pointing at the Player Hub BTC tab, which can switch it
+   today. Change PIN, the terminal link toggle and Clear notifications are inert. The recipe names only
+   places that work today (BH-SHOWCASE-1).
    UNVERIFIED in the editor.
    ----------------------------------------------------------------------------- *@
 @namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
@@ -22,7 +23,7 @@
 		<div class="btchub-row">
 			<div class="btchub-value">
 				<span>Hub power</span>
-				<span class="btchub-label">Use the switch in the header</span>
+				<span class="btchub-label">Switch it from the BTC tab of your Player Hub</span>
 			</div>
 			<span class="@( Model.IsPowered ? "btchub-chip-good" : "btchub-chip" )">@( Model.IsPowered ? "ON" : "OFF" )</span>
 		</div>
@@ -78,9 +79,13 @@
 	[Property] public ILpBitcoinHubState Model { get; set; } = null!;
 	[Property] public ILpBitcoinHubFormat Format { get; set; } = null!;
 
+	// BH-SHOWCASE-1: every step names a place that works today (terminal link switch: ui/LpHashdPanel.razor:906;
+	// terminal verbs: bitcoinmining/LpBitcoinTerminalCommands.cs:37-144; Player Hub BTC tab: LpPlayerHubBtcSource.cs:102-143).
 	private const string Recipe =
-		"Power the hub, link a HASHD terminal and link GPU racks (Overview). Start mining at the terminal, " +
-		"deposit rack BTC into the hub wallet, then cash out on the Wallet tab. Upgrades live on Racks.";
+		"Power the hub from the BTC tab of your Player Hub. Link a nearby HASHD terminal with the Bitcoin terminal " +
+		"switch in Settings on the classic hub screen. At the terminal, type link with a rack id for each GPU rack, " +
+		"mining start all to start them, and deposit all to move rack BTC into the hub wallet. Cash out from the " +
+		"BTC tab of your Player Hub. Buttons with a lock are not wired in this view yet.";
 
 	private string NotificationText => Model.Alerts.Count == 1 ? "1 entry" : Model.Alerts.Count + " entries";
 

@@ -24,16 +24,17 @@ public static class LpBtcHubCommandSpy
 
 	/// <summary>
 	/// Why an inert control does nothing, in player terms, and where the player can do it today
-	/// (terminal verbs: bitcoinmining/LpBitcoinTerminalCommands.cs:37-144; Player Hub BTC tab callbacks:
-	/// playerhub/code/data/LpPlayerHubBtcSource.cs:102-143). One table, so a tooltip and the note a
+	/// (terminal verbs: bitcoinmining/LpBitcoinTerminalCommands.cs:37-144, where link/unlink take a rack id
+	/// and mining needs start|stop; terminal link switch: lpbitcoin/bitcoinhub/code/ui/LpHashdPanel.razor:906;
+	/// Player Hub BTC tab callbacks: playerhub/code/data/LpPlayerHubBtcSource.cs:102-143). One table, so a tooltip and the note a
 	/// press shows always read the same. if/else, not a switch expression (razor_lint, LpBtcHubLogs.razor:51).
 	/// </summary>
 	public static string Reason( string action )
 	{
 		if ( action == "power" ) return "Not in this view yet. Switch hub power from the BTC tab of your Player Hub.";
-		if ( action == "link" ) return "Not in this view yet. Type link at a HASHD terminal near the hub.";
-		if ( action == "unlink" ) return "Not in this view yet. Type unlink at the linked HASHD terminal.";
-		if ( action == "mining" ) return "Not in this view yet. Type mining at the linked HASHD terminal.";
+		if ( action == "link" ) return "Not in this view yet. Stand near a HASHD terminal and use the Bitcoin terminal switch in Settings on the classic hub screen (hub must be on).";
+		if ( action == "unlink" ) return "Not in this view yet. Use the Bitcoin terminal switch in Settings on the classic hub screen.";
+		if ( action == "mining" ) return "Not in this view yet. Type mining start all (or mining stop all) at the linked HASHD terminal.";
 		if ( action == "upgrade" ) return "Upgrades can't be bought in this view yet.";
 		if ( action == "cashout" ) return "Not in this view yet. The BTC tab of your Player Hub can cash out the whole hub wallet.";
 		if ( action == "cashoutall" ) return "Not in this view yet. Use Cash out all on the BTC tab of your Player Hub.";
