@@ -54,7 +54,7 @@
 				</div>
 
 				<div class="btc-actions">
-					<button class="@ActionClass( DepositEnabled )" disabled="@(!DepositEnabled)" tooltip="Move every rack's mined BTC into the hub wallet" onclick="@Model.DepositAll">
+					<button class="@ActionClass( DepositEnabled )" disabled="@(!DepositEnabled)" tooltip="@DepositTooltip" onclick="@Model.DepositAll">
 						<i class="material-icons">download</i>
 						<span>Deposit all</span>
 					</button>
@@ -120,7 +120,12 @@
 		OnSelected: null);
 
 	private string RackCountLabel => Model.RackCount == 1 ? "1 RACK" : Model.RackCount + " RACKS";
-	private bool DepositEnabled => Model.CanManage && Model.IsPowered && Model.PendingBtc != "0.000000";
+	// The host drops a deposit when the hub has no linked terminal, so the control is inert then and says why.
+	private bool DepositEnabled => Model.CanManage && Model.IsPowered && Model.TerminalLinked && Model.PendingBtc != "0.000000";
+	private string DepositTooltip =>
+		!Model.TerminalLinked ? "No terminal is linked to this hub - link your terminal at the hub to deposit"
+		: !Model.IsPowered ? "Hub is off - power it on to deposit"
+		: "Move every rack's mined BTC into the hub wallet";
 	private bool CashOutEnabled => Model.CanManage && Model.WalletBtc != "0.000000";
 
 	// Inert states swap in a standalone class (house pattern: .disabled / ULX control-disabled); the engine does not
@@ -141,6 +146,7 @@
 		hash.Add( Model.IsPowered );
 		hash.Add( Model.PinSet );
 		hash.Add( Model.CanManage );
+		hash.Add( Model.TerminalLinked );
 		hash.Add( Model.WalletBtc );
 		hash.Add( Model.WalletUsd );
 		hash.Add( Model.PendingBtc );
