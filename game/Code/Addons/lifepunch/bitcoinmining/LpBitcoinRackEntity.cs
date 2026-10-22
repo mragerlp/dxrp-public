@@ -464,7 +464,9 @@ public sealed class LpBitcoinRackEntity : BaseEntity, Component.IPressable, IAre
 				continue;
 
 #if !LIFEPUNCH_LOCAL
-			if ( hub.Owner != 0 && !LifePunchEntityOwnership.SharesOperator( hub.Owner, rack.Owner ) )
+			// Owner 0 = an unclaimed rack: let it through so the host's claim recovery (TryClaimLinkableEquipment, which
+			// only binds it for the hub owner's own caller) can run. A rack owned by someone else is still skipped here.
+			if ( hub.Owner != 0 && rack.Owner != 0 && !LifePunchEntityOwnership.SharesOperator( hub.Owner, rack.Owner ) )
 				continue;
 #endif
 
@@ -497,7 +499,8 @@ public sealed class LpBitcoinRackEntity : BaseEntity, Component.IPressable, IAre
 				continue;
 
 #if !LIFEPUNCH_LOCAL
-			if ( hub.Owner != 0 && !LifePunchEntityOwnership.SharesOperator( hub.Owner, rack.Owner ) )
+			// Same Owner 0 rule as FindNearestUnlinked, so the HASHD "rack in range" hint agrees with the link path.
+			if ( hub.Owner != 0 && rack.Owner != 0 && !LifePunchEntityOwnership.SharesOperator( hub.Owner, rack.Owner ) )
 				continue;
 #endif
 

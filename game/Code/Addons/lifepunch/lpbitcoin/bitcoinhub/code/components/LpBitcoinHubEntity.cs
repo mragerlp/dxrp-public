@@ -458,7 +458,12 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 
 	public void RequestSendHubWallet( long targetSteamId, float amount ) => SendHubWalletHost( targetSteamId, amount );
 
-	/// <summary>First hub in the scene owned by <paramref name="steamId"/> (excludes <paramref name="exclude"/>).</summary>
+	/// <summary>Dev preview hubs (<c>LpBitcoinUi.GetOrCreatePreviewHub</c> names them <c>LpBitcoinPreview*</c>) are UI scaffolding,
+	/// never an operator's real hub: owner lookups and the one-hub-per-operator refusal must not see them.</summary>
+	internal static bool IsDevPreviewHub( LpBitcoinHubEntity hub )
+		=> hub.IsValid() && (hub.GameObject.Name ?? string.Empty).StartsWith( "LpBitcoinPreview", StringComparison.OrdinalIgnoreCase );
+
+	/// <summary>First hub in the scene owned by <paramref name="steamId"/> (excludes <paramref name="exclude"/> and dev preview hubs).</summary>
 	public static LpBitcoinHubEntity FindHubByOwnerSteamId( long steamId, LpBitcoinHubEntity exclude = null )
 	{
 		if ( steamId == 0 )
@@ -470,7 +475,7 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 
 		foreach ( var hub in scene.GetAllComponents<LpBitcoinHubEntity>() )
 		{
-			if ( !hub.IsValid() || hub == exclude )
+			if ( !hub.IsValid() || hub == exclude || IsDevPreviewHub( hub ) )
 				continue;
 
 			if ( hub.Owner == steamId )
@@ -629,7 +634,9 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 	[Rpc.Host]
 	private void LinkNearbyRackHost()
 	{
-		if ( !CanOperateTerminal( Rpc.CallerId ) )
+		// Same refusal as CanOperateTerminal (manager AND powered), split so the power-off alert below is reachable.
+		// A caller who cannot manage the hub stays silent: a stranger's click must not write to the owner's alert feed.
+		if ( !CanManageHub( Rpc.CallerId ) )
 			return;
 
 		if ( !IsPowered )
@@ -640,7 +647,11 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 		}
 
 		if ( !HasLinkedTerminal() )
+		{
+			PushAlertHost( LpBitcoinHubAlertKind.TerminalCommand,
+				"No terminal is linked to this hub - link your terminal before linking GPU racks." );
 			return;
+		}
 
 		if ( GetLinkedRacks().Count >= LpBitcoinIdent.PortalMaxRacksPerHub )
 		{
@@ -688,7 +699,9 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 	[Rpc.Host]
 	private void LinkRackByTokenHost( string slotToken )
 	{
-		if ( !CanOperateTerminal( Rpc.CallerId ) )
+		// Same refusal as CanOperateTerminal (manager AND powered), split so the power-off alert below is reachable.
+		// A caller who cannot manage the hub stays silent: a stranger's click must not write to the owner's alert feed.
+		if ( !CanManageHub( Rpc.CallerId ) )
 			return;
 
 		if ( !IsPowered )
@@ -699,7 +712,11 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 		}
 
 		if ( !HasLinkedTerminal() )
+		{
+			PushAlertHost( LpBitcoinHubAlertKind.TerminalCommand,
+				"No terminal is linked to this hub - link your terminal before linking GPU racks." );
 			return;
+		}
 
 		if ( !LpBitcoinIdent.TryParseLinkRackSlotToken( slotToken, out var advanced, out var standardSlot ) )
 		{
