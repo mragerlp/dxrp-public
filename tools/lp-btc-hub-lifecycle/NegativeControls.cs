@@ -49,8 +49,36 @@ internal static class NegativeControls
     const string Ui = "game/Code/Addons/lifepunch/bitcoinmining/LpBitcoinUi.cs";
     const string Ownership = "game/Code/Addons/lifepunch/lifepunchcore/LifePunchEntityOwnership.cs";
 
-    // Returns 0 when every check passed, 1 otherwise, 2 if the subject would not compile.
+    const string Terminal = "game/Code/Addons/lifepunch/bitcoinmining/LpBitcoinTerminalEntity.cs";
+    const string PropPhysics = "game/Code/Addons/lifepunch/lifepunchcore/LifePunchPropPhysics.cs";
+
+    // 0 when every check of both groups passed, 1 when any failed, 2 when a subject would not compile.
     public static int Run(string root)
+    {
+        var link = RunLink(root);
+        var terminal = RunTerminal(root);
+        return Math.Max(link, terminal);
+    }
+
+    static int RunTerminal(string root)
+    {
+        var source = TerminalTemplate
+            .Replace("TERMINAL_METHODS", HarnessKit.Methods(root, Terminal, "LpBitcoinTerminalEntity",
+                "OnFixedUpdate", "ApplyGrabGateHost", "HasStuckGrabTags", "TellCallerHubIsOff", "OpenTerminalHost"))
+            .Replace("PHYSICS_METHODS", HarnessKit.Methods(root, PropPhysics, "LifePunchPropPhysics",
+                "MaintainGrabbablePlaceableProp", "AllowHandsGrabTags", "DenyHandsGrabTags"));
+        try
+        {
+            var assembly = HarnessKit.Compile("HubTerminalSubject", source);
+            return (int)assembly.GetType("TermSubject.TerminalControls")!.GetMethod("Run")!.Invoke(null, null)!;
+        }
+        catch (InvalidOperationException)
+        {
+            return 2;
+        }
+    }
+
+    static int RunLink(string root)
     {
         var source = Template
             .Replace("HUB_METHODS", HarnessKit.Methods(root, Hub, "LpBitcoinHubEntity",
@@ -249,6 +277,158 @@ public static class LinkControls
         Ctl(withRacks.Linked.Count == 3, "GetOrCreatePreviewHub(withSampleRacks) hands back a hub with the canonical 2 + 1 rack mix");
 
         Console.WriteLine($"Hub link controls: {negTotal + ctlTotal - negFail - ctlFail}/{negTotal + ctlTotal} checks passed " +
+            $"({negFail}/{negTotal} negative controls failing, {ctlFail}/{ctlTotal} regression guards failing)");
+        return negFail + ctlFail == 0 ? 0 : 1;
+    }
+}
+""";
+
+    // The terminal's host-side grab gate and menu open (HUB-WIRING-2 U2). LifePunchPropPhysics bodies are the real ones,
+    // because the defect is the interplay: Maintain ends by re-adding hands_interact, which undid the gate's Deny.
+    const string TerminalTemplate = """
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+namespace TermSubject;
+
+public static class Networking { public static bool IsHost = true; }
+public static class Time { public static float Now; }
+public static class Log { public static int Warnings; public static void Info(string m) { } public static void Warning(string m) { Warnings++; } }
+public sealed class Connection { }
+public static class Rpc { public static Connection Caller = new(); public static Guid CallerId = Guid.NewGuid(); }
+public enum LpBitcoinHubAlertKind { TerminalCommand }
+public enum FindMode { EverythingInSelf }
+public sealed class CollideGuard { }
+public static class Constants { public const string HandsInteractTag = "hands_interact"; public const string PocketItemTag = "pocket_item"; }
+public sealed class TagSet
+{
+    public HashSet<string> Set = new();
+    public bool Has(string t) => Set.Contains(t);
+    public void Add(string t) => Set.Add(t);
+    public void Remove(string t) => Set.Remove(t);
+}
+public sealed class ComponentList { public T Get<T>(FindMode mode) where T : class => null; }
+public sealed class GameObject { public Guid Id = Guid.NewGuid(); public TagSet Tags = new(); public ComponentList Components = new(); }
+public sealed class GameManager
+{
+    public static GameManager Instance = new();
+    public int TagBroadcasts;
+    public void BroadcastTagHost(GameObject go, bool add, params string[] tags)
+    {
+        TagBroadcasts++;
+        foreach (var t in tags) { if (add) go.Tags.Add(t); else go.Tags.Remove(t); }
+    }
+}
+public static class Validity
+{
+    public static bool IsValid(this GameObject g) => g is not null;
+    public static bool IsValid(this CollideGuard c) => c is not null;
+    public static bool IsValid(this GameManager m) => m is not null;
+    public static bool IsValid(this LpBitcoinHubEntity h) => h is not null;
+}
+public static class LifePunchMenuInteractGate
+{
+    public static bool Allowed = true;
+    public static bool IsCallerAllowed(Connection caller, GameObject target) => Allowed;
+}
+public static class LifePunchPropPhysics
+{
+    public const string GrabbedTag = "grabbed";
+    public const string PlayerClipTag = "playerclip";
+    public const string NoCollideTag = "no_collide";
+    PHYSICS_METHODS
+}
+public sealed class LpBitcoinHubEntity
+{
+    public GameObject GameObject = new();
+    public bool IsPowered, CanManage = true;
+    public List<string> Alerts = new();
+    public bool CanManageHub(Guid callerId) => CanManage;
+    internal void PushAlertHost(LpBitcoinHubAlertKind kind, string message) => Alerts.Add(message);
+}
+public class BaseEntity
+{
+    public GameObject GameObject = new();
+    protected virtual void OnFixedUpdate() { }
+}
+public sealed class LpBitcoinTerminalEntity : BaseEntity
+{
+    const float HubOffAlertCooldownSeconds = 3f;
+    public Guid LinkedHubId;
+    public LpBitcoinHubEntity Hub;
+    public int Opened;
+    int _spawnDropGraceTicks;
+    bool? _grabGateMenuGoverns;
+    float _hubOffAlertAfter;
+    internal LpBitcoinHubEntity FindLinkedHub() => Hub;
+    private void OpenTerminal(Guid callerId, Guid hubId) => Opened++;
+    TERMINAL_METHODS
+}
+public static class TerminalControls
+{
+    static int negTotal, negFail, ctlTotal, ctlFail;
+    static void Neg(bool ok, string name) { negTotal++; if (!ok) negFail++; Console.WriteLine((ok ? "PASS NEG " : "FAIL NEG ") + name); }
+    static void Ctl(bool ok, string name) { ctlTotal++; if (!ok) ctlFail++; Console.WriteLine((ok ? "PASS CTL " : "FAIL CTL ") + name); }
+    static object Call(object o, string name, params object[] args)
+        => o.GetType().GetMethod(name, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).Invoke(o, args);
+    static void Set(object o, string field, object value)
+        => o.GetType().GetField(field, BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic).SetValue(o, value);
+    // A terminal as it spawns: grabbable (hands_interact on), host side, past the spawn grace.
+    static LpBitcoinTerminalEntity Make(bool linked, bool powered)
+    {
+        Networking.IsHost = true; GameManager.Instance = new GameManager(); LifePunchMenuInteractGate.Allowed = true;
+        var t = new LpBitcoinTerminalEntity();
+        t.GameObject.Tags.Add(Constants.HandsInteractTag);
+        if (linked) { t.Hub = new LpBitcoinHubEntity { IsPowered = powered }; t.LinkedHubId = t.Hub.GameObject.Id; }
+        return t;
+    }
+    static void Tick(LpBitcoinTerminalEntity t, int n = 1) { for (var i = 0; i < n; i++) Call(t, "OnFixedUpdate"); }
+    static bool Hands(LpBitcoinTerminalEntity t) => t.GameObject.Tags.Has(Constants.HandsInteractTag);
+
+    public static int Run()
+    {
+        LpBitcoinTerminalEntity t;
+
+        // Grab gate: a terminal whose linked hub is powered belongs to the menu, so Hands must not hold it.
+        t = Make(true, true); Tick(t, 6);
+        Neg(!Hands(t), "a terminal under a powered hub does not keep hands_interact after the gate applies");
+        t = Make(true, true); Tick(t, 3); GameManager.Instance.TagBroadcasts = 0; Tick(t, 20);
+        Neg(GameManager.Instance.TagBroadcasts == 0, "no tag broadcast per host tick in the menu-governed steady state");
+        t = Make(false, false); Tick(t, 3); GameManager.Instance.TagBroadcasts = 0; Tick(t, 20);
+        Neg(GameManager.Instance.TagBroadcasts == 0, "no tag broadcast per host tick in the grabbable steady state");
+        t = Make(false, false); Tick(t, 6);
+        Ctl(Hands(t), "an unlinked terminal stays Hands-grabbable");
+        t = Make(true, true); Tick(t, 3); t.GameObject.Tags.Add("grabbed"); Tick(t);
+        Neg(!t.GameObject.Tags.Has("grabbed") && !Hands(t), "a stuck grabbed tag is cleared under a powered hub and hands_interact stays off");
+        t = Make(true, true); Tick(t, 3); t.GameObject.Tags.Add("no_collide"); Tick(t);
+        Neg(!t.GameObject.Tags.Has("no_collide") && !Hands(t), "a stuck no_collide tag is cleared under a powered hub and hands_interact stays off");
+        t = Make(false, false); Tick(t, 3); t.GameObject.Tags.Add("grabbed"); t.GameObject.Tags.Add("playerclip"); Tick(t);
+        Ctl(!t.GameObject.Tags.Has("grabbed") && !t.GameObject.Tags.Has("playerclip") && Hands(t), "stuck grabbed and playerclip tags are still cleared while the terminal is grabbable");
+        t = Make(false, false); Tick(t, 3);
+        t.Hub = new LpBitcoinHubEntity { IsPowered = true }; t.LinkedHubId = t.Hub.GameObject.Id; Tick(t, 4);
+        Neg(!Hands(t), "when the hub powers on the terminal sheds hands_interact and keeps it shed");
+        t = Make(true, true); Tick(t, 3); t.Hub.IsPowered = false; Tick(t, 4);
+        Ctl(Hands(t), "when the hub powers off the terminal becomes grabbable again");
+        t = Make(true, true); Set(t, "_spawnDropGraceTicks", 3); Tick(t, 3);
+        var heldDuringGrace = Hands(t); Tick(t);
+        Ctl(heldDuringGrace && !Hands(t), "the spawn grace keeps its upkeep and the gate starts the tick after it");
+
+        // Opening a terminal whose hub is off tells a manager, once per cooldown, and never opens anything.
+        t = Make(true, false); Call(t, "OpenTerminalHost");
+        Neg(t.Hub.Alerts.Count == 1 && t.Hub.Alerts[0].Contains("power", StringComparison.OrdinalIgnoreCase) && t.Opened == 0, "an unpowered hub answers a terminal open with an alert and opens nothing");
+        t = Make(true, false); t.Hub.CanManage = false; Call(t, "OpenTerminalHost");
+        Ctl(t.Hub.Alerts.Count == 0 && t.Opened == 0, "a caller who cannot manage the hub writes nothing into its alert feed");
+        t = Make(true, false); Time.Now = 100f; for (var i = 0; i < 5; i++) Call(t, "OpenTerminalHost"); var burst = t.Hub.Alerts.Count; Time.Now = 110f; Call(t, "OpenTerminalHost");
+        Neg(burst == 1 && t.Hub.Alerts.Count == 2, "repeat presses inside the cooldown add one alert, and a later press adds another");
+        t = Make(true, true); Call(t, "OpenTerminalHost");
+        Ctl(t.Opened == 1 && t.Hub.Alerts.Count == 0, "a powered hub still opens the terminal with no alert");
+        t = Make(true, false); LifePunchMenuInteractGate.Allowed = false; Call(t, "OpenTerminalHost"); LifePunchMenuInteractGate.Allowed = true;
+        Ctl(t.Hub.Alerts.Count == 0 && t.Opened == 0, "a caller the range gate refuses gets nothing, not even an alert");
+        t = Make(false, false); var warnings = Log.Warnings; Call(t, "OpenTerminalHost");
+        Ctl(t.Opened == 0 && Log.Warnings == warnings + 1, "an unlinked terminal still only logs its host warning");
+
+        Console.WriteLine($"Terminal controls: {negTotal + ctlTotal - negFail - ctlFail}/{negTotal + ctlTotal} checks passed " +
             $"({negFail}/{negTotal} negative controls failing, {ctlFail}/{ctlTotal} regression guards failing)");
         return negFail + ctlFail == 0 ? 0 : 1;
     }

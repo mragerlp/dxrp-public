@@ -37,6 +37,17 @@ plus `LpBitcoinIdent.cs` for the lifecycle checks):
 dotnet run --project tools/lp-btc-hub-lifecycle/HubLifecycleChecks.csproj -- <scratch-root>
 ```
 
+## Terminal grab gate and hub-off feedback (HUB-WIRING-2 U2)
+
+The same file drives the terminal's `OnFixedUpdate`, `ApplyGrabGateHost`,
+`HasStuckGrabTags`, `TellCallerHubIsOff` and `OpenTerminalHost` together with the real
+`LifePunchPropPhysics.MaintainGrabbablePlaceableProp`, `AllowHandsGrabTags` and
+`DenyHandsGrabTags` bodies, so the interplay that caused the defect (Maintain ends by
+re-adding `hands_interact`) is in the test, not assumed. Add `LpBitcoinTerminalEntity.cs`
+and `LifePunchPropPhysics.cs` blobs to the scratch folder to see those controls fail.
+It models tags and broadcasts as counters; it does not prove that the engine's Hands
+equipment then lets E reach the menu.
+
 A method the slice added (for example `IsDevPreviewHub`) is simply absent from the
 develop blobs; the controls that need it fail rather than crash. The claim recovery in
 `TryClaimLinkableEquipment` is a stand-in, since it is not part of that slice.
