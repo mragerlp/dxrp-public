@@ -60,6 +60,27 @@ public static class LifePunchMenuInteractGate
 		return !WouldHandsPickupTakePriority( viewerPos.Value, target );
 	}
 
+	/// <summary>Terminal USE: <see cref="CanPressMenu"/>'s tight reach, measured to the model's bounds instead of its pivot
+	/// (see <see cref="IsTerminalTargetInOpenRange"/>). Opt-in: only the HASHD terminal calls this, so the Morpheus press
+	/// and every other <see cref="CanPressMenu"/> caller keep the pivot reach.</summary>
+	public static bool CanPressTerminalMenu( GameObject target )
+	{
+		if ( !target.IsValid() )
+			return false;
+
+		var viewerPos = GetLocalViewerPosition( target.Scene );
+		if ( !viewerPos.HasValue )
+			return false;
+
+		if ( !IsTerminalTargetInOpenRange( viewerPos.Value, target ) )
+			return false;
+
+		if ( WouldHandsManipulationTakePriority( viewerPos.Value, target ) )
+			return false;
+
+		return !WouldHandsPickupTakePriority( viewerPos.Value, target );
+	}
+
 	/// <summary>Hub reach measured to the model's world bounding box so it scales with model size
 	/// (2026-07-10 fix). Falls back to the pivot-based check only if the hub has no renderer.</summary>
 	private static bool IsHubTargetInOpenRange( Vector3 viewerPos, GameObject target )
@@ -69,6 +90,22 @@ public static class LifePunchMenuInteractGate
 			return LifePunchMenuInteractRange.IsHubInOpenRange( viewerPos, renderer.Bounds );
 
 		return LifePunchMenuInteractRange.IsHubInOpenRange( viewerPos, target.WorldPosition );
+	}
+
+	/// <summary>Terminal reach: the same 0.85 m horizontal / 0.75 m vertical slack as <see cref="LifePunchMenuInteractRange.IsInOpenRange(Vector3, Vector3)"/>,
+	/// but measured from the viewer to the closest point of the model's world bounds, not to its pivot, so a terminal
+	/// sitting on a desk is not out of reach just because its pivot is above the standing player's feet. Never narrower than
+	/// the pivot check while the pivot lies inside the bounds. Falls back to exactly the pivot check when the target has no renderer.</summary>
+	private static bool IsTerminalTargetInOpenRange( Vector3 viewerPos, GameObject target )
+	{
+		var renderer = target.Components.Get<ModelRenderer>( FindMode.EverythingInSelfAndDescendants );
+		if ( !renderer.IsValid() )
+			return LifePunchMenuInteractRange.IsInOpenRange( viewerPos, target.WorldPosition );
+
+		var delta = renderer.Bounds.ClosestPoint( viewerPos ) - viewerPos;
+		var horizontal = new Vector3( delta.x, delta.y, 0f ).Length;
+		return horizontal <= LifePunchMenuInteractRange.OpenHorizontalUnits
+			&& System.Math.Abs( delta.z ) <= LifePunchMenuInteractRange.OpenVerticalUnits;
 	}
 
 #if !LIFEPUNCH_LOCAL
@@ -113,6 +150,28 @@ public static class LifePunchMenuInteractGate
 
 		return !WouldHandsPickupTakePriority( player, target );
 	}
+
+	/// <summary>Host twin of <see cref="CanPressTerminalMenu"/>: <see cref="IsCallerAllowedHub"/>'s checks with the terminal reach.</summary>
+	public static bool IsCallerAllowedTerminal( Connection caller, GameObject target )
+	{
+		if ( !target.IsValid() || caller is null )
+			return false;
+
+		if ( !GameUtils.HasPermission( caller, target ) )
+			return false;
+
+		var player = GameUtils.GetPlayerByConnectionId( caller.Id );
+		if ( !player.IsValid() )
+			return false;
+
+		if ( !IsTerminalTargetInOpenRange( player.WorldPosition, target ) )
+			return false;
+
+		if ( WouldHandsManipulationTakePriority( player, target ) )
+			return false;
+
+		return !WouldHandsPickupTakePriority( player, target );
+	}
 #else
 	public static bool IsCallerAllowed( Connection caller, GameObject target )
 	{
@@ -136,6 +195,18 @@ public static class LifePunchMenuInteractGate
 			return false;
 
 		return IsHubTargetInOpenRange( viewerPos.Value, target );
+	}
+
+	public static bool IsCallerAllowedTerminal( Connection caller, GameObject target )
+	{
+		if ( !target.IsValid() )
+			return false;
+
+		var viewerPos = GetLocalViewerPosition( target.Scene );
+		if ( !viewerPos.HasValue )
+			return false;
+
+		return IsTerminalTargetInOpenRange( viewerPos.Value, target );
 	}
 #endif
 

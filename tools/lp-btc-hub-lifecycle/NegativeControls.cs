@@ -24,6 +24,24 @@ internal static class HarnessKit
             .Select(m => m.WithAttributeLists(default).WithoutLeadingTrivia().WithoutTrailingTrivia().ToFullString()));
     }
 
+    // Same, for any member kind: methods (all overloads), fields and expression-bodied properties by name.
+    // Used where the subject needs the real constants rather than a copy of their values.
+    public static string Members(string root, string path, string type, params string[] names)
+    {
+        var tree = CSharpSyntaxTree.ParseText(File.ReadAllText(Path.Combine(root, path)));
+        var cls = tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>()
+            .Single(c => c.Identifier.ValueText == type);
+        return string.Join("\n", cls.Members.Where(m => m switch
+            {
+                MethodDeclarationSyntax x => names.Contains(x.Identifier.ValueText),
+                PropertyDeclarationSyntax x => names.Contains(x.Identifier.ValueText),
+                FieldDeclarationSyntax x => x.Declaration.Variables.Any(v => names.Contains(v.Identifier.ValueText)),
+                _ => false,
+            })
+            .Select(m => (m is MethodDeclarationSyntax md ? md.WithAttributeLists(default) : m)
+                .WithoutLeadingTrivia().WithoutTrailingTrivia().ToFullString()));
+    }
+
     public static Assembly Compile(string assemblyName, string source)
     {
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
@@ -57,7 +75,29 @@ internal static class NegativeControls
     {
         var link = RunLink(root);
         var terminal = RunTerminal(root);
-        return Math.Max(link, terminal);
+        var gate = RunGate(root);
+        return Math.Max(link, Math.Max(terminal, gate));
+    }
+
+    const string MenuGate = "game/Code/Addons/lifepunch/lifepunchcore/LifePunchMenuInteractGate.cs";
+    const string MenuRange = "game/Code/Addons/lifepunch/lifepunchcore/LifePunchMenuInteractRange.cs";
+
+    static int RunGate(string root)
+    {
+        var source = GateTemplate
+            .Replace("GATE_METHODS", HarnessKit.Members(root, MenuGate, "LifePunchMenuInteractGate", "IsTerminalTargetInOpenRange"))
+            .Replace("RANGE_MEMBERS", HarnessKit.Members(root, MenuRange, "LifePunchMenuInteractRange",
+                "MetersToUnits", "OpenHorizontalMeters", "OpenVerticalMeters", "OpenHorizontalUnits", "OpenVerticalUnits",
+                "IsInOpenRange", "IsWithin"));
+        try
+        {
+            var assembly = HarnessKit.Compile("HubGateSubject", source);
+            return (int)assembly.GetType("GateSubject.GateControls")!.GetMethod("Run")!.Invoke(null, null)!;
+        }
+        catch (InvalidOperationException)
+        {
+            return 2;
+        }
     }
 
     static int RunTerminal(string root)
@@ -141,15 +181,15 @@ public static class LpBitcoinIdent
     public static bool TryParseLinkRackSlotToken(string t, out bool advanced, out int slot)
     {
         advanced = false; slot = 0;
-        if (t == "advancedgpurack") { advanced = true; return true; }
-        if (t == "gpurack-1") { slot = 1; return true; }
-        if (t == "gpurack-2") { slot = 2; return true; }
+        if (t == "adv") { advanced = true; return true; }
+        if (t == "std-1") { slot = 1; return true; }
+        if (t == "std-2") { slot = 2; return true; }
         return false;
     }
     public static bool CanLinkToDeclaredSlot(bool advanced, int slot, IReadOnlyList<LpBitcoinRackEntity> linked, out string error) { error = null; return true; }
     public static bool CanLinkRackToHub(LpBitcoinRackEntity rack, IReadOnlyList<LpBitcoinRackEntity> linked, out string error) { error = null; return true; }
     public static string FormatRackSlotDisplayName(LpBitcoinRackEntity rack, IReadOnlyList<LpBitcoinRackEntity> linked) => "GPU Rack " + linked.Count;
-    public static string FormatDeclaredLinkSlotToken(bool advanced, int slot) => advanced ? "advancedgpurack" : "gpurack-" + slot;
+    public static string FormatDeclaredLinkSlotToken(bool advanced, int slot) => advanced ? "adv" : "std-" + slot;
 }
 public static class LifePunchEntityOwnership
 {
@@ -225,24 +265,24 @@ public static class LinkControls
         // (a) the two branches HUB-WIRING-1 revived: no terminal, and hub power off, on both link paths.
         s = NewScene(); hub = AddHub(s, "Hub", 7, powered: true, terminal: false); Call(hub, "LinkNearbyRackHost");
         Neg(hub.Alerts.Count == 1 && Said(hub, "terminal"), "LinkNearbyRackHost pushes an alert on the no-terminal path");
-        s = NewScene(); hub = AddHub(s, "Hub", 7, powered: true, terminal: false); Call(hub, "LinkRackByTokenHost", "gpurack-1");
+        s = NewScene(); hub = AddHub(s, "Hub", 7, powered: true, terminal: false); Call(hub, "LinkRackByTokenHost", "std-1");
         Neg(hub.Alerts.Count == 1 && Said(hub, "terminal"), "LinkRackByTokenHost pushes an alert on the no-terminal path");
         s = NewScene(); hub = AddHub(s, "Hub", 7, powered: false, terminal: true); Call(hub, "LinkNearbyRackHost");
         Neg(hub.Alerts.Count == 1 && Said(hub, "power"), "LinkNearbyRackHost pushes an alert on the power-off path");
-        s = NewScene(); hub = AddHub(s, "Hub", 7, powered: false, terminal: true); Call(hub, "LinkRackByTokenHost", "gpurack-1");
+        s = NewScene(); hub = AddHub(s, "Hub", 7, powered: false, terminal: true); Call(hub, "LinkRackByTokenHost", "std-1");
         Neg(hub.Alerts.Count == 1 && Said(hub, "power"), "LinkRackByTokenHost pushes an alert on the power-off path");
         var silent = true;
         foreach (var powered in new[] { true, false })
         foreach (var terminal in new[] { true, false })
         {
             s = NewScene(); hub = AddHub(s, "Hub", 7, powered, terminal); hub.CanManage = false; AddRack(s, 7);
-            Call(hub, "LinkNearbyRackHost"); Call(hub, "LinkRackByTokenHost", "gpurack-1");
+            Call(hub, "LinkNearbyRackHost"); Call(hub, "LinkRackByTokenHost", "std-1");
             silent &= hub.Alerts.Count == 0 && hub.Linked.Count == 0;
         }
         Ctl(silent, "a caller who cannot manage the hub gets silence and links nothing, in all four power/terminal states");
         s = NewScene(); hub = AddHub(s, "Hub", 7); AddRack(s, 7); Call(hub, "LinkNearbyRackHost");
         Ctl(hub.Linked.Count == 1 && Said(hub, "linked"), "LinkNearbyRackHost still links an owned rack in range");
-        s = NewScene(); hub = AddHub(s, "Hub", 7); AddRack(s, 7); Call(hub, "LinkRackByTokenHost", "gpurack-1");
+        s = NewScene(); hub = AddHub(s, "Hub", 7); AddRack(s, 7); Call(hub, "LinkRackByTokenHost", "std-1");
         Ctl(hub.Linked.Count == 1 && Said(hub, "linked"), "LinkRackByTokenHost still links an owned rack in range");
 
         // (b) preview hubs (LpBitcoinPreview*) are scaffolding, never an operator's real hub.
@@ -254,7 +294,7 @@ public static class LinkControls
         Neg(!(bool)Call(real, "RefuseIfOwnerHasAnotherActiveHub"), "a leftover preview hub does not trip the one-hub-per-operator refusal");
         s = NewScene(); real = AddHub(s, "Hub", 7); other = AddHub(s, "Hub2", 7);
         Ctl((bool)Call(real, "RefuseIfOwnerHasAnotherActiveHub") && Said(real, "One active HASHD hub"), "a second real hub of the same owner is still refused");
-        s = NewScene(); AddHub(s, "LpBitcoinPreviewHub", 7); hub = AddHub(s, "Hub", 7); AddRack(s, 7); Call(hub, "LinkRackByTokenHost", "gpurack-1");
+        s = NewScene(); AddHub(s, "LpBitcoinPreviewHub", 7); hub = AddHub(s, "Hub", 7); AddRack(s, 7); Call(hub, "LinkRackByTokenHost", "std-1");
         Neg(hub.Linked.Count == 1 && !Said(hub, "One active HASHD hub"), "a leftover preview hub no longer blocks the real hub from linking a rack");
 
         // (c) Owner == 0 racks reach the claim recovery; a rack owned by someone else does not.
@@ -331,6 +371,7 @@ public static class LifePunchMenuInteractGate
 {
     public static bool Allowed = true;
     public static bool IsCallerAllowed(Connection caller, GameObject target) => Allowed;
+    public static bool IsCallerAllowedTerminal(Connection caller, GameObject target) => Allowed;
 }
 public static class LifePunchPropPhysics
 {
@@ -431,6 +472,106 @@ public static class TerminalControls
         Console.WriteLine($"Terminal controls: {negTotal + ctlTotal - negFail - ctlFail}/{negTotal + ctlTotal} checks passed " +
             $"({negFail}/{negTotal} negative controls failing, {ctlFail}/{ctlTotal} regression guards failing)");
         return negFail + ctlFail == 0 ? 0 : 1;
+    }
+}
+""";
+
+    // The opt-in bounds-based terminal reach (HUB-WIRING-2 U3), run on SYNTHETIC bounds with the real range constants.
+    // NEW = a check on the added method itself: it fails on the develop blobs only because the method does not exist there.
+    // The one NEG check is the geometry: a pivot-centred desk terminal the pivot reach refuses and the bounds reach admits.
+    const string GateTemplate = """
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+namespace GateSubject;
+
+public enum FindMode { EverythingInSelfAndDescendants }
+public struct Vector3
+{
+    public float x, y, z;
+    public Vector3(float x, float y, float z) { this.x = x; this.y = y; this.z = z; }
+    public static Vector3 operator -(Vector3 a, Vector3 b) => new Vector3(a.x - b.x, a.y - b.y, a.z - b.z);
+    public float Length => MathF.Sqrt(x * x + y * y + z * z);
+}
+public struct BBox
+{
+    public Vector3 Mins, Maxs;
+    public Vector3 ClosestPoint(Vector3 p) => new Vector3(Math.Clamp(p.x, Mins.x, Maxs.x), Math.Clamp(p.y, Mins.y, Maxs.y), Math.Clamp(p.z, Mins.z, Maxs.z));
+}
+public sealed class ModelRenderer { public BBox Bounds; }
+public sealed class ComponentList { public ModelRenderer Renderer; public T Get<T>(FindMode mode) where T : class => Renderer as T; }
+public sealed class GameObject { public Vector3 WorldPosition; public ComponentList Components = new(); }
+public static class Validity { public static bool IsValid(this ModelRenderer r) => r is not null; }
+public static class LifePunchMenuInteractRange
+{
+    RANGE_MEMBERS
+}
+public static class LifePunchMenuInteractGate
+{
+    GATE_METHODS
+}
+public static class GateControls
+{
+    static int negTotal, negFail, newTotal, newFail;
+    static void Neg(bool ok, string name) { negTotal++; if (!ok) negFail++; Console.WriteLine((ok ? "PASS NEG " : "FAIL NEG ") + name); }
+    static void New(bool ok, string name) { newTotal++; if (!ok) newFail++; Console.WriteLine((ok ? "PASS NEW " : "FAIL NEW ") + name); }
+    // null = the method is not in the tree under test.
+    static bool? Reach(Vector3 viewer, GameObject target)
+    {
+        var m = typeof(LifePunchMenuInteractGate).GetMethod("IsTerminalTargetInOpenRange", BindingFlags.NonPublic | BindingFlags.Static);
+        return m is null ? null : (bool)m.Invoke(null, new object[] { viewer, target });
+    }
+    // A terminal whose world bounds are a cube of the given size around 'center' and whose pivot is 'pivot'.
+    static GameObject Terminal(Vector3 pivot, Vector3 center, float size, bool renderer = true)
+    {
+        var go = new GameObject { WorldPosition = pivot };
+        if (renderer)
+        {
+            var h = size / 2f;
+            go.Components.Renderer = new ModelRenderer { Bounds = new BBox { Mins = new Vector3(center.x - h, center.y - h, center.z - h), Maxs = new Vector3(center.x + h, center.y + h, center.z + h) } };
+        }
+        return go;
+    }
+
+    public static int Run()
+    {
+        // Inches: a desk top at 29 u, a 12 u terminal standing on it with its pivot at the centre of the model (z 35).
+        var desk = Terminal(new Vector3(0, 0, 35), new Vector3(0, 0, 35), 12f);
+        var viewer = new Vector3(30, 0, 0); // standing at the desk, feet on the floor
+        var pivotReach = LifePunchMenuInteractRange.IsInOpenRange(viewer, desk.WorldPosition);
+        Neg(!pivotReach && Reach(viewer, desk) == true, "a desk terminal with a centred pivot is out of pivot reach but inside bounds reach");
+        var tallDesk = Terminal(new Vector3(0, 0, 46), new Vector3(0, 0, 46), 12f);
+        New(Reach(viewer, tallDesk) == false, "bounds reach is still bounded vertically (box bottom at 40 u from the feet is refused)");
+        New(Reach(new Vector3(80, 0, 0), desk) == false, "bounds reach is still bounded horizontally (a viewer 80 u away is refused)");
+
+        var violations = 0; var pivotPasses = 0; var boundsPasses = 0;
+        for (var x = -100; x <= 100; x += 5)
+        for (var y = -100; y <= 100; y += 5)
+        foreach (var z in new[] { -20f, 0f, 20f, 40f })
+        {
+            var v = new Vector3(x, y, z);
+            var byPivot = LifePunchMenuInteractRange.IsInOpenRange(v, desk.WorldPosition);
+            var byBounds = Reach(v, desk) == true;
+            if (byPivot) pivotPasses++;
+            if (byBounds) boundsPasses++;
+            if (byPivot && !byBounds) violations++;
+        }
+        New(violations == 0 && pivotPasses > 0 && boundsPasses >= pivotPasses, $"bounds reach is never narrower than pivot reach when the pivot is inside the bounds (pivot {pivotPasses}, bounds {boundsPasses} of the sampled viewers)");
+
+        var noRenderer = Terminal(new Vector3(0, 0, 35), new Vector3(0, 0, 35), 12f, renderer: false);
+        var same = true;
+        for (var x = -60; x <= 60; x += 5)
+        foreach (var z in new[] { 0f, 20f, 35f })
+        {
+            var v = new Vector3(x, 10, z);
+            same &= Reach(v, noRenderer) == LifePunchMenuInteractRange.IsInOpenRange(v, noRenderer.WorldPosition);
+        }
+        New(same, "a terminal without a renderer falls back to exactly the pivot check");
+
+        Console.WriteLine($"Gate controls: {negTotal + newTotal - negFail - newFail}/{negTotal + newTotal} checks passed " +
+            $"({negFail}/{negTotal} negative controls failing, {newFail}/{newTotal} added-method checks failing)");
+        return negFail + newFail == 0 ? 0 : 1;
     }
 }
 """;

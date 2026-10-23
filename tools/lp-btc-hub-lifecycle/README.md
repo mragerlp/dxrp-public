@@ -48,6 +48,17 @@ and `LifePunchPropPhysics.cs` blobs to the scratch folder to see those controls 
 It models tags and broadcasts as counters; it does not prove that the engine's Hands
 equipment then lets E reach the menu.
 
+## Opt-in terminal reach (HUB-WIRING-2 U3)
+
+`LifePunchMenuInteractGate.IsTerminalTargetInOpenRange` is run with the real
+`LifePunchMenuInteractRange` constants and `IsInOpenRange` on synthetic bounds (inches,
+feet at z = 0). The one `NEG` check is the geometry: a 12 u terminal on a 29 u desk with
+its pivot at the model centre is out of the pivot reach and inside the bounds reach. The
+`NEW` checks fail on the develop blobs only because the method does not exist there;
+they pin that the reach stays bounded in both axes, is never narrower than the pivot
+reach, and falls back to the pivot check without a renderer. The model's real pivot and
+bounds are not known offline, so the sizes are an assumption.
+
 A method the slice added (for example `IsDevPreviewHub`) is simply absent from the
 develop blobs; the controls that need it fail rather than crash. The claim recovery in
 `TryClaimLinkableEquipment` is a stand-in, since it is not part of that slice.

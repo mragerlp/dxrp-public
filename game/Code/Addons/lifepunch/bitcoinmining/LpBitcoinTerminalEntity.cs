@@ -343,7 +343,7 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 	}
 
 	public bool CanPress( IPressable.Event e )
-		=> IsLinkedToHub() && LifePunchMenuInteractGate.CanPressMenu( GameObject );
+		=> IsLinkedToHub() && LifePunchMenuInteractGate.CanPressTerminalMenu( GameObject );
 
 	public bool Press( IPressable.Event e )
 	{
@@ -360,10 +360,10 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 	private void OpenTerminalHost()
 	{
 #if !LIFEPUNCH_LOCAL
-		if ( !LifePunchMenuInteractGate.IsCallerAllowed( Rpc.Caller, GameObject ) )
+		if ( !LifePunchMenuInteractGate.IsCallerAllowedTerminal( Rpc.Caller, GameObject ) )
 			return;
 #else
-		if ( !LifePunchMenuInteractGate.IsCallerAllowed( null, GameObject ) )
+		if ( !LifePunchMenuInteractGate.IsCallerAllowedTerminal( null, GameObject ) )
 			return;
 #endif
 
