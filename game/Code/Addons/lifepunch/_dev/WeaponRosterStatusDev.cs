@@ -8,6 +8,7 @@ using System;
 using System.Linq;
 using Dxura.RP.Game;
 using Sandbox;
+using LockpickConst = LifePunch.DXRP.Addons.Lockpick.Lockpick;
 
 namespace LifePunch.DXRP.Addons.Dev;
 
@@ -19,13 +20,15 @@ namespace LifePunch.DXRP.Addons.Dev;
 public static class WeaponRosterStatusDev
 {
 	private const string Command = "lp_weapon_roster_status";
+	private const string NoGameModeName = "None";
 
 	private sealed record Candidate(
 		string Name,
 		string WorldPrefabPath,
 		string ViewPrefabPath,
 		Guid? ExpectedContentId = null,
-		Guid? EditorContentId = null );
+		Guid? EditorContentId = null,
+		bool PrefabsKnownAbsent = false );
 
 	private static readonly Candidate[] Candidates =
 	[
@@ -42,7 +45,8 @@ public static class WeaponRosterStatusDev
 			"AKS-74U Original",
 			"addons/lifepunch/lpweapons/aks74ucovert/equipment/w_aks74u_original/w_aks74u_original.prefab",
 			"addons/lifepunch/lpweapons/aks74ucovert/equipment/vm_aks74u_original/vm_aks74u_original.prefab",
-			EditorContentId: Aks74uOriginalDevRoster.EditorContentId ),
+			EditorContentId: Aks74uOriginalDevRoster.EditorContentId,
+			PrefabsKnownAbsent: true ),
 		new(
 			"AR-15",
 			"addons/lifepunch/lpweapons/ar15/equipment/w_ar15/w_ar15.prefab",
@@ -66,7 +70,12 @@ public static class WeaponRosterStatusDev
 		new(
 			"M870",
 			"addons/lifepunch/lpweapons/m870/equipment/w_m870/w_m870.prefab",
-			"addons/lifepunch/lpweapons/m870/equipment/vm_m870/vm_m870.prefab" )
+			"addons/lifepunch/lpweapons/m870/equipment/vm_m870/vm_m870.prefab" ),
+		new(
+			"Lockpick",
+			LockpickConst.WorldPrefabPath,
+			LockpickConst.ViewModelPrefabPath,
+			LockpickDevGive.LockpickEquipmentId )
 	];
 
 	[ConCmd( Command )]
@@ -84,6 +93,26 @@ public static class WeaponRosterStatusDev
 			return;
 		}
 
+		var config = Config.Current;
+		var gameMode = config?.GameMode;
+		if ( gameMode is null || gameMode.Equipments is null || gameMode.MarketItems is null )
+		{
+			Log.Warning( $"LP_WEAPON_ROSTER_UNAVAILABLE reason=gameModeNotInitialized command={Command}" );
+			return;
+		}
+
+		// "None" is the placeholder game mode (Config.OnStartConfig, and the public-default fallback when
+		// the fetch fails): its lists are empty by construction, so a zero count there is not a roster reading.
+		if ( !config!.IsReady || string.Equals( gameMode.Name, NoGameModeName, StringComparison.Ordinal ) )
+		{
+			Log.Warning(
+				$"LP_WEAPON_ROSTER_UNAVAILABLE reason=gameModeNotLoaded command={Command} " +
+				$"gameModeName=\"{gameMode.Name}\" isReady={config.IsReady}" );
+			return;
+		}
+
+		var equipmentRows = gameMode.Equipments;
+		var marketItems = gameMode.MarketItems;
 		var rosterReady = 0;
 		var marketReady = 0;
 
@@ -93,7 +122,7 @@ public static class WeaponRosterStatusDev
 			var viewPrefab = GameObject.GetPrefab( candidate.ViewPrefabPath );
 			var viewAssetReady = viewPrefab.IsValid() &&
 				viewPrefab.Components.Get<ViewModel>().IsValid();
-			var matchingEquipmentRows = GameModeEquipments.All
+			var matchingEquipmentRows = equipmentRows
 				.Where( row => string.Equals(
 					row.PrefabPath(),
 					candidate.WorldPrefabPath,
@@ -102,7 +131,7 @@ public static class WeaponRosterStatusDev
 			var rosterRowReady = matchingEquipmentRows.Length == 1;
 			var equipment = rosterRowReady ? matchingEquipmentRows[0] : null;
 			var matchingContentRows = rosterRowReady
-				? GameModeEquipments.All
+				? equipmentRows
 					.Where( row => row.GameModeAddonContentId ==
 						equipment!.GameModeAddonContentId )
 					.ToArray()
@@ -125,22 +154,24 @@ public static class WeaponRosterStatusDev
 			var matchingEquipmentRowIds = matchingEquipmentRows
 				.Select( row => row.Id )
 				.ToHashSet();
-			var marketRows = GameModeMarketItems.All
+			var marketRows = marketItems
 				.Where( item => item.Type == GameModeMarketItemType.Equipment &&
 					item.ReferenceId.HasValue &&
 					matchingEquipmentRowIds.Contains( item.ReferenceId.Value ) )
 				.ToArray();
 			var spawnableRows = marketRows.Count( GameModeMarketItems.IsSpawnable );
 			var firstMissingRequirement =
-				!worldAssetReady || !rosterRowReady ? "worldPrefab" :
+				!worldAssetReady ? (candidate.PrefabsKnownAbsent ? "prefabsAbsent" : "worldPrefab") :
+				!rosterRowReady ? "equipmentRow" :
 				!viewAssetReady || !secondaryReady ? "viewPrefab" :
 				!contentIdReady ? "uniqueContentMapping" :
 				spawnableRows == 0 ? "marketRow" :
 				"none";
 
+			var injectedRow = rosterRowReady && WeaponRosterEditorInject.IsInjectedRow( equipment! );
 			var readyForEquip = worldAssetReady && viewAssetReady && rosterRowReady &&
 				contentIdReady && secondaryReady;
-			var readyForMarket = readyForEquip && !editorInjected && spawnableRows > 0;
+			var readyForMarket = readyForEquip && !editorInjected && !injectedRow && spawnableRows > 0;
 			if ( readyForEquip ) rosterReady++;
 			if ( readyForMarket ) marketReady++;
 
@@ -161,7 +192,7 @@ public static class WeaponRosterStatusDev
 				$"matchingContentRows={matchingContentRows.Length} " +
 				$"contentIdUnique={contentIdUnique} " +
 				$"expectedContentIdMatch={expectedContentIdReady} contentIdMatch={contentIdReady} " +
-				$"editorInjected={editorInjected} " +
+				$"editorInjected={editorInjected} injectedRow={injectedRow} " +
 				$"secondaryMatch={secondaryReady} marketRows={marketRows.Length} " +
 				$"spawnableMarketRows={spawnableRows} firstMissing={firstMissingRequirement} " +
 				$"contentId={contentId} " +
@@ -171,6 +202,7 @@ public static class WeaponRosterStatusDev
 
 		Log.Info(
 			$"LP_WEAPON_ROSTER_SUMMARY candidates={Candidates.Length} " +
-			$"equipReady={rosterReady} marketReady={marketReady}" );
+			$"equipReady={rosterReady} marketReady={marketReady} " +
+			$"gameModeName=\"{gameMode.Name}\" isReady={config.IsReady}" );
 	}
 }
