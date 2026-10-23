@@ -8,46 +8,55 @@
 // at workbench HEAD d9c08031). Names kept so every tab sheet compiles unchanged.
 // FLAG: $lp-blue follows ULX (#1689ff), not LIFEPUNCH_UI_STANDARD (#017AEF);
 // canon question recorded in docs/superpowers/specs/2026-10-16-playerhub-ulx-btc-design.md.
+//
+// 2026-10-23 PLAYERHUB-THEME-1: every colour with a ULX twin now points at
+// lifepunchcore/LpUiTokens.scss (the ULX palette, values verbatim). Names, sizes,
+// radii and spacing are unchanged. Ruling (Bloodwave, 2026-10-23 16:07 ET): the
+// player hub takes lifepunch.ulx's native colouring. This supersedes the
+// BH-BRAND-1 #0000FF core for UI chrome only; the brand wordmark hex is R-T1-1.
 // -----------------------------------------------------------------------------
 
-$canvas: #0f1011;
-$bg: #17181a;
-$surface: #1e1f21;
-$surface-inset: #1e1f21;
-$card-header: #272829;
-$border: #343536;
+@import "../../../lifepunchcore/LpUiTokens.scss";
 
-$lp-blue: #1689ff;
-$lp-blue-hover: #55aaff;
+$canvas: $lpui-canvas;
+$bg: $lpui-shell;
+$surface: $lpui-surface;
+$surface-inset: $lpui-surface;
+$card-header: $lpui-surface-raised;
+$border: $lpui-border;
+
+$lp-blue: $lpui-blue;
+$lp-blue-hover: $lpui-blue-highlight;
 // BH-BRAND-1 (2026-10-18): product accents from the brand folder colour table
 // (cavelux brand-intake lifepunch-branding BRAND-SPEC.md): .hub #0000FF, .btc #FF7B00,
 // .banker #228B22. Ruling BH-Q2: the core carries chrome, glow, borders and headers;
 // the -text tint (same hue, lighter, >= 4.5:1 on $bg and $surface) carries small text.
 // $lp-blue stays for ULX parity; the three hubs no longer read it.
-$hub-core: #0000ff;
-$hub-text: #8080ff;
-$hub-hover: #3333ff;
+// PLAYERHUB-THEME-1: the hub trio below follows ULX (accent, accent text, accent hover).
+$hub-core: $lpui-blue;
+$hub-text: $lpui-blue-highlight;
+$hub-hover: $lpui-blue-highlight;
 $btc-core: #ff7b00;
 $btc-text: #ff8f26;
 $banker-core: #228b22;
 $banker-text: #4ea24e;
 
 // Shared primitive alphas follow the Player Hub (.hub), the only shell that uses them.
-$accent-soft: rgba(0, 0, 255, 0.09);
-$accent-soft-strong: rgba(0, 0, 255, 0.14);
-$accent-focus: rgba(0, 0, 255, 0.28);
+$accent-soft: rgba($lpui-blue, 0.09);
+$accent-soft-strong: rgba($lpui-blue, 0.14);
+$accent-focus: rgba($lpui-blue, 0.28);
 
-$text-main: #e4e6e8;
-$text-dim: #8d8f90;
-$good: #199c3b;
-$bad: #c05f5f;
-$amber: #d99a3f;
+$text-main: $lpui-text;
+$text-dim: $lpui-muted;
+$good: $lpui-success;
+$bad: $lpui-danger;
+$amber: $lpui-amber;
 $btc: #f7931a;
 $cash: #5fd38d;
-$good-soft: rgba(25, 156, 59, 0.14);
-$bad-soft: rgba(192, 95, 95, 0.14);
-$dim-soft: rgba(141, 143, 144, 0.08);
-$dim-soft-strong: rgba(141, 143, 144, 0.14);
+$good-soft: rgba($good, 0.14);
+$bad-soft: rgba($bad, 0.14);
+$dim-soft: rgba($text-dim, 0.08);
+$dim-soft-strong: rgba($text-dim, 0.14);
 
 $font-mono: "Roboto Mono", "Courier New", monospace;
 
