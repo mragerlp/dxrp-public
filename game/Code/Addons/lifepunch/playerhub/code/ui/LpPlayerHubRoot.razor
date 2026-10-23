@@ -141,6 +141,20 @@
 				Hint: "Browse the fixture catalog",
 				Enabled: true,
 				OnSelected: () => SetTab( LpPlayerHubTab.Store )),
+			new LpHubActionVm(
+				Id: "tags",
+				Label: "Open tags",
+				Icon: "label",
+				Hint: "Your tags and titles",
+				Enabled: true,
+				OnSelected: OpenTagsDoor),
+			new LpHubActionVm(
+				Id: "serverhub",
+				Label: "Server hub",
+				Icon: "dns",
+				Hint: "Jobs and server info",
+				Enabled: true,
+				OnSelected: OpenServerHubDoor),
 		});
 
 	private LpBtcVm BtcModel => LpPlayerHubBtcSource.Build( StateHasChanged );
@@ -232,6 +246,42 @@
 	}
 
 	private void Close() => LpPlayerHubHost.RequestClose();
+
+	// Overview doors. Each hands over to the other menu's own host entry point (no new ConCmd, no HASHD door: a remote
+	// HASHD open would skip the in-world range gate). The hub closes FIRST so the target menu captures a released camera
+	// lock instead of this hub's locked one, and a target that is already open is left alone because Toggle() would
+	// close it. The try/catch keeps a failing host from taking this click handler down with it.
+	private static void OpenTagsDoor()
+	{
+		try
+		{
+			if ( LifePunch.DXRP.Addons.Tags.LpTagsMenuHost.IsOpen )
+				return;
+
+			LpPlayerHubHost.RequestClose();
+			LifePunch.DXRP.Addons.Tags.LpTagsMenuHost.Toggle();
+		}
+		catch ( Exception e )
+		{
+			Log.Warning( "[playerhub] tags door failed: " + e.Message );
+		}
+	}
+
+	private static void OpenServerHubDoor()
+	{
+		try
+		{
+			if ( LifePunch.DXRP.Addons.ServerHub.LpServerHubHost.IsOpen )
+				return;
+
+			LpPlayerHubHost.RequestClose();
+			LifePunch.DXRP.Addons.ServerHub.LpServerHubHost.Toggle();
+		}
+		catch ( Exception e )
+		{
+			Log.Warning( "[playerhub] serverhub door failed: " + e.Message );
+		}
+	}
 
 	protected override void OnStart()
 	{

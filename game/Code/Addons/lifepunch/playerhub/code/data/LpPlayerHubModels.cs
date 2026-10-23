@@ -24,12 +24,15 @@ public enum LpPlayerHubTab
 /// The $BTC tab model. LIVE: built every render by <see cref="LpPlayerHubBtcSource"/> from the
 /// viewer's Bitcoin Hub and its linked racks. Display strings are formatted on the data side so
 /// the view cannot invent a precision or a sign. Actions call EXISTING host rails only.
+/// <c>TerminalLinked</c> is read-only state (<c>hub.HasLinkedTerminal()</c>): the host refuses a deposit
+/// without a linked terminal, so the view disables Deposit and says why instead of looking live.
 /// </summary>
 public sealed record LpBtcVm(
 	bool HasHub,
 	bool IsPowered,
 	bool PinSet,
 	bool CanManage,
+	bool TerminalLinked,
 	string WalletBtc,
 	string WalletUsd,
 	string PendingBtc,

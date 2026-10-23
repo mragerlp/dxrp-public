@@ -28,6 +28,11 @@ public static class LpPlayerHubBtcSource
 
 	private const string BtcFormat = "F6";
 
+	// Parity with HASHD (LpHashdPanel): a rack's BTC is shown at F4 and its rate as TH/s via the cosmetic x18.5
+	// display factor. HASHD is the in-world authority for these units until the principal rules otherwise.
+	private const string RackBtcFormat = "F4";
+	private const float HashdRateFactor = 18.5f;
+
 	public static LpBitcoinHubEntity FindLocalHub()
 	{
 		var steamId = Game.SteamId;
@@ -48,6 +53,8 @@ public static class LpPlayerHubBtcSource
 		var hash = new HashCode();
 		hash.Add( hub.IsPowered );
 		hash.Add( hub.AccessPinIsSet );
+		hash.Add( hub.HasLinkedTerminal() );
+		hash.Add( LpBitcoinEconomy.PortalEconomyRevision );
 		hash.Add( (long)(hub.HubWalletBtc * 100_000_000f) );
 		foreach ( var rack in hub.GetLinkedRacks() )
 		{
@@ -70,6 +77,7 @@ public static class LpPlayerHubBtcSource
 				IsPowered: false,
 				PinSet: false,
 				CanManage: false,
+				TerminalLinked: false,
 				WalletBtc: 0f.ToString( BtcFormat ),
 				WalletUsd: "0",
 				PendingBtc: 0f.ToString( BtcFormat ),
@@ -92,10 +100,10 @@ public static class LpPlayerHubBtcSource
 			racks.Add( new LpBtcRackVm(
 				Id: r.GameObject.Id.ToString(),
 				Label: LpBitcoinIdent.FormatRackSlotDisplayName( r, linked ),
-				TierLabel: "TIER " + LpBitcoinIdent.RomanTier( r.ComputeTier ),
+				TierLabel: r.ComputeTier > 0 ? "TIER " + LpBitcoinIdent.RomanTier( r.ComputeTier ) : "STOCK",
 				ClockLabel: $"{r.ClockGhz:0.0} GHz x {r.CoreCount}",
-				RateLabel: r.MiningRatePerMinute.ToString( BtcFormat ) + "/min",
-				MinedBtc: r.BitcoinAmount.ToString( BtcFormat ),
+				RateLabel: $"{r.MiningRatePerMinute * HashdRateFactor:F1} TH/s",
+				MinedBtc: r.BitcoinAmount.ToString( RackBtcFormat ),
 				MinedUsd: r.UsdValue.ToString( "N0" ),
 				IsMining: r.IsMining,
 				Advanced: r.AdvancedRack,
@@ -110,11 +118,19 @@ public static class LpPlayerHubBtcSource
 
 		var pending = hub.GetRackPendingBtc();
 		var h = hub;
+		var terminalLinked = h.HasLinkedTerminal();
+		var note = h.IsPowered
+			? "Hub powered. Racks mine while switched on; deposit moves mined BTC into the hub wallet."
+			: "Hub is off. Racks stop when the hub powers down; switch it on to mine.";
+		if ( !terminalLinked )
+			note += " No terminal is linked to this hub, so Deposit all is off until you link your terminal at the hub.";
+
 		return new LpBtcVm(
 			HasHub: true,
 			IsPowered: h.IsPowered,
 			PinSet: h.AccessPinIsSet,
 			CanManage: true,
+			TerminalLinked: terminalLinked,
 			WalletBtc: h.HubWalletBtc.ToString( BtcFormat ),
 			WalletUsd: LpBitcoinEconomy.BtcToCashUsd( h.HubWalletBtc ).ToString( "N0" ),
 			PendingBtc: pending.ToString( BtcFormat ),
@@ -130,6 +146,8 @@ public static class LpPlayerHubBtcSource
 			DepositAll: () =>
 			{
 				if ( !h.IsValid() ) return;
+				// The host drops a deposit when no terminal is linked; do not click-and-wait on a no-op.
+				if ( !h.HasLinkedTerminal() ) return;
 				Click();
 				h.RequestDepositRacksToHub();
 				onChanged?.Invoke();
@@ -141,9 +159,7 @@ public static class LpPlayerHubBtcSource
 				h.RequestCashOutAllHub();
 				onChanged?.Invoke();
 			},
-			Note: h.IsPowered
-				? "Hub powered. Racks mine while switched on; deposit moves mined BTC into the hub wallet."
-				: "Hub is off. Racks stop when the hub powers down; switch it on to mine.");
+			Note: note);
 	}
 
 	// UI click until CC-ASSETS-1 ships a dedicated switch sound; the world-side on/off sounds hang off entity state.

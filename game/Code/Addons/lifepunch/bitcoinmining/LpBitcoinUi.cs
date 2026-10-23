@@ -46,10 +46,23 @@ internal static class LpBitcoinUi
 			return null;
 
 		var existing = scene.GetAllComponents<LpBitcoinHubEntity>()
-			.FirstOrDefault( h => h.IsValid() && !h.GameObject.Name.StartsWith( "LpBitcoinPreview" ) );
+			.FirstOrDefault( h => h.IsValid() && !LpBitcoinHubEntity.IsDevPreviewHub( h ) );
 
 		if ( existing.IsValid() )
 			return existing;
+
+		// Reuse the preview hub a previous call made: the lookup above skips preview objects, so without this every
+		// call minted another one, and a leftover owner-bound preview hub blocks the operator's real hub from linking racks.
+		var preview = scene.GetAllComponents<LpBitcoinHubEntity>()
+			.FirstOrDefault( LpBitcoinHubEntity.IsDevPreviewHub );
+
+		if ( preview.IsValid() )
+		{
+			if ( withSampleRacks )
+				EnsureSampleRacks( scene, preview );
+
+			return preview;
+		}
 
 		var go = scene.CreateObject();
 		go.Name = "LpBitcoinPreviewHub";
