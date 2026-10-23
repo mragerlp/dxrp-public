@@ -168,9 +168,10 @@ public static class WeaponRosterStatusDev
 				spawnableRows == 0 ? "marketRow" :
 				"none";
 
+			var injectedRow = rosterRowReady && WeaponRosterEditorInject.IsInjectedRow( equipment! );
 			var readyForEquip = worldAssetReady && viewAssetReady && rosterRowReady &&
 				contentIdReady && secondaryReady;
-			var readyForMarket = readyForEquip && !editorInjected && spawnableRows > 0;
+			var readyForMarket = readyForEquip && !editorInjected && !injectedRow && spawnableRows > 0;
 			if ( readyForEquip ) rosterReady++;
 			if ( readyForMarket ) marketReady++;
 
@@ -191,7 +192,7 @@ public static class WeaponRosterStatusDev
 				$"matchingContentRows={matchingContentRows.Length} " +
 				$"contentIdUnique={contentIdUnique} " +
 				$"expectedContentIdMatch={expectedContentIdReady} contentIdMatch={contentIdReady} " +
-				$"editorInjected={editorInjected} " +
+				$"editorInjected={editorInjected} injectedRow={injectedRow} " +
 				$"secondaryMatch={secondaryReady} marketRows={marketRows.Length} " +
 				$"spawnableMarketRows={spawnableRows} firstMissing={firstMissingRequirement} " +
 				$"contentId={contentId} " +
