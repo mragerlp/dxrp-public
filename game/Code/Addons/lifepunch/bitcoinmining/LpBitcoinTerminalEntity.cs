@@ -61,6 +61,10 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 	private string _cachedScreenText;
 	private bool _occluded;
 
+	/// <summary>Hub-off alerts are rate limited so mashing E on a dead terminal cannot flood the hub's alert feed.</summary>
+	private const float HubOffAlertCooldownSeconds = 3f;
+	private float _hubOffAlertAfter;
+
 	protected override void OnAwake()
 	{
 		// Collider sync after spawn grace in OnFixedUpdate (printer-style drop).
@@ -124,10 +128,10 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 		if ( !Networking.IsHost )
 			return;
 
-		LifePunchPropPhysics.MaintainGrabbablePlaceableProp( GameObject );
-
 		if ( _spawnDropGraceTicks > 0 )
 		{
+			// Spawn settle keeps the printer-style per-tick upkeep; it is bounded to the grace window.
+			LifePunchPropPhysics.MaintainGrabbablePlaceableProp( GameObject );
 			_spawnDropGraceTicks--;
 			return;
 		}
@@ -161,10 +165,18 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 	{
 		var hub = FindLinkedHub();
 		var menuGoverns = hub.IsValid() && hub.IsPowered;
+		var edge = _grabGateMenuGoverns != menuGoverns;
 
-		if ( _grabGateMenuGoverns == menuGoverns )
-			return; // no edge — do not re-broadcast tags every tick
+		// Steady state with nothing stuck: touch no tags and broadcast nothing. OnFixedUpdate used to run
+		// MaintainGrabbablePlaceableProp on every host tick, and that ends by re-adding hands_interact (tag + broadcast),
+		// which undid the Deny below one tick after every edge. A powered terminal therefore stayed Hands-grabbable and
+		// Hands + E grabbed it instead of opening the menu.
+		if ( !edge && !HasStuckGrabTags() )
+			return;
 
+		// The upkeep (clears stuck grabbed / no_collide / playerclip tags) runs only when there is something to clear,
+		// on an edge or a stuck tag; the gate is re-asserted straight after it so the upkeep cannot leave the tag behind.
+		LifePunchPropPhysics.MaintainGrabbablePlaceableProp( GameObject );
 		_grabGateMenuGoverns = menuGoverns;
 
 		if ( menuGoverns )
@@ -172,11 +184,23 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 		else
 			LifePunchPropPhysics.AllowHandsGrabTags( GameObject );
 
+		if ( !edge )
+			return;
+
 		Log.Info(
 			$"LP_TERMINAL_GRAB_GATE menuGoverns={menuGoverns} linked={hub.IsValid()} " +
 			$"hubPowered={( hub.IsValid() ? hub.IsPowered.ToString() : "n/a" )} " +
 			$"hands_interact={GameObject.Tags.Has( "hands_interact" )}" );
 	}
+
+	/// <summary>The conditions under which <c>MaintainGrabbablePlaceableProp</c> has a stuck tag to clear (it strips
+	/// grabbed and no_collide outright, and playerclip once its CollideGuard is gone). Mirrored here so the upkeep is
+	/// not run, and hands_interact not re-broadcast, on ticks where it would do nothing.</summary>
+	private bool HasStuckGrabTags()
+		=> GameObject.Tags.Has( LifePunchPropPhysics.GrabbedTag )
+		|| GameObject.Tags.Has( LifePunchPropPhysics.NoCollideTag )
+		|| ( GameObject.Tags.Has( LifePunchPropPhysics.PlayerClipTag )
+			&& !GameObject.Components.Get<CollideGuard>( FindMode.EverythingInSelf ).IsValid() );
 
 	public void ApplyAreaDamage( AreaDamage component )
 	{
@@ -319,7 +343,7 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 	}
 
 	public bool CanPress( IPressable.Event e )
-		=> IsLinkedToHub() && LifePunchMenuInteractGate.CanPressMenu( GameObject );
+		=> IsLinkedToHub() && LifePunchMenuInteractGate.CanPressTerminalMenu( GameObject );
 
 	public bool Press( IPressable.Event e )
 	{
@@ -336,10 +360,10 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 	private void OpenTerminalHost()
 	{
 #if !LIFEPUNCH_LOCAL
-		if ( !LifePunchMenuInteractGate.IsCallerAllowed( Rpc.Caller, GameObject ) )
+		if ( !LifePunchMenuInteractGate.IsCallerAllowedTerminal( Rpc.Caller, GameObject ) )
 			return;
 #else
-		if ( !LifePunchMenuInteractGate.IsCallerAllowed( null, GameObject ) )
+		if ( !LifePunchMenuInteractGate.IsCallerAllowedTerminal( null, GameObject ) )
 			return;
 #endif
 
@@ -353,10 +377,23 @@ public sealed class LpBitcoinTerminalEntity : BaseEntity, Component.IPressable, 
 		if ( !hub.IsPowered )
 		{
 			Log.Warning( "[lifepunch.bitcoin] Hub power off — enable at hub admin panel." );
+			TellCallerHubIsOff( hub );
 			return;
 		}
 
 		OpenTerminal( Rpc.CallerId, hub.GameObject.Id );
+	}
+
+	/// <summary>Feedback only, no access change: the hub's existing alert envelope, so the refusal is no longer a host log
+	/// line nobody reads. Same rule as the rack-link paths: only a caller who can manage the hub writes into its alert feed.</summary>
+	private void TellCallerHubIsOff( LpBitcoinHubEntity hub )
+	{
+		if ( !hub.CanManageHub( Rpc.CallerId ) || Time.Now < _hubOffAlertAfter )
+			return;
+
+		_hubOffAlertAfter = Time.Now + HubOffAlertCooldownSeconds;
+		hub.PushAlertHost( LpBitcoinHubAlertKind.TerminalCommand,
+			"Hub power is off - power on at the hub before using the terminal." );
 	}
 
 	[Rpc.Broadcast]
