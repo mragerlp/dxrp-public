@@ -37,6 +37,11 @@ public static class WeaponRosterEditorInject
 		Refused
 	}
 
+	/// <summary>
+	/// Reason: the lp_give_* helpers fail closed on a roster miss, and the Portal rows are the owner's hand, so an
+	/// editor Play proof of a weapon or the lockpick needs an in-memory row first. Host-only, editor-only; adds
+	/// Equipment rows for the flagged weapons, never a MarketItem row.
+	/// </summary>
 	[ConCmd( ApplyCommand )]
 	public static void Apply()
 	{
@@ -108,6 +113,10 @@ public static class WeaponRosterEditorInject
 			$"gameModeName=\"{gameMode.Name}\" isReady={config!.IsReady} loaded={loaded}" );
 	}
 
+	/// <summary>
+	/// Reason: read-only check before and after <see cref="Apply"/>: which flags are on, whether each prefab pair
+	/// loads, and whether a row already exists for the world prefab. Changes nothing.
+	/// </summary>
 	[ConCmd( StatusCommand )]
 	public static void Status()
 	{
