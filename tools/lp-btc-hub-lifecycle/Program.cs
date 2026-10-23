@@ -170,4 +170,6 @@ if (!result.Success)
     return 2;
 }
 var assembly = Assembly.Load(dll.ToArray());
-return (int)assembly.GetType("LifePunch.DXRP.Addons.Bitcoin.LifecycleChecks")!.GetMethod("Run")!.Invoke(null, null)!;
+var lifecycle = (int)assembly.GetType("LifePunch.DXRP.Addons.Bitcoin.LifecycleChecks")!.GetMethod("Run")!.Invoke(null, null)!;
+var controls = NegativeControls.Run(root);
+return lifecycle == 0 && controls == 0 ? 0 : 1;
