@@ -61,6 +61,14 @@ internal static class LpBtcHubUiHost
 			panel.OnPinGateResult( ok, message );
 	}
 
+	/// <summary>Routes the host's purchase envelope (LpBitcoinHubEntity.NotifyPurchaseResult) to the open hub UI.</summary>
+	public static void OnPurchaseResult( LpBitcoinHubEntity hub, int code, int newTier, long costSats, long shortfallSats )
+	{
+		var panel = Game.ActiveScene?.GetAllComponents<LpBtcHubSkeleton>().FirstOrDefault( p => p.IsValid() && p.BoundHub == hub );
+		if ( panel.IsValid() )
+			panel.OnPurchaseResult( code, newTier, costSats, shortfallSats );
+	}
+
 	private static LpBtcHubSkeleton MountPanel()
 	{
 #if LIFEPUNCH_LOCAL
