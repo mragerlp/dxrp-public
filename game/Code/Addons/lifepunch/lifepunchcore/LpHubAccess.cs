@@ -81,7 +81,7 @@ public static class LpHubAccess
 	/// <summary>
 	/// Host open gate for a hub whose access is a DXRP ownership permission: the existing hub gate, whole
 	/// (permission, reach to the model's bounds, hands manipulation, hands pickup). Pass Rpc.Caller from the
-	/// host RPC (null in the local lane). Same call as LpBitcoinHubEntity.OpenHubHost (LpBitcoinHubEntity.cs:303-308).
+	/// host RPC (null in the local lane). Same call as LpBitcoinHubEntity.OpenHubHost (LpBitcoinHubEntity.cs:309-318).
 	/// </summary>
 	/// <remarks>
 	/// The gate's permission step (GameUtils.HasPermission) refuses an object that carries neither the entity
