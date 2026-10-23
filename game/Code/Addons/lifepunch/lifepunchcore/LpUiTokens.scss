@@ -3,19 +3,20 @@
 //
 // LIFEPUNCH shared UI palette: the in-game lifepunch.ulx colours, as variables.
 //
-// Source of truth: lifepunchulx/StaffMenu.razor.scss, lines 13-19 (neutrals) and
-// 29-38 (semantic accents), as of commit 3d1ef504.
-// Every value below is copied VERBATIM from that file. Names carry the lpui-
+// Source of truth: this file. lifepunchulx/StaffMenu.razor.scss and observe/StaffObserve.razor.scss
+// read their palette from here (THEME-2); the values are the ones they held at commit 3d1ef504.
+// Every value below was copied VERBATIM from those sheets. Names carry the lpui-
 // prefix so importing this file can never overwrite a variable a consumer
-// already defines (ULX itself does not import it; see PLAYERHUB-THEME-1 R-T1-4).
+// already defines (the ULX sheets import it under their own names; PlayerHub does too).
 //
 // Not here on purpose: ULX's HUD mirrors (armor, cloak, freeze) and the portal
 // audit tone pills are staff data colours, not chrome. The ULX runtime accent
 // picker (StaffMenu.razor, DefaultAccentHex) is a per-staff setting; consumers of
 // this file take the default only.
 //
-// Drift rule: until ULX imports this file, a change to those ULX lines must be
-// mirrored here. Colour only: this file holds no size, radius, spacing or font.
+// Drift rule: a value changed here changes lifepunch.ulx and lifepunch.hub together. One literal
+// ($chat-border in StaffChatPanel.razor.scss) still repeats #343536 by hand. Colour only: this
+// file holds no size, radius, spacing or font.
 // -----------------------------------------------------------------------------
 
 // Panel depths: scrim base, window shell, surface, then raised cards.

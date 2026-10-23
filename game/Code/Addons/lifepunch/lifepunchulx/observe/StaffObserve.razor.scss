@@ -9,8 +9,9 @@
 // Presence in this repository or on the DXRP portal grants no rights to anyone else.
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Scoped to the ULX console. Color literals mirror StaffMenu.razor.scss because
-// s&box SCSS variables are file-local. Scroll, flag and action-pill classes come from that sheet.
+// Scoped to the ULX console. Palette values come from LpUiTokens.scss (lifepunchcore), because
+// s&box SCSS variables are file-local. Scroll, flag and action-pill classes come from StaffMenu.razor.scss.
+@import "../../lifepunchcore/LpUiTokens.scss";
 
 // Ranks section accent; rank data colors retain their own meaning.
 // #6d28d9 is $tone-purple from StaffMenu.razor.scss, mirrored here as a literal for the same
@@ -35,17 +36,17 @@ $observe-ranks-accent: #6d28d9;
 		gap: 10px;
 		flex-shrink: 0;
 		padding-bottom: 10px;
-		border-bottom: 1px solid #343536;
+		border-bottom: 1px solid $lpui-border;
 
 		.material-icons {
 			font-size: 20px;
-			color: #d99a3f;
+			color: $lpui-amber;
 		}
 	}
 
 	// The SanctionsOnly heading uses the sanctions color, not the Observe amber.
 	.observe-head-sanctions .material-icons {
-		color: #c05f5f;
+		color: $lpui-danger;
 	}
 
 	.observe-chat-actions {
@@ -59,7 +60,7 @@ $observe-ranks-accent: #6d28d9;
 	.observe-title {
 		font-size: 16px;
 		font-weight: 700;
-		color: #e4e6e8;
+		color: $lpui-text;
 	}
 
 	// Only the Observe hub receives the stronger heading; the profile route stays compact.
@@ -75,15 +76,15 @@ $observe-ranks-accent: #6d28d9;
 	.observe-badge {
 		font-size: 11px;
 		font-weight: 700;
-		color: #d99a3f;
-		border: 1px solid #d99a3f;
+		color: $lpui-amber;
+		border: 1px solid $lpui-amber;
 		border-radius: 4px;
 		padding: 2px 8px;
 	}
 
 	.observe-sub {
 		font-size: 12px;
-		color: #8d8f90;
+		color: $lpui-muted;
 	}
 
 	.observe-tabs {
@@ -99,9 +100,9 @@ $observe-ranks-accent: #6d28d9;
 		gap: 6px;
 		padding: 6px 14px;
 		border-radius: 6px;
-		background-color: #1e1f21;
-		border: 1px solid #343536;
-		color: #8d8f90;
+		background-color: $lpui-surface;
+		border: 1px solid $lpui-border;
+		color: $lpui-muted;
 		font-size: 12px;
 		font-weight: 600;
 		cursor: pointer;
@@ -123,32 +124,32 @@ $observe-ranks-accent: #6d28d9;
 	}
 
 	.observe-back-button:hover {
-		background-color: rgba(#d99a3f, 0.18);
-		border-color: #d99a3f;
-		color: #d99a3f;
+		background-color: rgba($lpui-amber, 0.18);
+		border-color: $lpui-amber;
+		color: $lpui-amber;
 	}
 
 	// Selection keeps white text and a category outline. Hover adds category color
 	// to the fill, icon and label, whether the tab is selected or not.
 	.observe-tab-selected {
-		background-color: #272829;
-		color: #e4e6e8;
+		background-color: $lpui-surface-raised;
+		color: $lpui-text;
 	}
 
 	.observe-tab-selected-staff {
-		border-color: #1689ff;
+		border-color: $lpui-blue;
 	}
 
 	.observe-tab-selected-economy {
-		border-color: #199c3b;
+		border-color: $lpui-success;
 	}
 
 	.observe-tab-selected-sentinel {
-		border-color: #d99a3f;
+		border-color: $lpui-amber;
 	}
 
 	.observe-tab-selected-sanctions {
-		border-color: #c05f5f;
+		border-color: $lpui-danger;
 	}
 
 	.observe-tab-selected-ranks {
@@ -157,27 +158,27 @@ $observe-ranks-accent: #6d28d9;
 
 	// Keep hover selectors standalone: generic :hover rules can override grouped state rules.
 	.observe-tab-staff:hover {
-		background-color: rgba(#1689ff, 0.18);
-		border-color: #1689ff;
-		color: #1689ff;
+		background-color: rgba($lpui-blue, 0.18);
+		border-color: $lpui-blue;
+		color: $lpui-blue;
 	}
 
 	.observe-tab-economy:hover {
-		background-color: rgba(#199c3b, 0.18);
-		border-color: #199c3b;
-		color: #199c3b;
+		background-color: rgba($lpui-success, 0.18);
+		border-color: $lpui-success;
+		color: $lpui-success;
 	}
 
 	.observe-tab-sentinel:hover {
-		background-color: rgba(#d99a3f, 0.18);
-		border-color: #d99a3f;
-		color: #d99a3f;
+		background-color: rgba($lpui-amber, 0.18);
+		border-color: $lpui-amber;
+		color: $lpui-amber;
 	}
 
 	.observe-tab-sanctions:hover {
-		background-color: rgba(#c05f5f, 0.18);
-		border-color: #c05f5f;
-		color: #c05f5f;
+		background-color: rgba($lpui-danger, 0.18);
+		border-color: $lpui-danger;
+		color: $lpui-danger;
 	}
 
 	.observe-tab-ranks:hover {
@@ -211,7 +212,7 @@ $observe-ranks-accent: #6d28d9;
 	.observe-section-head {
 		font-size: 12px;
 		font-weight: 700;
-		color: #e4e6e8;
+		color: $lpui-text;
 		text-transform: uppercase;
 		letter-spacing: 1px;
 		padding: 14px 0 4px 0;
@@ -220,16 +221,16 @@ $observe-ranks-accent: #6d28d9;
 
 	.observe-hint {
 		font-size: 11px;
-		color: #8d8f90;
+		color: $lpui-muted;
 		padding-bottom: 6px;
 		flex-shrink: 0;
 	}
 
 	.observe-empty {
 		font-size: 12px;
-		color: #8d8f90;
+		color: $lpui-muted;
 		padding: 10px 12px;
-		background-color: #1e1f21;
+		background-color: $lpui-surface;
 		border-radius: 6px;
 		flex-shrink: 0;
 	}
@@ -240,40 +241,40 @@ $observe-ranks-accent: #6d28d9;
 		align-items: center;
 		gap: 4px;
 		padding: 12px;
-		background-color: #1e1f21;
-		border: 1px solid #343536;
+		background-color: $lpui-surface;
+		border: 1px solid $lpui-border;
 		border-radius: 6px;
 		flex-shrink: 1;
 		min-height: 0;
 
 		> .material-icons {
 			font-size: 22px;
-			color: #8d8f90;
+			color: $lpui-muted;
 		}
 	}
 
 	.observe-reserved-title {
 		font-size: 12px;
 		font-weight: 700;
-		color: #e4e6e8;
+		color: $lpui-text;
 	}
 
 	.observe-reserved-hint {
 		font-size: 11px;
-		color: #8d8f90;
+		color: $lpui-muted;
 		text-align: center;
 	}
 
 	.observe-caveat {
 		font-size: 11px;
-		color: #d99a3f;
+		color: $lpui-amber;
 		padding: 4px 0;
 		flex-shrink: 0;
 	}
 
 	.observe-overflow {
 		font-size: 11px;
-		color: #8d8f90;
+		color: $lpui-muted;
 		padding: 6px 0;
 		flex-shrink: 0;
 	}
@@ -291,13 +292,13 @@ $observe-ranks-accent: #6d28d9;
 	// Active powers without their required permission retain severe warning colors.
 	.observe-row-alert {
 		background-color: #2b2022;
-		border-left: 2px solid #c05f5f;
+		border-left: 2px solid $lpui-danger;
 	}
 
 	.o-when {
 		width: 110px;
 		flex-shrink: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 	}
 
 	.o-action {
@@ -308,7 +309,7 @@ $observe-ranks-accent: #6d28d9;
 	.o-name {
 		width: 160px;
 		flex-shrink: 0;
-		color: #e4e6e8;
+		color: $lpui-text;
 		font-weight: 600;
 		overflow: hidden;
 	}
@@ -316,41 +317,41 @@ $observe-ranks-accent: #6d28d9;
 	.o-role {
 		width: 110px;
 		flex-shrink: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 		overflow: hidden;
 	}
 
 	.o-desc {
 		flex: 1 1 auto;
 		min-width: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 		overflow: hidden;
 	}
 
 	.o-meta {
 		width: 160px;
 		flex-shrink: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 	}
 
 	.o-cash {
 		width: 130px;
 		flex-shrink: 0;
-		color: #199c3b;
+		color: $lpui-success;
 		font-weight: 600;
 	}
 
 	.o-debit {
 		width: 130px;
 		flex-shrink: 0;
-		color: #c05f5f;
+		color: $lpui-danger;
 		font-weight: 600;
 	}
 
 	.o-total {
 		width: 110px;
 		flex-shrink: 0;
-		color: #e4e6e8;
+		color: $lpui-text;
 		font-weight: 700;
 	}
 
@@ -365,7 +366,7 @@ $observe-ranks-accent: #6d28d9;
 	.o-id {
 		width: 150px;
 		flex-shrink: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 		font-size: 11px;
 	}
 
@@ -377,9 +378,9 @@ $observe-ranks-accent: #6d28d9;
 		flex-shrink: 0;
 		padding: 3px 6px;
 		border-radius: 4px;
-		background-color: #1e1f21;
-		border: 1px solid #343536;
-		color: #8d8f90;
+		background-color: $lpui-surface;
+		border: 1px solid $lpui-border;
+		color: $lpui-muted;
 		cursor: pointer;
 
 		.material-icons {
@@ -387,26 +388,26 @@ $observe-ranks-accent: #6d28d9;
 		}
 
 		&:hover {
-			background-color: #272829;
-			color: #e4e6e8;
+			background-color: $lpui-surface-raised;
+			color: $lpui-text;
 		}
 	}
 
 	.o-sanctions-btn .material-icons {
-		color: #c05f5f;
+		color: $lpui-danger;
 	}
 
 	.o-sanctions-btn:hover {
 		background-color: #5e3737;
-		border: 1px solid #c05f5f;
-		color: #e4e6e8;
+		border: 1px solid $lpui-danger;
+		color: $lpui-text;
 	}
 
 	// Standalone active class retained for the existing filter helper's emitted class list.
 	.o-filter-btn-on {
-		background-color: #1d4b78;
-		border: 1px solid #1689ff;
-		color: #e4e6e8;
+		background-color: $lpui-blue-fill;
+		border: 1px solid $lpui-blue;
+		color: $lpui-text;
 	}
 
 	.observe-filter-bar {
@@ -423,9 +424,9 @@ $observe-ranks-accent: #6d28d9;
 		gap: 5px;
 		padding: 3px 8px;
 		border-radius: 4px;
-		background-color: #1d4b78;
-		border: 1px solid #1689ff;
-		color: #e4e6e8;
+		background-color: $lpui-blue-fill;
+		border: 1px solid $lpui-blue;
+		color: $lpui-text;
 		font-size: 11px;
 		font-weight: 600;
 
@@ -440,9 +441,9 @@ $observe-ranks-accent: #6d28d9;
 		gap: 4px;
 		padding: 3px 8px;
 		border-radius: 4px;
-		background-color: #1e1f21;
-		border: 1px solid #343536;
-		color: #8d8f90;
+		background-color: $lpui-surface;
+		border: 1px solid $lpui-border;
+		color: $lpui-muted;
 		font-size: 11px;
 		font-weight: 600;
 		cursor: pointer;
@@ -452,8 +453,8 @@ $observe-ranks-accent: #6d28d9;
 		}
 
 		&:hover {
-			background-color: #272829;
-			color: #e4e6e8;
+			background-color: $lpui-surface-raised;
+			color: $lpui-text;
 		}
 	}
 
@@ -495,9 +496,9 @@ $observe-ranks-accent: #6d28d9;
 		font-weight: 700;
 		text-transform: uppercase;
 		letter-spacing: 0.6px;
-		background-color: #272829;
-		border: 1px solid #d99a3f;
-		color: #d99a3f;
+		background-color: $lpui-surface-raised;
+		border: 1px solid $lpui-amber;
+		color: $lpui-amber;
 	}
 
 	.observe-sanctions-actions {
@@ -520,10 +521,10 @@ $observe-ranks-accent: #6d28d9;
 		gap: 5px;
 		height: 30px;
 		padding: 0 10px;
-		background-color: #1e1f21;
-		border: 1px solid #343536;
+		background-color: $lpui-surface;
+		border: 1px solid $lpui-border;
 		border-radius: 5px;
-		color: #e4e6e8;
+		color: $lpui-text;
 		font-size: 11px;
 		font-weight: 700;
 		cursor: pointer;
@@ -531,18 +532,18 @@ $observe-ranks-accent: #6d28d9;
 
 		.material-icons {
 			font-size: 15px;
-			color: #8d8f90;
+			color: $lpui-muted;
 		}
 
 		&:hover {
-			background-color: #272829;
-			border-color: #8d8f90;
+			background-color: $lpui-surface-raised;
+			border-color: $lpui-muted;
 		}
 	}
 
 	.observe-route-primary {
 		background-color: #5e3737;
-		border-color: #c05f5f;
+		border-color: $lpui-danger;
 
 		.material-icons {
 			color: #d98383;
@@ -553,7 +554,7 @@ $observe-ranks-accent: #6d28d9;
 		border-color: #5e5035;
 
 		.material-icons {
-			color: #d99a3f;
+			color: $lpui-amber;
 		}
 	}
 
@@ -566,7 +567,7 @@ $observe-ranks-accent: #6d28d9;
 		min-height: 0;
 		padding: 10px;
 		background-color: #1b1c1e;
-		border: 1px solid #343536;
+		border: 1px solid $lpui-border;
 		border-radius: 6px;
 	}
 
@@ -585,24 +586,24 @@ $observe-ranks-accent: #6d28d9;
 	.observe-picker-title {
 		font-size: 12px;
 		font-weight: 700;
-		color: #e4e6e8;
+		color: $lpui-text;
 	}
 
 	.observe-picker-count {
 		font-size: 10px;
-		color: #8d8f90;
+		color: $lpui-muted;
 	}
 
 	.observe-picker-search {
 		height: 36px;
 		padding: 0 8px;
 		background-color: #111214;
-		border: 1px solid #343536;
+		border: 1px solid $lpui-border;
 		border-radius: 5px;
 
 		> .material-icons {
 			font-size: 17px;
-			color: #8d8f90;
+			color: $lpui-muted;
 		}
 	}
 
@@ -612,7 +613,7 @@ $observe-ranks-accent: #6d28d9;
 		height: 32px;
 		background-color: transparent;
 		border: 0;
-		color: #e4e6e8;
+		color: $lpui-text;
 		font-size: 12px;
 	}
 
@@ -622,8 +623,8 @@ $observe-ranks-accent: #6d28d9;
 
 	.control-disabled,
 	.control-disabled:hover {
-		background-color: #1e1f21;
-		border-color: #343536;
+		background-color: $lpui-surface;
+		border-color: $lpui-border;
 		color: #66686a;
 		cursor: default;
 
@@ -648,20 +649,20 @@ $observe-ranks-accent: #6d28d9;
 		width: 100%;
 		min-height: 42px;
 		padding: 6px 10px;
-		background-color: #1e1f21;
+		background-color: $lpui-surface;
 		border: 1px solid transparent;
 		border-bottom-color: #2a2b2d;
-		color: #e4e6e8;
+		color: $lpui-text;
 		cursor: pointer;
 		flex-shrink: 0;
 
 		> .material-icons {
 			font-size: 18px;
-			color: #1689ff;
+			color: $lpui-blue;
 		}
 
 		> .material-icons:last-child {
-			color: #8d8f90;
+			color: $lpui-muted;
 		}
 
 		.o-id {
@@ -670,8 +671,8 @@ $observe-ranks-accent: #6d28d9;
 		}
 
 		&:hover {
-			background-color: #272829;
-			border-color: #343536;
+			background-color: $lpui-surface-raised;
+			border-color: $lpui-border;
 		}
 	}
 
@@ -692,14 +693,14 @@ $observe-ranks-accent: #6d28d9;
 		align-items: center;
 		gap: 8px;
 		padding: 6px 10px;
-		background-color: #1e1f21;
-		border: 1px solid #343536;
+		background-color: $lpui-surface;
+		border: 1px solid $lpui-border;
 		border-radius: 6px;
 		flex-shrink: 0;
 
 		> .material-icons {
 			font-size: 16px;
-			color: #c05f5f;
+			color: $lpui-danger;
 		}
 	}
 
@@ -707,10 +708,10 @@ $observe-ranks-accent: #6d28d9;
 		margin-left: auto;
 		flex-shrink: 0;
 		padding: 3px 8px;
-		background-color: #272829;
-		border: 1px solid #343536;
+		background-color: $lpui-surface-raised;
+		border: 1px solid $lpui-border;
 		border-radius: 4px;
-		color: #8d8f90;
+		color: $lpui-muted;
 		font-size: 10px;
 		font-weight: 700;
 	}
@@ -728,7 +729,7 @@ $observe-ranks-accent: #6d28d9;
 	.observe-filter-result {
 		font-size: 11px;
 		font-weight: 600;
-		color: #8d8f90;
+		color: $lpui-muted;
 	}
 
 	.observe-filter-label {
@@ -741,25 +742,25 @@ $observe-ranks-accent: #6d28d9;
 
 	.observe-sanction-filter {
 		padding: 3px 7px;
-		background-color: #1e1f21;
-		border: 1px solid #343536;
+		background-color: $lpui-surface;
+		border: 1px solid $lpui-border;
 		border-radius: 4px;
-		color: #8d8f90;
+		color: $lpui-muted;
 		font-size: 10px;
 		font-weight: 700;
 		cursor: pointer;
 
 		&:hover {
-			background-color: #272829;
-			color: #e4e6e8;
+			background-color: $lpui-surface-raised;
+			color: $lpui-text;
 		}
 	}
 
 	.observe-sanction-filter-active,
 	.observe-sanction-filter-active:hover {
 		background-color: #5e3737;
-		border-color: #c05f5f;
-		color: #e4e6e8;
+		border-color: $lpui-danger;
+		color: $lpui-text;
 	}
 
 	.observe-sanction-table-head,
@@ -772,8 +773,8 @@ $observe-ranks-accent: #6d28d9;
 
 	.observe-sanction-table-head {
 		padding: 3px 8px;
-		border-bottom: 1px solid #343536;
-		color: #8d8f90;
+		border-bottom: 1px solid $lpui-border;
+		color: $lpui-muted;
 		font-size: 10px;
 		font-weight: 700;
 		text-transform: uppercase;
@@ -782,7 +783,7 @@ $observe-ranks-accent: #6d28d9;
 
 	.observe-sanction-list {
 		background-color: #111214;
-		border: 1px solid #343536;
+		border: 1px solid $lpui-border;
 		border-radius: 6px;
 	}
 
@@ -795,7 +796,7 @@ $observe-ranks-accent: #6d28d9;
 	.s-issued {
 		width: 116px;
 		flex-shrink: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 	}
 
 	.s-type {
@@ -806,7 +807,7 @@ $observe-ranks-accent: #6d28d9;
 	.s-state {
 		width: 70px;
 		flex-shrink: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 		font-size: 11px;
 		font-weight: 700;
 	}
@@ -814,14 +815,14 @@ $observe-ranks-accent: #6d28d9;
 	.s-scope {
 		width: 62px;
 		flex-shrink: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 		font-size: 11px;
 	}
 
 	.s-duration {
 		width: 90px;
 		flex-shrink: 0;
-		color: #8d8f90;
+		color: $lpui-muted;
 		font-size: 11px;
 	}
 
@@ -837,11 +838,11 @@ $observe-ranks-accent: #6d28d9;
 	}
 
 	.sanction-state-served {
-		color: #199c3b;
+		color: $lpui-success;
 	}
 
 	.sanction-scope-global {
-		color: #d99a3f;
+		color: $lpui-amber;
 	}
 
 	.sanction-flags,
@@ -850,7 +851,7 @@ $observe-ranks-accent: #6d28d9;
 		align-items: center;
 		gap: 4px;
 		font-size: 10px;
-		color: #8d8f90;
+		color: $lpui-muted;
 
 		.material-icons {
 			font-size: 12px;
@@ -858,7 +859,7 @@ $observe-ranks-accent: #6d28d9;
 	}
 
 	.sanction-flags {
-		color: #d99a3f;
+		color: $lpui-amber;
 	}
 
 }
