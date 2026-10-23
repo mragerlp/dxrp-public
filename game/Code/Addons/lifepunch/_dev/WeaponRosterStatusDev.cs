@@ -84,6 +84,15 @@ public static class WeaponRosterStatusDev
 			return;
 		}
 
+		var gameMode = Config.Current?.GameMode;
+		if ( gameMode is null || gameMode.Equipments is null || gameMode.MarketItems is null )
+		{
+			Log.Warning( $"LP_WEAPON_ROSTER_UNAVAILABLE reason=gameModeNotInitialized command={Command}" );
+			return;
+		}
+
+		var equipmentRows = gameMode.Equipments;
+		var marketItems = gameMode.MarketItems;
 		var rosterReady = 0;
 		var marketReady = 0;
 
@@ -93,7 +102,7 @@ public static class WeaponRosterStatusDev
 			var viewPrefab = GameObject.GetPrefab( candidate.ViewPrefabPath );
 			var viewAssetReady = viewPrefab.IsValid() &&
 				viewPrefab.Components.Get<ViewModel>().IsValid();
-			var matchingEquipmentRows = GameModeEquipments.All
+			var matchingEquipmentRows = equipmentRows
 				.Where( row => string.Equals(
 					row.PrefabPath(),
 					candidate.WorldPrefabPath,
@@ -102,7 +111,7 @@ public static class WeaponRosterStatusDev
 			var rosterRowReady = matchingEquipmentRows.Length == 1;
 			var equipment = rosterRowReady ? matchingEquipmentRows[0] : null;
 			var matchingContentRows = rosterRowReady
-				? GameModeEquipments.All
+				? equipmentRows
 					.Where( row => row.GameModeAddonContentId ==
 						equipment!.GameModeAddonContentId )
 					.ToArray()
@@ -125,14 +134,15 @@ public static class WeaponRosterStatusDev
 			var matchingEquipmentRowIds = matchingEquipmentRows
 				.Select( row => row.Id )
 				.ToHashSet();
-			var marketRows = GameModeMarketItems.All
+			var marketRows = marketItems
 				.Where( item => item.Type == GameModeMarketItemType.Equipment &&
 					item.ReferenceId.HasValue &&
 					matchingEquipmentRowIds.Contains( item.ReferenceId.Value ) )
 				.ToArray();
 			var spawnableRows = marketRows.Count( GameModeMarketItems.IsSpawnable );
 			var firstMissingRequirement =
-				!worldAssetReady || !rosterRowReady ? "worldPrefab" :
+				!worldAssetReady ? "worldPrefab" :
+				!rosterRowReady ? "equipmentRow" :
 				!viewAssetReady || !secondaryReady ? "viewPrefab" :
 				!contentIdReady ? "uniqueContentMapping" :
 				spawnableRows == 0 ? "marketRow" :
