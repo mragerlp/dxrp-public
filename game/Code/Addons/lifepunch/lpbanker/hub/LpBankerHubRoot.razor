@@ -4,6 +4,7 @@
 	ported from _dev/btcui2/LpBtcHubSkeleton.razor (proven in the editor 2026-10-17, DRIVE-AWAY-1-A).
 	BANKER-HUB-2 (DRIVE-AWAY-2-U1): the tabs read a read-only view model (ILpBankerHubState, fixture today); every
 	figure names its ruling (I1-I6 = DIRECTION_BANKER-HUB_R1 section 8). No money path: every action is inert.
+	SPINE-3 (SPINE-1 R1 U2): Close goes through the shared LpHubMount, so a panel on the DXRP HUD root is removed alone.
 *@
 @namespace LifePunch.DXRP.Addons.Banker
 @using System
@@ -128,8 +129,8 @@
 
 	private void Close()
 	{
-		if ( GameObject.IsValid() )
-			GameObject.Destroy();
+		// Own object (ScreenPanel fallback): destroyed whole. HUD root (GameManager.ShowUi): this panel alone.
+		LpHubMount.Close( this );
 	}
 
 	protected override void OnStart()
