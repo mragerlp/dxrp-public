@@ -53,7 +53,9 @@ public sealed record LpBtcRackVm(
 	string MinedUsd,
 	bool IsMining,
 	bool Advanced,
-	Action? ToggleMining);
+	Action? ToggleMining,
+	bool AtTopTier,
+	string NextTierLabel);
 
 public sealed record LpPlayerHubShellVm(
 	string PlayerName,

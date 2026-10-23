@@ -83,7 +83,7 @@
 					<div class="@RackCardClass( rack )">
 						<div class="btc-rack-head">
 							<div class="btc-rack-label">@rack.Label</div>
-							<span class="@TierChipClass( rack )">@rack.TierLabel</span>
+							<span class="@TierChipClass( rack )">@TierChipText( rack )</span>
 						</div>
 						<div class="btc-rack-stats">
 							<div class="btc-rack-stat"><span class="btc-eyebrow">CLOCK</span><span class="btc-rack-value">@rack.ClockLabel</span></div>
@@ -137,6 +137,8 @@
 	private string PinChipClass() => Model.PinSet ? "btc-chip btc-chip-good" : "btc-chip btc-chip-warn";
 	private static string RackCardClass( LpBtcRackVm r ) => r.IsMining ? "btc-rack-card btc-rack-card-mining" : "btc-rack-card";
 	private static string TierChipClass( LpBtcRackVm r ) => r.Advanced ? "btc-chip btc-chip-adv" : "btc-chip";
+	// HUB-RACKS-1: the ladder label as the host replicates it, plus the top-of-ladder fact (read only).
+	private static string TierChipText( LpBtcRackVm r ) => r.AtTopTier ? r.TierLabel + " MAX" : r.TierLabel;
 	private static string MiningLabelClass( LpBtcRackVm r ) => r.IsMining ? "btc-mining-label btc-mining-label-on" : "btc-mining-label";
 
 	protected override int BuildHash()
@@ -156,6 +158,7 @@
 		{
 			hash.Add( rack.Id );
 			hash.Add( rack.TierLabel );
+			hash.Add( rack.AtTopTier );
 			hash.Add( rack.ClockLabel );
 			hash.Add( rack.RateLabel );
 			hash.Add( rack.MinedBtc );

@@ -18,6 +18,7 @@ using System;
 using System.Collections.Generic;
 using Sandbox;
 using LifePunch.DXRP.Addons.Bitcoin;
+using LifePunch.DXRP.Addons.Bitcoin.HubUi;
 
 namespace LifePunch.DXRP.Addons.PlayerHub;
 
@@ -67,6 +68,18 @@ public static class LpPlayerHubBtcSource
 		return hash.ToHashCode();
 	}
 
+	/// <summary>
+	/// HUB-RACKS-1 read fact: the rack is at the top of the compute ladder (the track's own MaxTier, read from the
+	/// registered track exactly as the hub UI reads it; no price is asked). The host's purchase rail refuses a
+	/// request past the top (PreconditionTier), so the control says so ahead of the press.
+	/// </summary>
+	public static bool IsTopTier( LpBitcoinRackEntity rack )
+		=> rack.ComputeTier >= LpBitcoinHubStateLive.TrackTopTier( out _ );
+
+	/// <summary>The ladder label of the next tier ("TIER II"), or an empty string at the top.</summary>
+	public static string NextTierLabelFor( LpBitcoinRackEntity rack )
+		=> IsTopTier( rack ) ? string.Empty : "TIER " + LpBitcoinIdent.RomanTier( rack.ComputeTier + 1 );
+
 	public static LpBtcVm Build( Action onChanged )
 	{
 		var hub = FindLocalHub();
@@ -113,7 +126,9 @@ public static class LpPlayerHubBtcSource
 					Click();
 					r.RequestSetMining( !r.IsMining );
 					onChanged?.Invoke();
-				} ) );
+				},
+				AtTopTier: IsTopTier( r ),
+				NextTierLabel: NextTierLabelFor( r ) ) );
 		}
 
 		var pending = hub.GetRackPendingBtc();
