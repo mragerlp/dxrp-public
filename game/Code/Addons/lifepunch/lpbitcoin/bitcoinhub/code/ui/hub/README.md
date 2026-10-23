@@ -7,6 +7,11 @@ now opens this UI through `components/LpBtcHubUiHost.cs` while the server convar
 `lp_btc_hub_native_ui` is 1 (the default, ruling BH-Q7); 0 restores the Bitcoin Ops app
 (`ui/LpHashdPanel.razor`, kept, not deleted). The panel binds the pressed hub. The PIN keypad now
 asks the host: unlock through `UnlockAccessPinHost`, and set / re-enroll through `SetAccessPinHost`.
+**HUB-UPGRADE-1 (2026-10-23):** the Racks tab's Upgrade control now asks the one existing purchase
+rail, the same call HASHD makes (`rack.RequestPurchaseComputeTier()`, no arguments): the shell
+(`RequestUpgrade`) sends it, the host's `NotifyPurchaseResult` envelope comes back through
+`LpBtcHubUiHost.OnPurchaseResult`, and the control stays disabled for a viewer the host would refuse and
+while a request is in flight. Price, debit and ledger stay on the host; nothing here keeps a balance.
 Every other action control is still inert until U3. The dev ConCmds (`lp_btcui2_*`) stay in
 `_dev/btcui2/LpBtcHubDev.cs`. The notes below describe the pre-build and are kept as written.
 
