@@ -1,0 +1,472 @@
+{
+  "RootObject": {
+    "__guid": "094ddebf-4387-4247-bee8-f558e4411f31",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "w_desert_eagle",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "player",
+    "Enabled": true,
+    "NetworkMode": 1,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 3,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Dxura.RP.Game.Equipment",
+        "__guid": "6b6008cb-802c-4236-a495-3f356ccf8c22",
+        "__enabled": true,
+        "Flags": 0,
+        "DeploySound": "addons/lifepunch/lpweapons/deserteagle/sounds/desert_eagle_draw.sound",
+        "EjectionPort": {
+          "_type": "gameobject",
+          "go": "787b81cf-d3fd-4b4c-9607-ba830d4fdcd9"
+        },
+        "Handedness": "Right",
+        "HoldType": "Pistol",
+        "ModelRenderer": {
+          "_type": "component",
+          "component_id": "3ce42be6-1cb2-4cc9-96f4-0b98356d866e",
+          "go": "97070775-38ae-42c9-bba2-de71d7fc0831",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "Muzzle": {
+          "_type": "gameobject",
+          "go": "c3da58e0-733d-4e0b-85b4-1c71f7308e05"
+        },
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnlyShowCrosshairDot": false,
+        "SpeedPenalty": 20,
+        "UseCrosshair": true,
+        "ViewModelPrefab": {
+          "_type": "gameobject",
+          "prefab": "addons/lifepunch/lpweapons/deserteagle/equipment/vm_desert_eagle/vm_desert_eagle.prefab"
+        }
+      },
+      {
+        "__type": "Dxura.RP.Game.TagBinder",
+        "__guid": "a382da6e-a04e-43f5-8b8b-072ac70dbe1f",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      }
+    ],
+    "Children": [
+      {
+        "__guid": "0bf41a74-f834-4809-a22c-3d2df60b97eb",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Model",
+        "Position": "3.20348,0.6220056,-3.675521",
+        "Rotation": "0,0,0.05233596,0.9986295",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Sandbox.SkinnedModelRenderer",
+            "__guid": "78890bf3-7832-4aa7-9aba-1c434873524e",
+            "__enabled": true,
+            "Flags": 0,
+            "AnimationGraph": null,
+            "BodyGroups": 9493,
+            "BoneMergeTarget": null,
+            "CreateAttachments": false,
+            "CreateBoneObjects": false,
+            "LodOverride": null,
+            "MaterialGroup": null,
+            "MaterialOverride": "addons/lifepunch/lpweapons/deserteagle/equipment/vm_desert_eagle/invisible.vmat",
+            "Materials": null,
+            "Model": "models/weapons/sbox_pistol_usp/w_usp.vmdl",
+            "Morphs": {},
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "Parameters": {
+              "bools": {},
+              "ints": {},
+              "floats": {},
+              "vectors": {},
+              "rotations": {}
+            },
+            "PlaybackRate": 1,
+            "RenderOptions": {
+              "GameLayer": true,
+              "OverlayLayer": false,
+              "BloomLayer": false,
+              "AfterUILayer": false
+            },
+            "RenderType": "On",
+            "Sequence": {
+              "Name": null,
+              "Looping": true,
+              "Blending": false
+            },
+            "Tint": "1,1,1,1",
+            "UseAnimGraph": true
+          }
+        ],
+        "Children": [
+          {
+            "__guid": "c3da58e0-733d-4e0b-85b4-1c71f7308e05",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "Muzzle",
+            "Position": "4.320035,0,4.755252",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "787b81cf-d3fd-4b4c-9607-ba830d4fdcd9",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "EjectionPort",
+            "Position": "0.2360865,0,4.951741",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "particles",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "97070775-38ae-42c9-bba2-de71d7fc0831",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "desert_eagle_mesh",
+            "Position": "0.86033,0.098959,0.517231",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [
+              {
+                "__type": "Sandbox.SkinnedModelRenderer",
+                "__guid": "3ce42be6-1cb2-4cc9-96f4-0b98356d866e",
+                "__enabled": true,
+                "Flags": 0,
+                "BodyGroups": 18446744073709551615,
+                "CreateAttachments": false,
+                "LodOverride": null,
+                "MaterialGroup": null,
+                "MaterialOverride": null,
+                "Materials": null,
+                "Model": "addons/lifepunch/lpweapons/deserteagle/Desert Eagle.vmdl",
+                "OnComponentDestroy": null,
+                "OnComponentDisabled": null,
+                "OnComponentEnabled": null,
+                "OnComponentFixedUpdate": null,
+                "OnComponentStart": null,
+                "OnComponentUpdate": null,
+                "RenderOptions": {
+                  "GameLayer": true,
+                  "OverlayLayer": false,
+                  "BloomLayer": false,
+                  "AfterUILayer": false
+                },
+                "RenderType": "On",
+                "Tint": "1,1,1,1"
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "__guid": "e8f865d4-f982-4465-be56-f4d3887796e9",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Functions",
+        "Position": "0,0,0",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Dxura.RP.Game.AmmoComponent",
+            "__guid": "8fc87234-7fd4-4369-a823-88e35ab3cfc6",
+            "__enabled": true,
+            "Flags": 0,
+            "Ammo": 13,
+            "HasAmmo": true,
+            "MaxAmmo": 13,
+            "MaxReserveAmmo": 52,
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "ReserveAmmo": 13
+          },
+          {
+            "__type": "Dxura.RP.Game.ShootWeaponComponent",
+            "__guid": "bec2af8d-e1f8-4c42-95b1-a65eca51d3be",
+            "__enabled": true,
+            "Flags": 0,
+            "AmmoComponent": {
+              "_type": "component",
+              "component_id": "8fc87234-7fd4-4369-a823-88e35ab3cfc6",
+              "go": "e8f865d4-f982-4465-be56-f4d3887796e9",
+              "component_type": "AmmoComponent"
+            },
+            "BaseDamage": 25,
+            "BaseDamageFalloff": [
+              {
+                "x": 0,
+                "y": 1,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 0.45386904,
+                "y": 0.44311067,
+                "in": 1.6585169,
+                "out": -1.6585169,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 1,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ],
+            "BloodEjectDistance": 512,
+            "BulletCount": 1,
+            "BulletSize": 1,
+            "BulletSpread": 0,
+            "BurstAmount": 3,
+            "BurstEndDelay": 0.2,
+            "CurrentFireMode": "Semi",
+            "Delay": 0.2,
+            "DeployDelay": 0.5,
+            "DryFireSound": "addons/lifepunch/lpweapons/deserteagle/sounds/desert_eagle_dryfire.sound",
+            "DryShootDelay": 0.15,
+            "FireModeSwitchDelay": 0.3,
+            "FireRate": 600,
+            "HeadshotDamageMultiplier": 2,
+            "HeadshotEnabled": true,
+            "InAirSpreadMultiplier": 2,
+            "InputActions": [
+              "Attack1"
+            ],
+            "MaxEffectsPlayDistance": 4194304,
+            "MaxRange": 1024000,
+            "MuzzleFlashPrefab": {
+              "_type": "gameobject",
+              "prefab": "prefabs/weapon_effects/pistol_muzzleflash.prefab"
+            },
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "PenetrationThickness": 32,
+            "PlayerVelocityLimit": 300,
+            "RequiresAllInputActions": false,
+            "RequiresAmmoComponent": true,
+            "ShootSound": "addons/lifepunch/lpweapons/deserteagle/sounds/desert_eagle_shot.sound",
+            "SupportedFireModes": [
+              "Semi"
+            ],
+            "VelocitySpreadScale": 0.25
+          },
+          {
+            "__type": "Dxura.RP.Game.ReloadWeaponComponent",
+            "__guid": "fcb7f3c5-6af7-43ff-8de6-e961c6ce0a63",
+            "__enabled": true,
+            "Flags": 0,
+            "AmmoComponent": {
+              "_type": "component",
+              "component_id": "8fc87234-7fd4-4369-a823-88e35ab3cfc6",
+              "go": "e8f865d4-f982-4465-be56-f4d3887796e9",
+              "component_type": "AmmoComponent"
+            },
+            "EmptyReloadSounds": {
+              "0": "addons/lifepunch/lpweapons/deserteagle/sounds/desert_eagle_reload_clipout.sound",
+              "1.2": "addons/lifepunch/lpweapons/deserteagle/sounds/desert_eagle_reload_clipin.sound"
+            },
+            "EmptyReloadTime": 2,
+            "InputActions": [
+              "Reload"
+            ],
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "ReloadTime": 1.5,
+            "RequiresAllInputActions": false,
+            "SingleReload": false,
+            "TimedReloadSounds": {
+              "0": "addons/lifepunch/lpweapons/deserteagle/sounds/desert_eagle_reload_clipout.sound",
+              "1": "addons/lifepunch/lpweapons/deserteagle/sounds/desert_eagle_reload_clipin.sound"
+            }
+          },
+          {
+            "__type": "Dxura.RP.Game.RecoilWeaponComponent",
+            "__guid": "56422e77-034f-486a-92c4-2a18b4d48fd0",
+            "__enabled": true,
+            "Flags": 0,
+            "HorizontalSpread": "1.4 -1.4",
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "RecoilPattern": {
+              "Points": [],
+              "LoopStart": 0,
+              "LoopEnd": 0,
+              "IsLooping": false
+            },
+            "ResetTime": 0.3,
+            "Scale": "2,5",
+            "UseRecoilPattern": false,
+            "VerticalSpread": "2"
+          },
+          {
+            "__type": "Dxura.RP.Game.ViewPunch",
+            "__guid": "94dbd914-1a73-4582-ba8e-6ec01366c98a",
+            "__enabled": true,
+            "Flags": 0,
+            "AnglesOffset": "-0.5,0.1,0.5",
+            "Curve": [
+              {
+                "x": 0,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 0.20833333,
+                "y": 1,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 1,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ],
+            "Lifetime": 0.1,
+            "MaxAnglesOffset": "-0.5,0.1,0.5",
+            "MaxPositionOffset": "0.5,0.2,1.5",
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "PositionOffset": "0.5,0.2,1.5"
+          },
+          {
+            "__type": "Dxura.RP.Game.ManualOffset",
+            "__guid": "4283dc71-62b8-48e0-885c-4b6d0328fb09",
+            "__enabled": true,
+            "Flags": 0,
+            "AimAngleOffset": "0,0,0",
+            "AimOffset": "5,0,0",
+            "InputActions": [
+              "Attack2"
+            ],
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "RequiresAllInputActions": false
+          }
+        ],
+        "Children": []
+      }
+    ],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": false,
+  "MenuPath": null,
+  "MenuIcon": null,
+  "DontBreakAsTemplate": false,
+  "__references": [
+    "facepunch.w_usp#278999"
+  ],
+  "__version": 2
+}

@@ -1,0 +1,641 @@
+{
+  "RootObject": {
+    "__guid": "b6b28d7a-a008-43b2-9abb-ddc9461d81f2",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "w_ak47",
+    "Position": "0,0,0",
+    "Rotation": "0,0,0,1",
+    "Scale": "1,1,1",
+    "Tags": "player",
+    "Enabled": true,
+    "NetworkMode": 1,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 3,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Dxura.RP.Game.Equipment",
+        "__guid": "b5d4a297-ee8b-443b-9e2f-9172b1f7d9bc",
+        "__enabled": true,
+        "Flags": 0,
+        "ArmorReduction": null,
+        "DeploySound": "addons/lifepunch/lpweapons/ak47/sounds/ak47_draw.sound",
+        "DroppedCenter": "0,0,0",
+        "DroppedSize": "8,2,8",
+        "EjectionPort": {
+          "_type": "gameobject",
+          "go": "7fd7020e-1f02-4e68-9fb7-1b9923fd18c9"
+        },
+        "EquipmentId": "00000000-0000-0000-0000-000000000000",
+        "Handedness": "Right",
+        "HelmetReduction": null,
+        "HoldType": "Rifle",
+        "IsPurchasable": true,
+        "ModelRenderer": {
+          "_type": "component",
+          "component_id": "f00fbdea-f72b-42a4-90f0-6e71a72447fa",
+          "go": "53d3ddaa-4b23-4fb9-bd29-03670505e7c3",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "Muzzle": {
+          "_type": "gameobject",
+          "go": "f2f8b82c-7f96-4f1b-89b6-9e160c28f3b0"
+        },
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnlyShowCrosshairDot": false,
+        "SpeedPenalty": 40,
+        "UseCrosshair": true,
+        "ViewModelPrefab": {
+          "_type": "gameobject",
+          "prefab": "addons/lifepunch/lpweapons/ak47/equipment/vm_ak47/vm_ak47.prefab"
+        }
+      },
+      {
+        "__type": "Dxura.RP.Game.TagBinder",
+        "__guid": "f0279357-f0cf-4812-a7d7-4242bf42da85",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      },
+      {
+        "__type": "LifePunch.DXRP.Addons.AK47.Ak47HoldIk",
+        "__guid": "7b2c9d40-3a5f-4d80-81e4-6c1d4e70b099",
+        "__enabled": true,
+        "Flags": 0,
+        "LeftGrip": {
+          "_type": "gameobject",
+          "go": "8c3a1f20-4b6d-4e91-9a12-7d2e5f81c0aa"
+        },
+        "RightGrip": {
+          "_type": "gameobject",
+          "go": "9d4b2e31-5c7e-4f02-8b23-8e3f6092d1bb"
+        },
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      },
+      {
+        "__type": "LifePunch.DXRP.Addons.Weapons.Attachments.WeaponAttachmentState",
+        "__guid": "f09af975-5f82-4cd8-9325-43d525f188ad",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      },
+      {
+        "__type": "LifePunch.DXRP.Addons.Weapons.Attachments.WeaponAttachmentController",
+        "__guid": "f7a8681c-9e15-460c-8924-a7a45be5e3ba",
+        "__enabled": true,
+        "Flags": 0,
+        "AttachmentState": {
+          "_type": "component",
+          "component_id": "f09af975-5f82-4cd8-9325-43d525f188ad",
+          "go": "b6b28d7a-a008-43b2-9abb-ddc9461d81f2",
+          "component_type": "WeaponAttachmentState"
+        },
+        "Equipment": {
+          "_type": "component",
+          "component_id": "b5d4a297-ee8b-443b-9e2f-9172b1f7d9bc",
+          "go": "b6b28d7a-a008-43b2-9abb-ddc9461d81f2",
+          "component_type": "Equipment"
+        },
+        "InventoryTransactionsEnabled": false,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "WeaponId": "ak47"
+      }
+    ],
+    "Children": [
+      {
+        "__guid": "e1e2d0f5-53d1-4b67-b3fd-6ce46c86ad47",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Model",
+        "Position": "2.88818789,1.64645302,-6.57647705",
+        "Rotation": "5.587935E-09,1.18627199E-07,0.116402499,0.99320209",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Sandbox.SkinnedModelRenderer",
+            "__guid": "fb6063d4-ac1b-423c-9bdb-639a5322f4d8",
+            "__enabled": true,
+            "Flags": 0,
+            "AnimationGraph": null,
+            "BodyGroups": 427,
+            "BoneMergeTarget": null,
+            "CreateAttachments": false,
+            "CreateBoneObjects": false,
+            "LodOverride": null,
+            "MaterialGroup": null,
+            "MaterialOverride": "addons/lifepunch/lpweapons/ak47/equipment/vm_ak47/invisible.vmat",
+            "Materials": null,
+            "Model": "models/weapons/sbox_assault_m4a1/w_m4a1.vmdl",
+            "Morphs": {},
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "Parameters": {
+              "bools": {},
+              "ints": {},
+              "floats": {},
+              "vectors": {},
+              "rotations": {}
+            },
+            "PlaybackRate": 1,
+            "RenderOptions": {
+              "GameLayer": true,
+              "OverlayLayer": false,
+              "BloomLayer": false,
+              "AfterUILayer": false
+            },
+            "RenderType": "On",
+            "Sequence": {
+              "Name": null,
+              "Looping": true,
+              "Blending": false
+            },
+            "Tint": "1,1,1,1",
+            "UseAnimGraph": true
+          }
+        ],
+        "Children": [
+          {
+            "__guid": "f2f8b82c-7f96-4f1b-89b6-9e160c28f3b0",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "Muzzle",
+            "Position": "20.0757103,0,7.21292114",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "7fd7020e-1f02-4e68-9fb7-1b9923fd18c9",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "EjectionPort",
+            "Position": "1.77498496,-0.421094507,7.67248201",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "8c3a1f20-4b6d-4e91-9a12-7d2e5f81c0aa",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "LeftGrip",
+            "Position": "8.8,-0.093389,6.5",
+            "Rotation": "0.72033656,-0.3025651,-0.2122301,0.58695924",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "9d4b2e31-5c7e-4f02-8b23-8e3f6092d1bb",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "RightGrip",
+            "Position": "7.909501,-0.093389,8.188597",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "53d3ddaa-4b23-4fb9-bd29-03670505e7c3",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "ak47_mesh",
+            "Position": "3.7277958,0.22501908,5.4688525",
+            "Rotation": "0,0,1,0",
+            "Scale": "0.84991359,0.84991359,0.84991359",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [
+              {
+                "__type": "Sandbox.SkinnedModelRenderer",
+                "__guid": "f00fbdea-f72b-42a4-90f0-6e71a72447fa",
+                "__enabled": true,
+                "Flags": 0,
+                "BodyGroups": 18446744073709551615,
+                "CreateAttachments": false,
+                "LodOverride": null,
+                "MaterialGroup": null,
+                "MaterialOverride": "addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/materials/ak47_body.vmat",
+                "Materials": null,
+                "Model": "addons/lifepunch/lpweapons/ak47/models/lifepunch/ak47/w_ak47/w_ak47.vmdl",
+                "OnComponentDestroy": null,
+                "OnComponentDisabled": null,
+                "OnComponentEnabled": null,
+                "OnComponentFixedUpdate": null,
+                "OnComponentStart": null,
+                "OnComponentUpdate": null,
+                "RenderOptions": {
+                  "GameLayer": true,
+                  "OverlayLayer": false,
+                  "BloomLayer": false,
+                  "AfterUILayer": false
+                },
+                "RenderType": "On",
+                "Tint": "1,1,1,1"
+              }
+            ],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "__guid": "c7a6f541-2d5f-4a46-8916-ef6d154946c0",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Functions",
+        "Position": "0,0,0",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Dxura.RP.Game.AmmoComponent",
+            "__guid": "ec1277d4-2b44-421c-9a35-16b50f98b395",
+            "__enabled": true,
+            "Flags": 0,
+            "Ammo": 30,
+            "HasAmmo": true,
+            "MaxAmmo": 30,
+            "MaxReserveAmmo": 90,
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "ReserveAmmo": 90
+          },
+          {
+            "__type": "Dxura.RP.Game.ShootWeaponComponent",
+            "__guid": "faea82c8-52bf-4b65-8812-b30f0fbca6f0",
+            "__enabled": true,
+            "Flags": 0,
+            "AmmoComponent": {
+              "_type": "component",
+              "component_id": "ec1277d4-2b44-421c-9a35-16b50f98b395",
+              "go": "c7a6f541-2d5f-4a46-8916-ef6d154946c0",
+              "component_type": "AmmoComponent"
+            },
+            "BaseDamage": 28,
+            "BaseDamageFalloff": [
+              {
+                "x": 0,
+                "y": 1,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 1,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ],
+            "BloodEjectDistance": 512,
+            "BulletCount": 1,
+            "BulletSize": 1,
+            "BulletSpread": 0,
+            "BurstAmount": 3,
+            "BurstEndDelay": 0.2,
+            "CurrentFireMode": "Automatic",
+            "Delay": 0.1,
+            "DeployDelay": 0.5,
+            "DryFireSound": "sounds/equipment/gun_dryfire.sound",
+            "DryShootDelay": 0.15,
+            "FireModeSwitchDelay": 0.3,
+            "FireRate": 600,
+            "HeadshotDamageMultiplier": 2,
+            "HeadshotEnabled": true,
+            "InAirSpreadMultiplier": 2,
+            "InputActions": [
+              "Attack1"
+            ],
+            "MaxEffectsPlayDistance": 4194304,
+            "MaxRange": 12000,
+            "MuzzleFlashPrefab": {
+              "_type": "gameobject",
+              "prefab": "prefabs/weapon_effects/rifle_muzzleflash.prefab"
+            },
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "PenetrationThickness": 32,
+            "PlayerVelocityLimit": 300,
+            "RequiresAllInputActions": false,
+            "RequiresAmmoComponent": true,
+            "ShootSound": "addons/lifepunch/lpweapons/ak47/sounds/ak47_shot.sound",
+            "SupportedFireModes": [
+              "Automatic"
+            ],
+            "VelocitySpreadScale": 0.25
+          },
+          {
+            "__type": "Dxura.RP.Game.ReloadWeaponComponent",
+            "__guid": "2cebc6fb-b7ab-4f8a-9202-3bd916c70971",
+            "__enabled": true,
+            "Flags": 0,
+            "AmmoComponent": {
+              "_type": "component",
+              "component_id": "ec1277d4-2b44-421c-9a35-16b50f98b395",
+              "go": "c7a6f541-2d5f-4a46-8916-ef6d154946c0",
+              "component_type": "AmmoComponent"
+            },
+            "EmptyReloadSounds": {
+              "0": "addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipout.sound",
+              "1.2": "addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipin.sound",
+              "2.1": "addons/lifepunch/lpweapons/ak47/sounds/ak47_cock.sound"
+            },
+            "EmptyReloadTime": 2.4,
+            "InputActions": [
+              "Reload"
+            ],
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "ReloadTime": 2.4,
+            "RequiresAllInputActions": false,
+            "SingleReload": false,
+            "TimedReloadSounds": {
+              "0": "addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipout.sound",
+              "1.2": "addons/lifepunch/lpweapons/ak47/sounds/ak47_reload_clipin.sound",
+              "2.1": "addons/lifepunch/lpweapons/ak47/sounds/ak47_cock.sound"
+            }
+          },
+          {
+            "__type": "Dxura.RP.Game.RecoilWeaponComponent",
+            "__guid": "f3a2fd42-2f2f-4d7f-9535-d8ff752a1c70",
+            "__enabled": true,
+            "Flags": 0,
+            "HorizontalSpread": "-0.850000024 0.850000024",
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "RecoilPattern": {
+              "Points": [
+                "0.0235848408,4.87288094",
+                "-0.0235853195,4.63983107",
+                "-0.0235853195,4.34322023",
+                "-0.0943388864,4.00423717",
+                "-0.518867493,3.855932",
+                "-1.674528,3.83474588",
+                "-2.31132102,3.68643999",
+                "-2.83018899,3.58050799",
+                "-3.18396211,2.881356",
+                "-3.01886797,2.69067788",
+                "-2.05188704,2.66949201",
+                "-0.825471401,2.86016893",
+                "0.589622974,2.94491506",
+                "1.65094304,2.94491506",
+                "2.47641492,2.79661012",
+                "2.78301811,2.58474588",
+                "2.66509295,2.33050799",
+                "1.674528,2.13983011",
+                "0.754716396,2.05508494",
+                "-0.353774101,1.99152505",
+                "-1.22641504,1.94915199",
+                "-2.38207603,1.86440694",
+                "-2.83018899,1.652542",
+                "-2.80660391,1.50423706",
+                "-1.674528,1.20762706",
+                "-0.542452812,1.18644094",
+                "2.16981006,1.165254",
+                "2.75943208,1.08050799",
+                "3.0424521,1.01694906",
+                "2.9716959,0.88983053",
+                "2.00471592,0.699152589",
+                "0.896226883,0.635593176",
+                "-0.0943388864,0.635593176",
+                "-1.01415098,0.614406824",
+                "-2.21698093,0.508474588"
+              ],
+              "LoopStart": 4,
+              "LoopEnd": 30,
+              "IsLooping": false
+            },
+            "ResetTime": 0.3,
+            "Scale": "2,5",
+            "UseRecoilPattern": true,
+            "VerticalSpread": "1.5 2.20000005"
+          },
+          {
+            "__type": "Dxura.RP.Game.ManualOffset",
+            "__guid": "6e8c9c76-1a71-4b7a-9e31-63b6e6f4fb8b",
+            "__enabled": true,
+            "Flags": 0,
+            "AimAngleOffset": "0,0,2.5",
+            "AimOffset": "0,0,0",
+            "InputActions": [
+              "Attack2"
+            ],
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "RequiresAllInputActions": false
+          },
+          {
+            "__type": "Dxura.RP.Game.ViewPunch",
+            "__guid": "7a10b7a4-7b9f-4ed5-a1f6-1c54c2b59307",
+            "__enabled": true,
+            "Flags": 0,
+            "AnglesOffset": "-0.400000006,-0.100000001,-0.5",
+            "Curve": [
+              {
+                "x": 0,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 0.21428572,
+                "y": 1,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 1,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ],
+            "Lifetime": 0.45,
+            "MaxAnglesOffset": "-0.699999988,0.100000001,0.5",
+            "MaxPositionOffset": "-0.5,-0.200000003,-0.75",
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "PositionOffset": "0.5,0.200000003,0.75"
+          },
+          {
+            "__type": "Dxura.RP.Game.FovOffset",
+            "__guid": "b8f7b2d9-91a4-4a35-9f8a-6f5b6c2afdf8",
+            "__enabled": true,
+            "Flags": 0,
+            "Curve": [
+              {
+                "x": 0,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 0.15,
+                "y": 1,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              },
+              {
+                "x": 1,
+                "y": 0,
+                "in": 0,
+                "out": 0,
+                "mode": "Mirrored"
+              }
+            ],
+            "Length": 0.1,
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "Size": 2
+          }
+        ],
+        "Children": []
+      }
+    ],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": false,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": "",
+        "DeferGeneration": false,
+        "CustomBounds": false
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": false,
+  "MenuPath": null,
+  "MenuIcon": null,
+  "DontBreakAsTemplate": false,
+  "__references": [
+    "facepunch.w_m4a1#278949"
+  ],
+  "__version": 2
+}
