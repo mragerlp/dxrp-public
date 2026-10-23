@@ -32,11 +32,13 @@
 
 .jobs-group {
 	flex-direction: column;
+	flex-shrink: 0;
 	margin-bottom: $space-5;
 }
 
 .jobs-group-head {
 	flex-direction: row;
+	flex-shrink: 0;
 	align-items: center;
 	height: $chip-h;
 	margin-bottom: $space-2;
@@ -60,10 +62,12 @@
 
 .jobs-rows {
 	flex-direction: column;
+	flex-shrink: 0;
 }
 
 .jobs-row {
 	flex-direction: row;
+	flex-shrink: 0;
 	align-items: center;
 	min-height: $row-h;
 	padding-top: $space-2;
