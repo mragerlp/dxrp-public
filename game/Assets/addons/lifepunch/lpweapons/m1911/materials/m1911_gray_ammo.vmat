@@ -1,0 +1,11 @@
+// M1911 MECHANICAL GRAYBOX ONLY.
+// No recovered or inferred source texture is represented by this material.
+Layer0
+{
+	shader "shaders/complex.shader"
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[0.620000 0.440000 0.145000 1.000000]"
+	g_flMetalness "0.900"
+	g_flRoughness "0.280"
+	TextureColor "materials/default/default_color.tga"
+}
