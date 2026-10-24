@@ -73,6 +73,10 @@
 				<div class="btc-plate-title">GPU RACKS</div>
 				<div class="btc-plate-note">@( Model.IsPowered ? "switches live" : "hub off - mining locked" )</div>
 			</div>
+			@if ( !string.IsNullOrEmpty( Model.UpgradeNote ) )
+			{
+				<div class="@UpgradeNoteClass()">@Model.UpgradeNote</div>
+			}
 			<div class="btc-rack-grid">
 				@if ( Model.Racks.Count == 0 )
 				{
@@ -96,6 +100,7 @@
 						</div>
 						<div class="btc-rack-foot">
 							<span class="@MiningLabelClass( rack )">@( rack.IsMining ? "MINING" : "IDLE" )</span>
+							<button class="@UpgradeClass( rack )" disabled="@(!UpgradeLive( rack ))" tooltip="@UpgradeTooltip( rack )" onclick="@rack.Upgrade">@UpgradeLabel( rack )</button>
 							<button class="@SwitchClass( rack.IsMining, Model.IsPowered )" disabled="@(!Model.IsPowered)" tooltip="@( rack.IsMining ? "Stop mining" : "Start mining" )" onclick="@rack.ToggleMining">
 								<div class="lp-switch-knob"></div>
 							</button>
@@ -139,6 +144,20 @@
 	private static string TierChipClass( LpBtcRackVm r ) => r.Advanced ? "btc-chip btc-chip-adv" : "btc-chip";
 	// HUB-RACKS-1: the ladder label as the host replicates it, plus the top-of-ladder fact (read only).
 	private static string TierChipText( LpBtcRackVm r ) => r.AtTopTier ? r.TierLabel + " MAX" : r.TierLabel;
+	// HUB-RACKS-1: the per-rack Upgrade control asks the hub's one purchase rail; the host decides and answers. It is live
+	// for a manager with nothing in flight and a rack below the top of the ladder. The hub being off does not disable it,
+	// because the rail does not refuse on power (same as HASHD). Inert states swap in a standalone class, never :disabled.
+	private bool UpgradeWorking( LpBtcRackVm r ) => !string.IsNullOrEmpty( Model.UpgradeRackId ) && Model.UpgradeRackId == r.Id;
+	private bool UpgradeLive( LpBtcRackVm r ) => Model.CanUpgrade && !r.AtTopTier && string.IsNullOrEmpty( Model.UpgradeRackId );
+	private string UpgradeClass( LpBtcRackVm r ) => UpgradeLive( r ) ? "btc-action btc-action-good btc-rack-upgrade" : "btc-action btc-action-off btc-rack-upgrade";
+	private string UpgradeLabel( LpBtcRackVm r ) => UpgradeWorking( r ) ? "Working..." : r.AtTopTier ? "Maxed" : "Upgrade";
+	private string UpgradeTooltip( LpBtcRackVm r ) =>
+		!Model.CanUpgrade ? Model.UpgradeHint
+		: r.AtTopTier ? "This rack is at the top tier"
+		: UpgradeWorking( r ) ? "Waiting for the hub to answer"
+		: !string.IsNullOrEmpty( Model.UpgradeRackId ) ? "Another upgrade is waiting for the hub"
+		: "Upgrade to " + r.NextTierLabel;
+	private string UpgradeNoteClass() => Model.UpgradeNoteGood ? "btc-note btc-note-good" : "btc-note btc-note-bad";
 	private static string MiningLabelClass( LpBtcRackVm r ) => r.IsMining ? "btc-mining-label btc-mining-label-on" : "btc-mining-label";
 
 	protected override int BuildHash()
@@ -154,6 +173,10 @@
 		hash.Add( Model.PendingBtc );
 		hash.Add( Model.RackCount );
 		hash.Add( Model.Note );
+		hash.Add( Model.CanUpgrade );
+		hash.Add( Model.UpgradeRackId );
+		hash.Add( Model.UpgradeNote );
+		hash.Add( Model.UpgradeNoteGood );
 		foreach ( var rack in Model.Racks )
 		{
 			hash.Add( rack.Id );

@@ -41,7 +41,29 @@ public sealed record LpBtcVm(
 	Action? TogglePower,
 	Action? DepositAll,
 	Action? CashOutAll,
-	string Note);
+	string Note,
+	bool CanUpgrade,
+	string UpgradeHint,
+	string UpgradeRackId,
+	string UpgradeNote,
+	bool UpgradeNoteGood);
+
+/// <summary>
+/// HUB-RACKS-1: the one rack-upgrade request this panel has in flight, and the host's last answer as a note.
+/// Owned by the open Player Hub (a fresh one per open), never by the view model, because the view model is rebuilt on
+/// every render. Holds no balance, price or tier: the figures on screen move only when the hub's synced fields do.
+/// </summary>
+public sealed class LpBtcUpgradeState
+{
+	/// <summary>The rack whose upgrade request is awaiting the host's answer; Guid.Empty when none.</summary>
+	public Guid RackId = Guid.Empty;
+
+	public string Note = string.Empty;
+
+	public bool NoteGood;
+
+	public bool Pending => RackId != Guid.Empty;
+}
 
 public sealed record LpBtcRackVm(
 	string Id,
@@ -55,7 +77,8 @@ public sealed record LpBtcRackVm(
 	bool Advanced,
 	Action? ToggleMining,
 	bool AtTopTier,
-	string NextTierLabel);
+	string NextTierLabel,
+	Action? Upgrade);
 
 public sealed record LpPlayerHubShellVm(
 	string PlayerName,
