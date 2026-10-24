@@ -250,6 +250,23 @@
 	color: $text-dim;
 }
 
+// HUB-RACKS-1: the host's answer to a rack upgrade; the colour follows the result, the words say it too.
+.btc-note-good {
+	color: $good;
+}
+
+.btc-note-bad {
+	color: $bad;
+}
+
+// The per-rack Upgrade control: the plate action look at the rack card's foot size (card height is fixed at 150).
+.btc-rack-upgrade {
+	flex-shrink: 0;
+	min-height: 28px;
+	padding: 0 10px;
+	font-size: 11px;
+}
+
 // ── racks ────────────────────────────────────────────────────────────────
 .btc-racks {
 	flex-grow: 1;
