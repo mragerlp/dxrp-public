@@ -36,6 +36,11 @@ $lp-blue-hover: $lpui-blue-highlight;
 $hub-core: $lpui-blue;
 $hub-text: $lpui-blue-highlight;
 $hub-hover: $lpui-blue-highlight;
+// THEME-2: ULX splits its blue by role. Icons and marks take the base blue ($hub-icon, ULX $blue,
+// e.g. .lp-mark); active and hover text keep $hub-text (ULX $blue-highlight). $hub-fill is the ULX
+// primary-button fill ($blue-fill, ULX .confirm-btn); its hover is $hub-core.
+$hub-icon: $lpui-blue;
+$hub-fill: $lpui-blue-fill;
 $btc-core: #ff7b00;
 $btc-text: #ff8f26;
 $banker-core: #228b22;
