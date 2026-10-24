@@ -264,16 +264,26 @@
 
 	protected override void OnUpdate()
 	{
+		// Esc is routed to this panel ahead of the pause menu (LifePunchEscapeRouter).
+		if ( LifePunchMenuInputBlock.TakeEscape() )
+		{
+			Log.Info( "[playerhub] ESC-CONFLICT-1 hub closed by Esc" );
+			Close();
+			return;
+		}
+
 		LifePunchUiScrollPolicy.Apply( Panel );
 	}
 
 	protected override void OnEnabled()
 	{
 		LifePunchMenuInputBlock.NotifyMenuOpened();
+		LifePunchMenuInputBlock.ClaimEscape();
 	}
 
 	protected override void OnDisabled()
 	{
+		LifePunchMenuInputBlock.ReleaseEscape();
 		LifePunchMenuInputBlock.NotifyMenuClosed();
 	}
 
