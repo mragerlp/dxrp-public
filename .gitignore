@@ -503,3 +503,12 @@ game/Assets/**/*.generated.vtex_c
 
 # Asset rollback backups (keep on disk, ignore in git)
 *.bak
+
+# Editor-installed libraries and per-machine tooling (LIBRARIES-2; see docs/developers/LIBRARIES.md)
+game/Libraries/*
+!game/Libraries/.gitkeep
+!game/Libraries/MANIFEST.md
+/.mcp.json
+/.codex/
+/.cursor/hooks/state/
+/exceptions.txt
