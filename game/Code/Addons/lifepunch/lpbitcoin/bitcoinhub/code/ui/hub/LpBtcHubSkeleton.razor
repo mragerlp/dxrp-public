@@ -10,9 +10,11 @@
    BTC-HUB-OVERHAUL-1 U2: moved from _dev/btcui2; the hub press mounts it (LpBtcHubUiHost) and binds
    the pressed hub; the PIN keypad asks the host (unlock HE:995, set / re-enroll HE:928) - the only
    rails bound here. Every other action stays inert until U3.
+   HUB-UPGRADE-1: the Racks tab's Upgrade control asks the one existing purchase rail (see RequestUpgrade).
    ----------------------------------------------------------------------------- *@
 @namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
 @using System
+@using System.Linq
 @using Sandbox
 @using Sandbox.UI
 @using LifePunch.DXRP.Addons
@@ -116,7 +118,7 @@
 				}
 				else if ( _activeTab == LpBtcHubTab.Racks )
 				{
-					<LpBtcHubRacks Model="@State" Format="@Format" SelectedToken="@_selectedRackToken" OnSelectRack="@((string token) => SelectRack( token ))" OnBlocked="@((string action) => Blocked( action ))" />
+					<LpBtcHubRacks Model="@State" Format="@Format" SelectedToken="@_selectedRackToken" OnSelectRack="@((string token) => SelectRack( token ))" OnBlocked="@((string action) => Blocked( action ))" CanUpgrade="@CanUpgrade" UpgradeRackId="@_upgradeRackId" UpgradeHint="@UpgradeHint" UpgradeNote="@_upgradeNote" UpgradeNoteGood="@_upgradeNoteGood" OnUpgrade="@((Guid rackId) => RequestUpgrade( rackId ))" />
 				}
 				else if ( _activeTab == LpBtcHubTab.Terminal )
 				{
@@ -365,6 +367,79 @@
 		StateHasChanged();
 	}
 
+	// HUB-UPGRADE-1: the Upgrade control asks the SAME host rail HASHD asks (LpHashdPanel.ConfirmPurchase ->
+	// rack.RequestPurchaseComputeTier(), no arguments). The host re-checks everything (LpBitcoinPurchaseFlow:
+	// CanManageHub, quote, wallet, ledger, debit restore) and answers with the one envelope; nothing here
+	// prices, debits or credits, and the figures on screen move only when the hub's synced fields do.
+	private Guid _upgradeRackId = Guid.Empty;
+	private string _upgradeNote = string.Empty;
+	private bool _upgradeNoteGood;
+
+	// The host's own test (CanManageHub), shown ahead of the press. Display only: the host decides. Powered and
+	// linked are not tested because the rail does not refuse on them.
+	private bool CanUpgrade => !Preview && BoundHub.IsValid() && BoundHub.CanManageHub( Connection.Local.Id );
+
+	private string UpgradeHint => Preview ? LpBtcHubCommandSpy.Reason( "upgrade" ) : "Only the hub owner can buy upgrades.";
+
+	private void RequestUpgrade( Guid rackId )
+	{
+		if ( _upgradeRackId != Guid.Empty )
+			return;
+
+		if ( Preview )
+		{
+			Blocked( "upgrade" );
+			return;
+		}
+
+		var hub = BoundHub;
+		if ( !CanUpgrade )
+		{
+			_upgradeNoteGood = false;
+			_upgradeNote = UpgradeHint;
+			StateHasChanged();
+			return;
+		}
+
+		var rack = hub.GetLinkedRacks().FirstOrDefault( r => r.IsValid() && r.GameObject.Id == rackId );
+		if ( !rack.IsValid() )
+		{
+			_upgradeNoteGood = false;
+			_upgradeNote = "That rack is no longer linked to this hub.";
+			StateHasChanged();
+			return;
+		}
+
+		_upgradeNote = string.Empty;
+		// Pending first: on a listen host the answer can arrive inside the call and must win.
+		_upgradeRackId = rackId;
+		if ( !LpBtcHubCommandSpy.Send( _showcase is not null, "upgrade", () => rack.RequestPurchaseComputeTier() ) )
+			_upgradeRackId = Guid.Empty;
+
+		StateHasChanged();
+	}
+
+	/// <summary>The host's answer to an upgrade (LpBtcHubUiHost.OnPurchaseResult). Codes: LpBitcoinPurchaseResultCode.</summary>
+	public void OnPurchaseResult( int code, int newTier, long costSats, long shortfallSats )
+	{
+		_upgradeRackId = Guid.Empty;
+		var result = (LpBitcoinPurchaseResultCode)code;
+		_upgradeNoteGood = result == LpBitcoinPurchaseResultCode.Ok;
+		if ( result == LpBitcoinPurchaseResultCode.Ok )
+			_upgradeNote = "Compute " + Format.Tier( newTier ) + " online. " + BtcSign + Format.BtcPrice( costSats ) + " paid from the hub wallet.";
+		else if ( result == LpBitcoinPurchaseResultCode.InsufficientFunds )
+			_upgradeNote = "The hub wallet is short by " + BtcSign + Format.BtcPrice( shortfallSats ) + ". Nothing was charged.";
+		else if ( result == LpBitcoinPurchaseResultCode.PreconditionTier )
+			_upgradeNote = "That upgrade is not available. Nothing was charged.";
+		else if ( result == LpBitcoinPurchaseResultCode.HubGuard )
+			_upgradeNote = "Hub access is required to buy upgrades.";
+		else
+			_upgradeNote = "The hub did not accept the upgrade.";
+
+		Log.Info( "[btcui2] HUB-UPGRADE-1 purchase result code=" + code + " tier=" + newTier );
+		StateHasChanged();
+	}
+
 	private void SetTab( LpBtcHubTab tab )
 	{
 		if ( _pinView || _activeTab == tab )
@@ -373,6 +448,7 @@
 		_activeTab = tab;
 		_selectedRackToken = string.Empty;
 		_blockedNote = string.Empty;
+		_upgradeNote = string.Empty;
 		StateHasChanged();
 	}
 
@@ -384,6 +460,7 @@
 		Log.Info( "[btcui2] U2 SelectRack token=" + ( string.IsNullOrEmpty( token ) ? "(none)" : token ) + " pin=" + _pinView + " tab=" + _activeTab );
 		_selectedRackToken = token ?? string.Empty;
 		_blockedNote = string.Empty;
+		_upgradeNote = string.Empty;
 		StateHasChanged();
 	}
 
@@ -530,5 +607,5 @@
 	}
 
 	protected override int BuildHash() =>
-		HashCode.Combine( (int)_activeTab, _selectedRackToken, _pinView, _pinEntry, _pinError, _pinPending, HashCode.Combine( _pinSetFirst.Length, _blockedNote, _showcase is not null ), State.StateHash );
+		HashCode.Combine( (int)_activeTab, _selectedRackToken, _pinView, _pinEntry, _pinError, _pinPending, HashCode.Combine( _pinSetFirst.Length, _blockedNote, _showcase is not null, HashCode.Combine( _upgradeRackId, _upgradeNote, _upgradeNoteGood, CanUpgrade ) ), State.StateHash );
 }

@@ -5,7 +5,7 @@
    Three fixed slots mapped BY TOKEN (gpurack-1, gpurack-2, advancedgpurack), never by list position
    (R-BTCUI-4; HP:1983-2022 retires). Detail: chips (+FULL), compute / rate / buffer / yield from the
    view model (synced clock, no projection, no TH/s), the upgrade ladder with its PLANNED rows.
-   Upgrade and the mining switch are inert (rails bind in the build slice; R-BTCUI-11).
+   The mining switch is inert (R-BTCUI-11). Upgrade asks the one existing purchase rail through the shell (HUB-UPGRADE-1).
    Track names port lpbitcoin/bitcoinhub/code/ui/LpHashdPanel.razor:996-1006. UNVERIFIED in the editor.
    ----------------------------------------------------------------------------- *@
 @namespace LifePunch.DXRP.Addons.Bitcoin.HubUi
@@ -136,9 +136,12 @@
 					</div>
 					<span class="btchub-label">@DeltaText</span>
 					<span class="@AffordClass" tooltip="@AffordTooltip">@AffordText</span>
-					<button class="btchub-action-inert" tooltip="@( LpBtcHubCommandSpy.Reason( "upgrade" ) )" onclick="@( () => OnBlocked?.Invoke( "upgrade" ) )">
-						<i class="material-icons inert-lock">lock</i>
-						<span>Upgrade</span>
+					<button class="@UpgradeClass" tooltip="@UpgradeTooltip" onclick="@( () => OnUpgrade?.Invoke( Detail.Id ) )">
+						@if ( !UpgradeLive )
+						{
+							<i class="material-icons inert-lock">@( UpgradeWorking ? "hourglass_top" : "lock" )</i>
+						}
+						<span>@UpgradeLabel</span>
 					</button>
 				}
 				else
@@ -146,6 +149,12 @@
 					<span class="btchub-chip" tooltip="This rack is at the top Compute tier.">MAX</span>
 				}
 			</div>
+			@if ( !string.IsNullOrEmpty( UpgradeNote ) )
+			{
+				<div class="btchub-row">
+					<span class="@( UpgradeNoteGood ? "btchub-chip-good" : "btchub-chip-warn" )">@UpgradeNote</span>
+				</div>
+			}
 			@foreach ( var track in PlannedTracks )
 			{
 				<div class="btchub-row">
@@ -169,6 +178,15 @@
 
 	/// <summary>BH-SHOWCASE-1: an inert control was pressed; the shell counts it and shows the reason.</summary>
 	public Action<string>? OnBlocked { get; set; }
+
+	// HUB-UPGRADE-1: the Upgrade control. The shell decides whether the viewer may buy (CanUpgrade) and sends the
+	// request; this tab only shows the state. Every figure on it is the host-quoted one already in the view model.
+	[Property] public bool CanUpgrade { get; set; }
+	[Property] public Guid UpgradeRackId { get; set; } = Guid.Empty;
+	[Property] public string UpgradeHint { get; set; } = string.Empty;
+	[Property] public string UpgradeNote { get; set; } = string.Empty;
+	[Property] public bool UpgradeNoteGood { get; set; }
+	public Action<Guid>? OnUpgrade { get; set; }
 
 	private static readonly string BtcSign = ((char)0x20BF).ToString();
 	private static readonly string MidDot = ((char)0x00B7).ToString();
@@ -220,6 +238,14 @@
 		? "The hub wallet covers the next Compute tier."
 		: "The hub wallet is short of the next Compute tier. Deposit BTC from the racks first.";
 
+	// Live only when the viewer may buy and no request is in flight; every other state is the inert look.
+	private bool UpgradeWorking => Detail is not null && UpgradeRackId == Detail.Id;
+	private bool UpgradeLive => CanUpgrade && UpgradeRackId == Guid.Empty;
+	private string UpgradeClass => UpgradeLive ? "btchub-nav-btn" : "btchub-action-inert";
+	private string UpgradeLabel => UpgradeWorking ? "Working..." : "Upgrade";
+	private string UpgradeTooltip => UpgradeWorking ? "Waiting for the hub to answer."
+		: UpgradeLive ? "Buy the next Compute tier from the hub wallet." : UpgradeHint;
+
 	// U2 sensor for ESC-PROOF-F-RACK-CARD-NO-OPEN: the card half of a click (bound=False means the
 	// parent's OnSelectRack never reached this panel).
 	private void Select( string token )
@@ -230,5 +256,6 @@
 
 	private void Back() => OnSelectRack?.Invoke( string.Empty );
 
-	protected override int BuildHash() => HashCode.Combine( Model?.StateHash ?? 0, SelectedToken );
+	protected override int BuildHash() =>
+		HashCode.Combine( Model?.StateHash ?? 0, SelectedToken, CanUpgrade, UpgradeRackId, UpgradeHint, HashCode.Combine( UpgradeNote, UpgradeNoteGood ) );
 }

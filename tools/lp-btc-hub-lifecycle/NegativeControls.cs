@@ -42,6 +42,58 @@ internal static class HarnessKit
                 .WithoutLeadingTrivia().WithoutTrailingTrivia().ToFullString()));
     }
 
+    // Members of the @code block of a .razor file (the block that runs from the line-start "@code" to the last brace).
+    // A name that is absent yields nothing, exactly as in Members.
+    public static string RazorMembers(string root, string path, params string[] names)
+    {
+        var text = File.ReadAllText(Path.Combine(root, path));
+        var at = text.IndexOf("\n@code", StringComparison.Ordinal);
+        if (at < 0)
+            return string.Empty;
+        var open = text.IndexOf('{', at);
+        var close = text.LastIndexOf('}');
+        var tree = CSharpSyntaxTree.ParseText("class RazorCode {\n" + text.Substring(open + 1, close - open - 1) + "\n}");
+        return SelectMembers(tree.GetRoot().DescendantNodes().OfType<ClassDeclarationSyntax>().First(), names);
+    }
+
+    // Whole enum / class declarations by name (the purchase envelope types live outside any class).
+    public static string Types(string root, string path, params string[] names)
+    {
+        var tree = CSharpSyntaxTree.ParseText(File.ReadAllText(Path.Combine(root, path)));
+        return string.Join("\n", tree.GetRoot().DescendantNodes().OfType<BaseTypeDeclarationSyntax>()
+            .Where(t => names.Contains(t.Identifier.ValueText))
+            .Select(t => t.WithoutLeadingTrivia().WithoutTrailingTrivia().ToFullString()));
+    }
+
+    // Names of the invocations made inside the named members whose member name starts with the prefix, as name/argument count.
+    public static string Calls(string members, string prefix)
+    {
+        var tree = CSharpSyntaxTree.ParseText("class Probe {\n" + members + "\n}");
+        return string.Join(",", tree.GetRoot().DescendantNodes().OfType<InvocationExpressionSyntax>()
+            .Select(i => (Name: i.Expression is MemberAccessExpressionSyntax m ? m.Name.Identifier.ValueText : string.Empty, Args: i.ArgumentList.Arguments.Count))
+            .Where(c => c.Name.StartsWith(prefix, StringComparison.Ordinal))
+            .Select(c => c.Name + "/" + c.Args));
+    }
+
+    // Identifiers used inside the members, from the given watch list: what a request path must never touch.
+    public static string Touches(string members, params string[] watch)
+    {
+        var tree = CSharpSyntaxTree.ParseText("class Probe {\n" + members + "\n}");
+        return string.Join(",", tree.GetRoot().DescendantNodes().OfType<IdentifierNameSyntax>()
+            .Select(i => i.Identifier.ValueText).Where(watch.Contains).Distinct().OrderBy(n => n, StringComparer.Ordinal));
+    }
+
+    static string SelectMembers(ClassDeclarationSyntax cls, string[] names)
+        => string.Join("\n", cls.Members.Where(m => m switch
+            {
+                MethodDeclarationSyntax x => names.Contains(x.Identifier.ValueText),
+                PropertyDeclarationSyntax x => names.Contains(x.Identifier.ValueText),
+                FieldDeclarationSyntax x => x.Declaration.Variables.Any(v => names.Contains(v.Identifier.ValueText)),
+                _ => false,
+            })
+            .Select(m => (m is MethodDeclarationSyntax md ? md.WithAttributeLists(default) : m)
+                .WithoutLeadingTrivia().WithoutTrailingTrivia().ToFullString()));
+
     public static Assembly Compile(string assemblyName, string source)
     {
         var references = ((string)AppContext.GetData("TRUSTED_PLATFORM_ASSEMBLIES")!).Split(Path.PathSeparator)
@@ -76,7 +128,77 @@ internal static class NegativeControls
         var link = RunLink(root);
         var terminal = RunTerminal(root);
         var gate = RunGate(root);
-        return Math.Max(link, Math.Max(terminal, gate));
+        var upgrade = RunUpgrade(root);
+        return Math.Max(Math.Max(link, Math.Max(terminal, gate)), upgrade);
+    }
+
+    const string HubUi = "game/Code/Addons/lifepunch/lpbitcoin/bitcoinhub/code/ui/hub/";
+    const string Skeleton = HubUi + "LpBtcHubSkeleton.razor";
+    const string RacksTab = HubUi + "LpBtcHubRacks.razor";
+    const string Spy = HubUi + "LpBtcHubCommandSpy.cs";
+    const string UiHost = "game/Code/Addons/lifepunch/lpbitcoin/bitcoinhub/code/components/LpBtcHubUiHost.cs";
+    const string Hashd = "game/Code/Addons/lifepunch/lpbitcoin/bitcoinhub/code/ui/LpHashdPanel.razor";
+    const string PurchaseFlow = "game/Code/Addons/lifepunch/bitcoinmining/LpBitcoinPurchaseFlow.cs";
+
+    // HUB-UPGRADE-1: the native hub UI's Upgrade control against the one purchase rail. The real bodies are the
+    // shell's RequestUpgrade / OnPurchaseResult / CanUpgrade (Skeleton), the Racks tab's state members, the rack's
+    // RequestPurchaseComputeTier + PurchaseComputeTierHost, LpBitcoinPurchaseFlow.PurchaseComputeTierHost, the hub's
+    // NotifyPurchaseResult(+ToCaller), LpBtcHubUiHost.OnPurchaseResult and HASHD's ConfirmPurchase; the hub's
+    // CanManageHub, the upgrade ledger and the compute track are stand-ins. A call is made by reflection, so a member
+    // that the tree under test lacks reads as a failing check, not a crash.
+    static int RunUpgrade(string root)
+    {
+        string[] skeletonNames = { "_upgradeRackId", "_upgradeNote", "_upgradeNoteGood", "_blockedNote", "_showcase", "_live",
+            "Preview", "UseFixture", "BoundHub", "BtcSign", "CanUpgrade", "UpgradeHint", "RequestUpgrade", "OnPurchaseResult", "Blocked" };
+        var skeleton = HarnessKit.RazorMembers(root, Skeleton, skeletonNames);
+        var requestPath = HarnessKit.RazorMembers(root, Skeleton, "RequestUpgrade", "OnPurchaseResult", "CanUpgrade");
+        var source = UpgradeTemplate
+            .Replace("PURCHASE_TYPES", HarnessKit.Types(root, PurchaseFlow, "LpBitcoinPurchaseResultCode", "LpBitcoinPurchaseResult"))
+            .Replace("FLOW_METHODS", HarnessKit.Methods(root, PurchaseFlow, "LpBitcoinPurchaseFlow", "PurchaseComputeTierHost"))
+            .Replace("HUB_METHODS", HarnessKit.Methods(root, Hub, "LpBitcoinHubEntity", "NotifyPurchaseResultToCaller", "NotifyPurchaseResult"))
+            .Replace("RACK_METHODS", HarnessKit.Methods(root, Rack, "LpBitcoinRackEntity", "RequestPurchaseComputeTier", "PurchaseComputeTierHost"))
+            .Replace("UIHOST_METHODS", HarnessKit.Methods(root, UiHost, "LpBtcHubUiHost", "OnPurchaseResult"))
+            .Replace("SPY_MEMBERS", HarnessKit.Members(root, Spy, "LpBtcHubCommandSpy", "BlockedCount", "ShowcaseMutationAttempts", "Reason", "Reset", "Blocked", "Send"))
+            .Replace("SKELETON_MEMBERS", skeleton)
+            .Replace("RACKS_MEMBERS", HarnessKit.RazorMembers(root, RacksTab, "CanUpgrade", "UpgradeRackId", "UpgradeHint", "UpgradeNote",
+                "UpgradeNoteGood", "UpgradeWorking", "UpgradeLive", "UpgradeClass", "UpgradeLabel", "UpgradeTooltip"))
+            .Replace("HASHD_MEMBERS", HarnessKit.RazorMembers(root, Hashd, "_purchasePendingRackId", "_purchaseResultCode", "_purchaseResultTier",
+                "_purchaseResultCostSats", "_purchaseResultShortfallSats", "_sincePurchaseResult", "_confirmRackId", "StepperWorking", "ConfirmPurchase", "OnPurchaseResult"))
+            .Replace("HASHD_CALLS", HarnessKit.Calls(HarnessKit.RazorMembers(root, Hashd, "ConfirmPurchase"), "Request"))
+            .Replace("SKELETON_CALLS", HarnessKit.Calls(HarnessKit.RazorMembers(root, Skeleton, "RequestUpgrade"), "Request"))
+            .Replace("REQUEST_PATH_PRESENT", requestPath.Contains("RequestUpgrade") ? "true" : "false")
+            .Replace("REQUEST_PATH_TOUCHES", HarnessKit.Touches(requestPath, "QuoteSats", "NextQuoteSats", "HubWalletBtc", "WalletBtc", "TryCommitPurchase",
+                "PushAlertHost", "ComputeTier", "BitcoinAmount", "RequestCashOutHub", "RequestSendHubWallet"))
+            .Replace("RACKS_MARKUP_ROUTES_UPGRADE", MarkupRoutesUpgrade(root) ? "true" : "false")
+            .Replace("SHELL_BINDS_UPGRADE", File.ReadAllText(Path.Combine(root, Skeleton)).Contains("OnUpgrade=\"@(") ? "true" : "false")
+            .Replace("UI_WALLET_WRITES", UiWalletWrites(root).ToString());
+        try
+        {
+            var assembly = HarnessKit.Compile("HubUpgradeSubject", source);
+            return (int)assembly.GetType("UpgradeSubject.UpgradeControls")!.GetMethod("Run")!.Invoke(null, null)!;
+        }
+        catch (InvalidOperationException)
+        {
+            return 2;
+        }
+    }
+
+    // True when the Racks tab sends the Upgrade press to OnUpgrade and no longer to the inert OnBlocked("upgrade") path.
+    static bool MarkupRoutesUpgrade(string root)
+    {
+        var markup = File.ReadAllText(Path.Combine(root, RacksTab));
+        return markup.Contains("OnUpgrade?.Invoke(") && !markup.Contains("OnBlocked?.Invoke( \"upgrade\" )");
+    }
+
+    // Writes to HubWalletBtc anywhere in the native hub UI folder: the client must never keep a balance of its own.
+    static int UiWalletWrites(string root)
+    {
+        var writes = 0;
+        var pattern = new System.Text.RegularExpressions.Regex(@"\bHubWalletBtc\s*(?:[-+*/]?=(?!=)|\+\+|--)");
+        foreach (var file in Directory.EnumerateFiles(Path.Combine(root, HubUi), "*.*", SearchOption.AllDirectories)
+                     .Where(f => f.EndsWith(".cs", StringComparison.Ordinal) || f.EndsWith(".razor", StringComparison.Ordinal)))
+            writes += pattern.Matches(File.ReadAllText(file)).Count;
+        return writes;
     }
 
     const string MenuGate = "game/Code/Addons/lifepunch/lifepunchcore/LifePunchMenuInteractGate.cs";
@@ -572,6 +694,310 @@ public static class GateControls
         Console.WriteLine($"Gate controls: {negTotal + newTotal - negFail - newFail}/{negTotal + newTotal} checks passed " +
             $"({negFail}/{negTotal} negative controls failing, {newFail}/{newTotal} added-method checks failing)");
         return negFail + newFail == 0 ? 0 : 1;
+    }
+}
+""";
+
+    // The native hub UI's Upgrade control against the one purchase rail (HUB-UPGRADE-1). NEG = fails on the 94edc411
+    // blobs (the control is inert there) and passes at HEAD; CTL = a guard on the unchanged rail that passes on both.
+    // Stand-ins: the hub's CanManageHub (a connection id match), the upgrade ledger, the compute track quote, the
+    // engine types. The extracted bodies are real; nothing here proves engine compile, replication or Razor rendering.
+    const string UpgradeTemplate = """
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
+namespace UpgradeSubject;
+
+public sealed class PropertyAttribute : Attribute { }
+public static class Networking { public static bool IsHost = true; }
+public static class Log { public static void Info(string m) { } public static void Warning(string m) { } }
+public static class Rpc { public static Guid CallerId; }
+public sealed class Connection { public Guid Id; public static Connection Local = new Connection { Id = Guid.NewGuid() }; }
+public interface IValid { bool Valid { get; } }
+public static class Validity { public static bool IsValid(this IValid v) => v is not null && v.Valid; }
+public sealed class GameObject { public Guid Id = Guid.NewGuid(); }
+public sealed class Scene { public List<object> Components = new(); public IEnumerable<T> GetAllComponents<T>() => Components.OfType<T>().ToList(); }
+public static class Game { public static Scene ActiveScene; }
+public struct TimeSince { public float T; public static implicit operator TimeSince(int v) => new TimeSince { T = v }; }
+public enum LpBitcoinHubAlertKind { TerminalCommand, HubTransfer }
+PURCHASE_TYPES
+public interface ILpBitcoinHubFormat { string Tier(int t); string BtcPrice(long s); }
+public sealed class FormatStub : ILpBitcoinHubFormat { public string Tier(int t) => "T" + t; public string BtcPrice(long s) => s.ToString(); }
+public sealed class LpBtcHubShowcaseFixture { }
+public static class LpBitcoinIdent
+{
+    public static string FormatRackSlotTerminalToken(LpBitcoinRackEntity r, IReadOnlyList<LpBitcoinRackEntity> l) => r.AssignedSlotToken;
+    public static string RomanTier(int t) => new[] { "", "I", "II", "III", "IV", "V", "VI" }[t];
+}
+public static class LpBitcoinComputeTrack
+{
+    public const string TrackId = "rack_compute";
+    public static void EnsureRegistered() { }
+    public static string ClassOf(LpBitcoinRackEntity r) => r.Advanced ? "advanced" : "standard";
+    public static long QuoteSats(LpBitcoinRackEntity r, int tier) => tier > 5 ? -1L : 50_000L * tier;
+    public static void Apply(LpBitcoinRackEntity r, int tier) { r.ClockGhz = 1f + tier; }
+    public static int EffectMultiplierFor(int tier) => tier;
+}
+public static class LpBitcoinEconomy { public static float RackBtcCapacityFor(LpBitcoinRackEntity r) => 1f; }
+public static class LifePunchUpgradeLedger
+{
+    public static int Commits; public static bool Reject; public static Dictionary<string, int> Tiers = new();
+    public static void Reset() { Commits = 0; Reject = false; Tiers = new(); }
+    public static int MaxTier(long owner, string track, string slot, string cls) => Tiers.TryGetValue(slot, out var t) ? t : 0;
+    public static bool TryCommitPurchase(long owner, string track, string slot, string cls, int tier, long cost, Guid caller, out string error)
+    {
+        error = null;
+        if (Reject) { error = "ledger rejected"; return false; }
+        Commits++; Tiers[slot] = tier; return true;
+    }
+}
+public sealed class LpBitcoinHubEntity : IValid
+{
+    public GameObject GameObject = new GameObject();
+    public bool Valid { get; set; } = true;
+    public long Owner = 1; public float HubWalletBtc; public bool IsPowered = true;
+    public Guid ManagerConn;
+    public List<LpBitcoinRackEntity> Linked = new();
+    public List<string> Alerts = new();
+    // Stand-in for the host's own test: the caller must be the hub's manager.
+    public bool CanManageHub(Guid callerId) => callerId == ManagerConn;
+    public List<LpBitcoinRackEntity> GetLinkedRacks() => Linked;
+    public void RefreshLinkedTerminalScreens() { }
+    internal void PushAlertHost(LpBitcoinHubAlertKind kind, string message) => Alerts.Add(message);
+    // The hub's own request twin (no caller in the tree): present so a UI that wrongly calls it still compiles and reads red.
+    public void RequestPurchaseComputeTier(Guid rackId) { }
+    HUB_METHODS
+}
+public sealed class LpBitcoinRackEntity : IValid
+{
+    public GameObject GameObject = new GameObject();
+    public bool Valid { get; set; } = true;
+    public bool Advanced; public int ComputeTier; public float ClockGhz = 1f; public string AssignedSlotToken = "std-1";
+    public LpBitcoinHubEntity HubRef; public int HubLookups;
+    // Counts how often a host body ran: one lookup per rail entry.
+    private LpBitcoinHubEntity GetLinkedHub() { HubLookups++; return HubRef; }
+    RACK_METHODS
+}
+internal static class LpBitcoinPurchaseFlow
+{
+    FLOW_METHODS
+}
+public sealed class LpBitcoinHubStateLive { public LpBitcoinHubEntity Hub; }
+public static class LpBtcHubCommandSpy
+{
+    SPY_MEMBERS
+}
+internal static class LpBtcHubUiHost
+{
+    UIHOST_METHODS
+}
+public sealed class LpHashdPanel : IValid
+{
+    public bool Valid { get; set; } = true;
+    public LpBitcoinHubEntity Hub;
+    HASHD_MEMBERS
+}
+public sealed class LpBtcHubSkeleton : IValid
+{
+    public bool Valid { get; set; } = true;
+    private readonly ILpBitcoinHubFormat Format = new FormatStub();
+    private void StateHasChanged() { }
+    SKELETON_MEMBERS
+}
+public sealed class RackLite { public Guid Id; }
+public sealed class LpBtcHubRacks
+{
+    public RackLite Detail;
+    RACKS_MEMBERS
+}
+public static class UpgradeControls
+{
+    const string HashdCalls = "HASHD_CALLS";
+    const string SkeletonCalls = "SKELETON_CALLS";
+    const bool RequestPathPresent = REQUEST_PATH_PRESENT;
+    const string RequestPathTouches = "REQUEST_PATH_TOUCHES";
+    const bool RacksMarkupRoutesUpgrade = RACKS_MARKUP_ROUTES_UPGRADE;
+    const bool ShellBindsUpgrade = SHELL_BINDS_UPGRADE;
+    const int WalletWritesInUi = UI_WALLET_WRITES;
+
+    static int negTotal, negFail, ctlTotal, ctlFail;
+    static void Neg(bool ok, string name) { negTotal++; if (!ok) negFail++; Console.WriteLine((ok ? "PASS NEG " : "FAIL NEG ") + name); }
+    static void Ctl(bool ok, string name) { ctlTotal++; if (!ok) ctlFail++; Console.WriteLine((ok ? "PASS CTL " : "FAIL CTL ") + name); }
+    // A member the tree under test lacks throws inside the call; that reads as a failing check.
+    static bool Try(Func<bool> f) { try { return f(); } catch (Exception) { return false; } }
+    const BindingFlags All = BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+    static object Get(object o, string n)
+    {
+        var t = o.GetType();
+        var p = t.GetProperty(n, All);
+        if (p is not null) return p.GetValue(o);
+        return t.GetField(n, All)?.GetValue(o);
+    }
+    static void Set(object o, string n, object v)
+    {
+        var t = o.GetType();
+        var p = t.GetProperty(n, All);
+        if (p is not null) { p.SetValue(o, v); return; }
+        t.GetField(n, All)?.SetValue(o, v);
+    }
+    static object Call(object o, string n, params object[] a) => o.GetType().GetMethod(n, All).Invoke(o, a);
+    static bool Near(float a, float b) => MathF.Abs(a - b) < 1e-9f;
+    static bool Has(string s, string needle) => s is not null && s.Contains(needle, StringComparison.OrdinalIgnoreCase);
+    static float Cost(int tier) => 50_000L * tier / 100_000_000f;
+
+    sealed class Fx { public LpBitcoinHubEntity Hub; public LpBitcoinRackEntity Rack; public LpBtcHubSkeleton Panel; public LpBtcHubRacks Racks; public LpHashdPanel Hashd; }
+    static Fx Make(bool owner = true, float wallet = 0.01f, bool answered = true, int tier = 0, bool hashd = false)
+    {
+        var scene = new Scene(); Game.ActiveScene = scene; Networking.IsHost = true;
+        LifePunchUpgradeLedger.Reset(); LpBtcHubCommandSpy.Reset();
+        Rpc.CallerId = Connection.Local.Id;
+        var f = new Fx();
+        f.Hub = new LpBitcoinHubEntity { HubWalletBtc = wallet, ManagerConn = owner ? Connection.Local.Id : Guid.NewGuid() };
+        f.Rack = new LpBitcoinRackEntity { ComputeTier = tier, HubRef = answered ? f.Hub : null };
+        f.Hub.Linked.Add(f.Rack);
+        LifePunchUpgradeLedger.Tiers[f.Rack.AssignedSlotToken] = tier;
+        f.Panel = new LpBtcHubSkeleton();
+        Set(f.Panel, "_live", new LpBitcoinHubStateLive { Hub = f.Hub });
+        scene.Components.Add(f.Panel);
+        f.Racks = new LpBtcHubRacks { Detail = new RackLite { Id = f.Rack.GameObject.Id } };
+        if (hashd) { f.Hashd = new LpHashdPanel { Hub = f.Hub }; scene.Components.Add(f.Hashd); }
+        return f;
+    }
+    static void Press(Fx f) { Rpc.CallerId = Connection.Local.Id; Call(f.Panel, "RequestUpgrade", f.Rack.GameObject.Id); }
+    // Copies the shell's values into the Racks tab the way the markup binds them.
+    static void Sync(Fx f)
+    {
+        Set(f.Racks, "CanUpgrade", Get(f.Panel, "CanUpgrade") ?? false);
+        Set(f.Racks, "UpgradeRackId", Get(f.Panel, "_upgradeRackId") ?? Guid.Empty);
+        Set(f.Racks, "UpgradeHint", Get(f.Panel, "UpgradeHint") ?? string.Empty);
+        Set(f.Racks, "UpgradeNote", Get(f.Panel, "_upgradeNote") ?? string.Empty);
+        Set(f.Racks, "UpgradeNoteGood", Get(f.Panel, "_upgradeNoteGood") ?? false);
+    }
+    static bool Live(Fx f) { Sync(f); return (bool)Get(f.Racks, "UpgradeLive"); }
+    static Guid Pending(Fx f) => (Guid)Get(f.Panel, "_upgradeRackId");
+    static string Note(Fx f) => (string)Get(f.Panel, "_upgradeNote");
+    static bool Good(Fx f) => (bool)Get(f.Panel, "_upgradeNoteGood");
+    static string Snap(Fx f) => $"{f.Hub.HubWalletBtc:R}|{f.Rack.ComputeTier}|{LifePunchUpgradeLedger.Commits}|{string.Join(";", f.Hub.Alerts)}";
+    static LpBitcoinPurchaseResult Result(int code) => new LpBitcoinPurchaseResult { Code = (LpBitcoinPurchaseResultCode)code, NewTier = 1, CostPaidSats = 50_000, ShortfallSats = 400_000 };
+
+    public static int Run()
+    {
+        Fx f; float w;
+
+        // The control reaches the one rail, and the host alone moves the money.
+        f = Make(); w = f.Hub.HubWalletBtc;
+        Neg(Try(() => { Press(f); return LifePunchUpgradeLedger.Commits == 1 && f.Rack.ComputeTier == 1 && Near(f.Hub.HubWalletBtc, w - Cost(1)); }),
+            "an owner pressing Upgrade buys the next tier through the host rail: one debit of the host quote, one ledger commit");
+        f = Make();
+        Neg(Try(() => { Press(f); return Pending(f) == Guid.Empty && Good(f) && Has(Note(f), "online"); }),
+            "the host envelope reaches the native hub UI with no HASHD panel mounted: the request clears and the note reads online");
+        f = Make(wallet: 0.0001f); w = f.Hub.HubWalletBtc;
+        Neg(Try(() => { Press(f); return Near(f.Hub.HubWalletBtc, w) && LifePunchUpgradeLedger.Commits == 0 && !Good(f) && Has(Note(f), "short by") && Pending(f) == Guid.Empty && f.Hub.Alerts.Count == 1; }),
+            "a short wallet is refused by the host: wallet untouched, no commit, the note names the host's shortfall");
+        f = Make(); w = f.Hub.HubWalletBtc; LifePunchUpgradeLedger.Reject = true;
+        Neg(Try(() => { Press(f); return Near(f.Hub.HubWalletBtc, w) && LifePunchUpgradeLedger.Commits == 0 && f.Rack.ComputeTier == 0 && !Good(f) && Has(Note(f), "nothing was charged") && Pending(f) == Guid.Empty; }),
+            "a purchase the ledger rejects leaves the wallet as it was and the note says nothing was charged");
+        f = Make(tier: 5); w = f.Hub.HubWalletBtc;
+        Neg(Try(() => { Press(f); return LifePunchUpgradeLedger.Commits == 0 && Near(f.Hub.HubWalletBtc, w) && !Good(f) && Has(Note(f), "not available") && Pending(f) == Guid.Empty; }),
+            "a press past the top tier is answered by the rail and the note says nothing was charged");
+
+        // Who sees the control enabled, and when.
+        Neg(Try(() => Live(Make())), "the hub owner sees the control enabled");
+        f = Make(owner: false); w = f.Hub.HubWalletBtc;
+        Neg(Try(() => { var live = Live(f); Press(f); return !live && f.Rack.HubLookups == 0 && LifePunchUpgradeLedger.Commits == 0 && Near(f.Hub.HubWalletBtc, w) && f.Hub.Alerts.Count == 0 && Has(Note(f), "owner"); }),
+            "a non-owner sees the control disabled, and a press sends nothing to the host");
+        f = Make(); f.Hub.IsPowered = false;
+        Neg(Try(() => { var live = Live(f); Press(f); return live && LifePunchUpgradeLedger.Commits == 1; }),
+            "an unpowered hub does not disable the control, because the rail does not refuse on power (no gate is invented)");
+        f = Make(answered: false);
+        Neg(Try(() =>
+        {
+            Press(f);
+            var held = Pending(f) == f.Rack.GameObject.Id && f.Rack.HubLookups == 1;
+            var live = Live(f); var label = (string)Get(f.Racks, "UpgradeLabel");
+            Press(f);
+            return held && !live && label == "Working..." && f.Rack.HubLookups == 1;
+        }), "while a request is in flight the control is disabled and reads Working, and a second press sends nothing");
+        Neg(Try(() =>
+        {
+            foreach (var code in new[] { 0, 1, 2, 3, 99 })
+            {
+                var g = Make(answered: false); Press(g);
+                Call(g.Hub, "NotifyPurchaseResultToCaller", Connection.Local.Id, Result(code));
+                if (Pending(g) != Guid.Empty || !Live(g)) return false;
+            }
+            return true;
+        }), "every host result code re-enables the control, including an unknown one");
+        Neg(Try(() =>
+        {
+            var notes = new List<string>(); var goods = 0;
+            foreach (var code in new[] { 0, 1, 2, 3 })
+            {
+                var g = Make(answered: false); Press(g);
+                Call(g.Hub, "NotifyPurchaseResultToCaller", Connection.Local.Id, Result(code));
+                notes.Add(Note(g)); if (Good(g)) goods++;
+            }
+            return notes.All(n => !string.IsNullOrEmpty(n)) && notes.Distinct().Count() == 4 && goods == 1;
+        }), "each host result code has its own note, and only a success reads as one");
+        f = Make(); Set(f.Panel, "UseFixture", true);
+        Neg(Try(() => { Press(f); return f.Rack.HubLookups == 0 && LpBtcHubCommandSpy.BlockedCount == 1 && LifePunchUpgradeLedger.Commits == 0; }),
+            "in a preview or fixture view the press is counted as blocked and nothing is sent");
+        f = Make();
+        Neg(Try(() => { Rpc.CallerId = Connection.Local.Id; Call(f.Panel, "RequestUpgrade", Guid.NewGuid()); return f.Rack.HubLookups == 0 && Has(Note(f), "no longer linked") && Pending(f) == Guid.Empty; }),
+            "a rack that is no longer linked is refused by the UI without a host call");
+        Neg(Try(() =>
+        {
+            var a = Make(answered: false);
+            var b = new LpBtcHubSkeleton(); var hubB = new LpBitcoinHubEntity { ManagerConn = Connection.Local.Id };
+            Set(b, "_live", new LpBitcoinHubStateLive { Hub = hubB }); Game.ActiveScene.Components.Add(b);
+            var other = Guid.NewGuid(); Set(b, "_upgradeRackId", other);
+            Press(a);
+            Call(a.Hub, "NotifyPurchaseResultToCaller", Connection.Local.Id, Result(0));
+            return Pending(a) == Guid.Empty && (Guid)Get(b, "_upgradeRackId") == other;
+        }), "a result is routed to the panel bound to its own hub and to no other");
+
+        // The call is HASHD's call.
+        Neg(HashdCalls.Length > 0 && SkeletonCalls == HashdCalls && HashdCalls == "RequestPurchaseComputeTier/0",
+            "the native control calls the same host member with the same arguments as HASHD (RequestPurchaseComputeTier, no arguments)");
+        Neg(Try(() =>
+        {
+            var h = Make(hashd: true); Rpc.CallerId = Connection.Local.Id; Call(h.Hashd, "ConfirmPurchase", h.Rack);
+            var viaHashd = Snap(h);
+            var n = Make(); Press(n);
+            return viaHashd == Snap(n) && LifePunchUpgradeLedger.Commits == 1;
+        }), "the native press and HASHD's press leave the same wallet, tier, ledger and alert feed on equal fixtures");
+        Neg(RequestPathPresent && RequestPathTouches.Length == 0,
+            "the native request path names no price, wallet, ledger, alert or other money identifier (the host decides everything)");
+        Neg(RacksMarkupRoutesUpgrade && ShellBindsUpgrade,
+            "the Racks tab sends the Upgrade press to OnUpgrade, not to the inert OnBlocked path, and the shell binds it");
+        Neg(Try(() =>
+        {
+            var r = new LpBtcHubRacks { Detail = new RackLite { Id = Guid.NewGuid() } };
+            Set(r, "CanUpgrade", true); var idle = (bool)Get(r, "UpgradeLive");
+            Set(r, "UpgradeRackId", Guid.NewGuid()); var busy = (bool)Get(r, "UpgradeLive");
+            Set(r, "UpgradeRackId", Guid.Empty); Set(r, "CanUpgrade", false); var denied = (bool)Get(r, "UpgradeLive");
+            Set(r, "UpgradeHint", "why");
+            return idle && !busy && !denied && (string)Get(r, "UpgradeTooltip") == "why" && (string)Get(r, "UpgradeLabel") == "Upgrade";
+        }), "the Racks control is live only for a manager with nothing in flight, and its disabled tooltip carries the reason");
+
+        // Guards on what this slice must not touch.
+        f = Make(hashd: true); Set(f.Hashd, "_purchaseResultCode", -2);
+        Ctl(Try(() => { Rpc.CallerId = Connection.Local.Id; Call(f.Hashd, "ConfirmPurchase", f.Rack); return LifePunchUpgradeLedger.Commits == 1 && f.Rack.ComputeTier == 1 && (int)Get(f.Hashd, "_purchaseResultCode") == 0; }),
+            "HASHD's own control still buys once and receives the envelope");
+        f = Make(); w = f.Hub.HubWalletBtc;
+        Ctl(Try(() => { Rpc.CallerId = Guid.NewGuid(); Call(f.Rack, "RequestPurchaseComputeTier"); return LifePunchUpgradeLedger.Commits == 0 && Near(f.Hub.HubWalletBtc, w) && f.Hub.Alerts.Count == 1; }),
+            "the host still refuses a caller who cannot manage the hub, whatever the UI shows: wallet untouched, alert pushed");
+        f = Make(); w = f.Hub.HubWalletBtc; LifePunchUpgradeLedger.Reject = true;
+        Ctl(Try(() => { Rpc.CallerId = Connection.Local.Id; Call(f.Rack, "RequestPurchaseComputeTier"); return Near(f.Hub.HubWalletBtc, w) && LifePunchUpgradeLedger.Commits == 0 && f.Rack.ComputeTier == 0; }),
+            "the host rail still restores the debit exactly when the ledger rejects");
+        Ctl(Try(() => { var sent = 0; var live = LpBtcHubCommandSpy.Send(false, "x", () => sent++); var shown = LpBtcHubCommandSpy.Send(true, "x", () => sent++); return live && !shown && sent == 1; }),
+            "the command spy still sends on the live path and refuses under a showcase");
+        Ctl(WalletWritesInUi == 0, "no file of the native hub UI writes HubWalletBtc");
+
+        Console.WriteLine($"Upgrade controls: {negTotal + ctlTotal - negFail - ctlFail}/{negTotal + ctlTotal} checks passed " +
+            $"({negFail}/{negTotal} negative controls failing, {ctlFail}/{ctlTotal} regression guards failing)");
+        return negFail + ctlFail == 0 ? 0 : 1;
     }
 }
 """;

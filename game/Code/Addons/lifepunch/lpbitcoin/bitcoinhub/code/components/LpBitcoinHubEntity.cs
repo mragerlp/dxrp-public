@@ -1373,6 +1373,9 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 			?? Game.ActiveScene?.GetAllComponents<LpHashdPanel>().FirstOrDefault( p => p.IsValid() );
 		if ( panel.IsValid() )
 			panel.OnPurchaseResult( code, newTier, costSats, newClockGhz, newBufferCap, shortfallSats );
+
+		// HUB-UPGRADE-1: the native-shell hub UI reads the same envelope (as NotifyPinResult does for the PIN).
+		LpBtcHubUiHost.OnPurchaseResult( this, code, newTier, costSats, shortfallSats );
 	}
 
 	private LpBitcoinRackEntity ResolveRack( Guid rackId )
