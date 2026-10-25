@@ -1,0 +1,37 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// LIFEPUNCH shared UI palette: the in-game lifepunch.ulx colours, as variables.
+//
+// Source of truth: lifepunchulx/StaffMenu.razor.scss, lines 13-19 (neutrals) and
+// 29-38 (semantic accents), as of commit 3d1ef504.
+// Every value below is copied VERBATIM from that file. Names carry the lpui-
+// prefix so importing this file can never overwrite a variable a consumer
+// already defines (ULX itself does not import it; see PLAYERHUB-THEME-1 R-T1-4).
+//
+// Not here on purpose: ULX's HUD mirrors (armor, cloak, freeze) and the portal
+// audit tone pills are staff data colours, not chrome. The ULX runtime accent
+// picker (StaffMenu.razor, DefaultAccentHex) is a per-staff setting; consumers of
+// this file take the default only.
+//
+// Drift rule: until ULX imports this file, a change to those ULX lines must be
+// mirrored here. Colour only: this file holds no size, radius, spacing or font.
+// -----------------------------------------------------------------------------
+
+// Panel depths: scrim base, window shell, surface, then raised cards.
+$lpui-canvas: #0f1011;
+$lpui-shell: #17181a;
+$lpui-surface: #1e1f21;
+$lpui-surface-raised: #272829;
+$lpui-border: #343536;
+$lpui-text: #e4e6e8;
+$lpui-muted: #8d8f90;
+
+// Semantic accents: blue for light actions, green for money, red for severe
+// actions, amber for caution.
+$lpui-blue: #1689ff;
+$lpui-blue-highlight: #55aaff;
+$lpui-blue-fill: #1d4b78;
+$lpui-success: #199c3b;
+$lpui-danger: #c05f5f;
+$lpui-amber: #d99a3f;
