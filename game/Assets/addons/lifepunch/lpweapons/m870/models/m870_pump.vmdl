@@ -26,7 +26,7 @@
 						filename = "addons/lifepunch/lpweapons/m870/source/generated/m870_clean.fbx"
 						import_translation = [ 0.0, 0.0, 0.0 ]
 						import_rotation = [ 0.0, -90.0, 0.0 ]
-						import_scale = 1.0
+						import_scale = 0.3937008
 						align_origin_x_type = "None"
 						align_origin_y_type = "None"
 						align_origin_z_type = "None"
