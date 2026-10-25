@@ -1,0 +1,31 @@
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	//---- PBR ----
+	F_METALNESS_TEXTURE 1
+	F_SPECULAR 1
+
+	//---- Ambient Occlusion ----
+	TextureAmbientOcclusion "addons/lifepunch/lpweapons/ar15/textures/native_candidate/AR_15_03_AO.png"
+
+	//---- Color ----
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 1.000000]"
+	TextureColor "addons/lifepunch/lpweapons/ar15/textures/native_candidate/AR_15_03_BaseColor.png"
+
+	//---- Metalness ----
+	TextureMetalness "addons/lifepunch/lpweapons/ar15/textures/native_candidate/AR_15_03_Metalness.png"
+
+	//---- Normal ----
+	TextureNormal "addons/lifepunch/lpweapons/ar15/textures/native_candidate/AR_15_03_Normal.png"
+
+	//---- Roughness ----
+	g_flRoughnessScaleFactor "1.000"
+	TextureRoughness "addons/lifepunch/lpweapons/ar15/textures/native_candidate/AR_15_03_Roughness.png"
+
+	//---- Texture coordinates ----
+	g_vTexCoordOffset "[0.000 0.000]"
+	g_vTexCoordScale "[1.000 1.000]"
+	g_vTexCoordScrollSpeed "[0.000 0.000]"
+}

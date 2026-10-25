@@ -1,0 +1,20 @@
+// Fully transparent material used to hide the M4 animation-driver mesh.
+// The M4 skeleton continues to drive viewmodel animation and the first-person arms,
+// while the cleaned AR-15 mesh is rendered as the visible weapon layer.
+
+Layer0
+{
+	shader "shaders/complex.shader"
+
+	//---- Translucent ----
+	F_TRANSLUCENT 1
+	g_flOpacityScale "0.000"
+
+	//---- Color ----
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+	TextureColor "materials/default/default_color.tga"
+
+	//---- Fog ----
+	g_bFogEnabled "0"
+}
