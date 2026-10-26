@@ -14,6 +14,7 @@ Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): B
 @using System
 @using Sandbox
 @using Sandbox.UI
+@using LifePunch.DXRP.Addons
 @inherits PanelComponent
 @attribute [StyleSheet]
 
@@ -311,11 +312,19 @@ Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): B
     protected override void OnUpdate()
     {
         base.OnUpdate();
-        if ( !Input.EscapePressed )
+
+        // Esc is routed to this panel ahead of the pause menu (LifePunchEscapeRouter).
+        if ( !LifePunchMenuInputBlock.TakeEscape() )
             return;
 
-        Input.EscapePressed = false;
+        Log.Info( "[lifepunchtags] ESC-1 menu closed by Esc" );
         RequestClose();
+    }
+
+    protected override void OnEnabled()
+    {
+        LifePunchMenuInputBlock.NotifyMenuOpened();
+        LifePunchMenuInputBlock.ClaimEscape();
     }
 
     protected override void OnDisabled()
@@ -326,6 +335,8 @@ Author account: mrragerlp Â· Public alias (in-game Â· Steam Â· Discord): B
         }
         finally
         {
+            LifePunchMenuInputBlock.ReleaseEscape();
+            LifePunchMenuInputBlock.NotifyMenuClosed();
             base.OnDisabled();
         }
     }

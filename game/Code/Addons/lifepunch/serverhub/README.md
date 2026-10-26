@@ -103,8 +103,10 @@ build glob, and files under them would vanish from the compile with no error.
 
 ## Self-containment
 
-This addon references **no other LIFEPUNCH addon**. Not `lifepunchulx`, not `lifepunchcore`,
-not `playerhub`. Its only outward references are DXRP seams, each behind `#if !LIFEPUNCH_LOCAL`
+This addon references **no other LIFEPUNCH addon** with one exception, added by ESC-1: the root
+routes Esc through `LifePunchMenuInputBlock` in `lifepunchcore` (the same call PlayerHub and
+Banker make), so a standalone build must carry that one file. Not `lifepunchulx`, not
+`playerhub`. Its other outward references are DXRP seams, each behind `#if !LIFEPUNCH_LOCAL`
 so the addon also builds standalone:
 
 - `GameModeJobs`, `GameModeJobDto`, `GameModeJobGroupDto` - the job roster

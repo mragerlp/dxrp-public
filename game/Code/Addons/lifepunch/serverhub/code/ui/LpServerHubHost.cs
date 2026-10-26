@@ -36,8 +36,9 @@ namespace LifePunch.DXRP.Addons.ServerHub;
 /// this one is server-scoped (jobs, info, banker), that one is player-scoped.
 /// </para>
 /// <para>
-/// SELF-CONTAINMENT. This addon takes no dependency on any other LIFEPUNCH addon directory.
-/// Its only outward references are the sensed DXRP seams, each behind
+/// SELF-CONTAINMENT. This addon takes no dependency on any other LIFEPUNCH addon directory,
+/// except that the root routes Esc through LifePunchMenuInputBlock (lifepunchcore, ESC-1).
+/// Its other outward references are the sensed DXRP seams, each behind
 /// <c>#if !LIFEPUNCH_LOCAL</c>, so it also builds in a standalone LIFEPUNCH configuration.
 /// </para>
 /// </remarks>
