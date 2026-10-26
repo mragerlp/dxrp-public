@@ -77,7 +77,7 @@ public static class LpPlayerHubHost
 		if ( Enum.TryParse<LpPlayerHubTab>( tab, true, out var parsed ) )
 			_instance.SelectTab( parsed );
 		else if ( !string.IsNullOrWhiteSpace( tab ) )
-			Log.Warning( $"[playerhub] playerhub_tab: unknown tab '{tab}' (overview, btc, store, skills, stats)." );
+			Log.Warning( $"[playerhub] playerhub_tab: unknown tab '{tab}' ({LpPlayerHubDoors.TabNames()})." );
 	}
 
 	/// <summary>Open the hub if closed, else close it.</summary>

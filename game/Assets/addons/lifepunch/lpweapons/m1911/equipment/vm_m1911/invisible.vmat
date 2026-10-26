@@ -1,0 +1,13 @@
+// Invisible material for the USP animation-driver mesh. The donor skeleton,
+// animations, arms, muzzle and ejection nodes remain active behind the M1911
+// mechanical graybox overlays.
+Layer0
+{
+	shader "shaders/complex.shader"
+	F_TRANSLUCENT 1
+	g_flOpacityScale "0.000"
+	g_flModelTintAmount "1.000"
+	g_vColorTint "[1.000000 1.000000 1.000000 0.000000]"
+	TextureColor "materials/default/default_color.tga"
+	g_bFogEnabled "0"
+}

@@ -1,0 +1,26 @@
+{
+  "UI": false,
+  "Volume": "1",
+  "Pitch": "1",
+  "Decibels": 50,
+  "SelectionMode": "Random",
+  "Sounds": [
+    "addons/lifepunch/lpweapons/ar15/sounds/ar15_dryfire.vsnd"
+  ],
+  "Occlusion": true,
+  "AirAbsorption": true,
+  "Transmission": true,
+  "OcclusionRadius": 32,
+  "DistanceAttenuation": true,
+  "Distance": 1200,
+  "Falloff": [
+    { "x": 0, "y": 1, "in": 0, "out": -1.8, "mode": "Mirrored" },
+    { "x": 1, "y": 0, "in": 0, "out": 0, "mode": "Mirrored" }
+  ],
+  "DefaultMixer": {
+    "Name": "equipment",
+    "Id": "cbe1a5ff-7ef1-420c-abf4-06d6e0e7d736"
+  },
+  "__references": [],
+  "__version": 1
+}

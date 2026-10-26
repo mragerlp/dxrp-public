@@ -1,0 +1,239 @@
+{
+  "RootObject": {
+    "__guid": "e7473895-bba2-42aa-a511-87b964ca260f",
+    "__version": 2,
+    "Flags": 0,
+    "Name": "w_lockpick",
+    "Position": "0,-0.8286,0",
+    "Rotation": "0.38595,-0.11055,0.91468,0.04665",
+    "Scale": "1,1,1",
+    "Tags": "player",
+    "Enabled": true,
+    "NetworkMode": 1,
+    "NetworkFlags": 0,
+    "NetworkOrphaned": 3,
+    "NetworkTransmit": true,
+    "OwnerTransfer": 1,
+    "Components": [
+      {
+        "__type": "Dxura.RP.Game.Equipment",
+        "__guid": "112c3f8c-97dc-4455-90d3-580dd7c6446e",
+        "__enabled": true,
+        "Flags": 0,
+        "ArmorReduction": null,
+        "DeploySound": "sounds/equipment/switch/equipment_switch.sound",
+        "DroppedCenter": "0,0,0",
+        "DroppedSize": "8,2,8",
+        "EjectionPort": {
+          "_type": "gameobject",
+          "go": "0b3b66b0-5bb0-4971-aa1b-045a5a88b748"
+        },
+        "EquipmentId": "00000000-0000-0000-0000-000000000000",
+        "Handedness": "Right",
+        "HelmetReduction": null,
+        "HoldType": "None",
+        "IsPurchasable": true,
+        "ModelRenderer": {
+          "_type": "component",
+          "component_id": "b8c8bb7c-b166-4447-a44d-17478f3e67f2",
+          "go": "adfcbfed-bc45-41af-92c3-b6f14c07a49f",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "Muzzle": {
+          "_type": "gameobject",
+          "go": "a9e435fa-e593-4682-9584-2965c943875f"
+        },
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null,
+        "OnlyShowCrosshairDot": false,
+        "SpeedPenalty": 20,
+        "UseCrosshair": false,
+        "ViewModelPrefab": {
+          "_type": "gameobject",
+          "prefab": "gameplay/equipment/job/lockpick/vm_lockpick.prefab"
+        }
+      },
+      {
+        "__type": "Dxura.RP.Game.TagBinder",
+        "__guid": "4d9e7a53-8e48-4731-8c3a-21fe60abea89",
+        "__enabled": true,
+        "Flags": 0,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      }
+    ],
+    "Children": [
+      {
+        "__guid": "adfcbfed-bc45-41af-92c3-b6f14c07a49f",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Model",
+        "Position": "0,0,0",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "Sandbox.SkinnedModelRenderer",
+            "__guid": "b8c8bb7c-b166-4447-a44d-17478f3e67f2",
+            "__enabled": true,
+            "Flags": 0,
+            "AnimationGraph": null,
+            "BodyGroups": 18446744073709551615,
+            "BoneMergeTarget": null,
+            "CreateAttachments": false,
+            "CreateBoneObjects": false,
+            "LodOverride": null,
+            "MaterialGroup": null,
+            "MaterialOverride": null,
+            "Materials": null,
+            "Model": "addons/lifepunch/lplockpick/lockpick/source/crowbar.vmdl",
+            "Morphs": {},
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "Parameters": {
+              "bools": {},
+              "ints": {},
+              "floats": {},
+              "vectors": {},
+              "rotations": {}
+            },
+            "PlaybackRate": 1,
+            "RenderOptions": {
+              "GameLayer": true,
+              "OverlayLayer": false,
+              "BloomLayer": false,
+              "AfterUILayer": false
+            },
+            "RenderType": "On",
+            "Sequence": {
+              "Name": null,
+              "Looping": true,
+              "Blending": false
+            },
+            "Tint": "1,1,1,1",
+            "UseAnimGraph": true
+          }
+        ],
+        "Children": [
+          {
+            "__guid": "a9e435fa-e593-4682-9584-2965c943875f",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "Muzzle",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          },
+          {
+            "__guid": "0b3b66b0-5bb0-4971-aa1b-045a5a88b748",
+            "__version": 2,
+            "Flags": 0,
+            "Name": "EjectionPort",
+            "Position": "0,0,0",
+            "Rotation": "0,0,0,1",
+            "Scale": "1,1,1",
+            "Tags": "particles",
+            "Enabled": true,
+            "NetworkMode": 2,
+            "NetworkFlags": 0,
+            "NetworkOrphaned": 0,
+            "NetworkTransmit": true,
+            "OwnerTransfer": 1,
+            "Components": [],
+            "Children": []
+          }
+        ]
+      },
+      {
+        "__guid": "f63391eb-e9a7-4687-88ac-869bef0e33ca",
+        "__version": 2,
+        "Flags": 0,
+        "Name": "Functions",
+        "Position": "0,0,0",
+        "Rotation": "0,0,0,1",
+        "Scale": "1,1,1",
+        "Tags": "",
+        "Enabled": true,
+        "NetworkMode": 2,
+        "NetworkFlags": 0,
+        "NetworkOrphaned": 0,
+        "NetworkTransmit": true,
+        "OwnerTransfer": 1,
+        "Components": [
+          {
+            "__type": "LifePunch.DXRP.Addons.Lockpick.LockpickMinigameEquipment",
+            "__guid": "8e96eb03-0477-48cf-a552-66936f11978e",
+            "__enabled": true,
+            "Flags": 0,
+            "InputActions": [
+              "Attack1"
+            ],
+            "OnComponentDestroy": null,
+            "OnComponentDisabled": null,
+            "OnComponentEnabled": null,
+            "OnComponentFixedUpdate": null,
+            "OnComponentStart": null,
+            "OnComponentUpdate": null,
+            "PickingSound": "gameplay/equipment/job/pry_bar/sounds/pry.sound",
+            "RequiresAllInputActions": false
+          }
+        ],
+        "Children": []
+      }
+    ],
+    "__properties": {
+      "NetworkInterpolation": true,
+      "TimeScale": 1,
+      "WantsSystemScene": true,
+      "Metadata": {},
+      "NavMesh": {
+        "Enabled": false,
+        "IncludeStaticBodies": true,
+        "IncludeKeyframedBodies": true,
+        "EditorAutoUpdate": true,
+        "AgentHeight": 64,
+        "AgentRadius": 16,
+        "AgentStepSize": 18,
+        "AgentMaxSlope": 40,
+        "ExcludedBodies": "",
+        "IncludedBodies": ""
+      }
+    },
+    "__variables": []
+  },
+  "ResourceVersion": 2,
+  "ShowInMenu": false,
+  "MenuPath": null,
+  "MenuIcon": null,
+  "DontBreakAsTemplate": false,
+  "__references": [],
+  "__version": 2
+}

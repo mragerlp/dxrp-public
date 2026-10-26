@@ -9,14 +9,17 @@
 // Presence in this repository or on the DXRP portal grants no rights to anyone else.
 // ─────────────────────────────────────────────────────────────────────────────
 
+// The 13 palette values below live in LpUiTokens.scss (lifepunchcore); this sheet keeps its own names for them.
+@import "../lifepunchcore/LpUiTokens.scss";
+
 // Panel depths: shell, surface, then raised cards.
-$canvas: #0f1011;
-$shell: #17181a;
-$surface: #1e1f21;
-$surface-raised: #272829;
-$border: #343536;
-$text: #e4e6e8;
-$muted: #8d8f90;
+$canvas: $lpui-canvas;
+$shell: $lpui-shell;
+$surface: $lpui-surface;
+$surface-raised: $lpui-surface-raised;
+$border: $lpui-border;
+$text: $lpui-text;
+$muted: $lpui-muted;
 $setjob-form-gap: 4px;
 $setjob-form-bottom-padding: 16px;
 $money-amount-width: 180px;
@@ -26,16 +29,16 @@ $money-form-bottom-padding: 16px;
 
 	// Semantic accents: blue for light actions, green for money,
 	// red for severe actions and amber for caution or observation.
-$blue: #1689ff;
-$blue-highlight: #55aaff;
+$blue: $lpui-blue;
+$blue-highlight: $lpui-blue-highlight;
 // Use a quieter blue for fills; glyphs and borders retain the brand blue.
-$blue-fill: #1d4b78;
+$blue-fill: $lpui-blue-fill;
 // Cash uses DXRP's $color-good (Code/UI/styles.scss).
-$success: #199c3b;
-$danger: #c05f5f;
+$success: $lpui-success;
+$danger: $lpui-danger;
 	// Medium action severity and observation / inspection tone.
 	// Deliberately NOT used for privilege badges.
-$amber: #d99a3f;
+$amber: $lpui-amber;
 // Armor follows DXRP's $counter-terror-color in Code/UI/styles.scss and PlayerInfo/PartyMemberCard.
 // Health comes from UiUtils.HealthColorHex through StaffMenuHost. Keep both aligned with the HUD.
 $armor-hud: #08b2e3;
