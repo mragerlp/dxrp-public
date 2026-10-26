@@ -1,9 +1,10 @@
 // PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
 //
-// LifePunch editor dev lane (Code/_dev - NOT shipped). KEYPAD-1 U4 (cc-lp-2): three editor-only commands for the driver,
+// LifePunch editor dev lane (Code/_dev - NOT shipped). KEYPAD-1 U4 (cc-lp-2): editor-only commands for the driver,
 // shaped on lpbanker's (_dev/lpbanker_dev/LpBankerHubDev.cs): spawn a keypad + a linked sample door beside the pawn, set
-// the keypad's code, try a code. The set and try commands run the entity's host cores directly (the same code the RPCs
-// run, minus the transport and the reach gate), as the local player. Play-scene objects only; game.scene is never written.
+// the keypad's code, try a code, and (a fourth, so the panel can be proven) open the panel. The set and try commands run
+// the entity's host cores directly (the same code the RPCs run, minus the transport and the reach gate), as the local
+// player. Play-scene objects only; game.scene is never written.
 // No money anywhere in this file (Law B). A code is never written to a log line.
 
 #if !LIFEPUNCH_LOCAL
@@ -109,6 +110,29 @@ public static class LpKeypadDev
 
 		var payload = keypad.TryCodeCore( Connection.Local.Id, code );
 		Log.Info( $"[lpkeypad] {LpKeypadIdent.TryMark} dev=lp_keypad_try payload={payload} message=\"{LpKeypadRules.Message( LpKeypadRules.KindTry, payload )}\"" );
+	}
+
+	// Reason: deep link that opens the keypad panel for the proof (OS-synthesised clicks and use keys cannot reach panels).
+	// A fourth command beyond the three the dispatch names; without it the panel cannot be proven. Who: the editor only.
+	[ConCmd( "lp_keypad_open" )]
+	public static void Open()
+	{
+		if ( !Application.IsEditor )
+		{
+			Log.Warning( "lp_keypad_open: editor only." );
+			return;
+		}
+
+		var keypad = NearestKeypad();
+		if ( !keypad.IsValid() )
+		{
+			Log.Warning( "lp_keypad_open: no keypad in the scene - run lp_keypad_spawn first." );
+			return;
+		}
+
+		var canManage = keypad.CanManageHub( SteamIdOf( Connection.Local.Id ) );
+		var panel = LpKeypadUi.Open( keypad, canManage );
+		Log.Info( $"[lpkeypad] {LpKeypadIdent.UiMark} dev=lp_keypad_open keypad={keypad.GameObject.Id} canManage={canManage} panel={( panel.IsValid() ? panel.GameObject.Id.ToString() : "none" )}" );
 	}
 
 	/// <summary>The keypad nearest the local player; the first one when there is no local player.</summary>
