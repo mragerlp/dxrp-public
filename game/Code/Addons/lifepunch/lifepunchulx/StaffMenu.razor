@@ -1970,10 +1970,12 @@
 	private bool _jobDropdownOpen;
 
 	// Use the shared LifePunch menu combat lock so UI clicks cannot fire, use world entities
-	// or switch equipment while the menu is open.
+	// or switch equipment while the menu is open. The menu also claims Esc, so Esc closes it
+	// instead of opening the pause menu over it (LifePunchEscapeRouter).
 	protected override void OnEnabled()
 	{
 		LifePunchMenuInputBlock.NotifyMenuOpened();
+		LifePunchMenuInputBlock.ClaimEscape();
 	}
 
 	protected override void OnDisabled()
@@ -1981,6 +1983,7 @@
 		SetHealthActionStyle( "" );
 		ResetPocketModal();
 		ResetInventoryModal();
+		LifePunchMenuInputBlock.ReleaseEscape();
 		LifePunchMenuInputBlock.NotifyMenuClosed();
 	}
 
@@ -1997,6 +2000,14 @@
 
 	protected override void OnUpdate()
 	{
+		// Esc is routed to this panel ahead of the pause menu (LifePunchEscapeRouter).
+		if ( LifePunchMenuInputBlock.TakeEscape() )
+		{
+			Log.Info( "[lifepunchulx] ESC-1 staff menu closed by Esc" );
+			CloseMenu();
+			return;
+		}
+
 		// Wheel-only scroll: disable drag-scroll and clamp offsets every frame (sidebar roster, audit, etc.).
 		// NOTE: do NOT call LifePunchScrollRegionBootstrap.UpgradeScrollRegionsFromHost here -- StaffMenu's
 		// scroll regions hold razor-managed lists, and the upgrade reparents them out from under razor's
