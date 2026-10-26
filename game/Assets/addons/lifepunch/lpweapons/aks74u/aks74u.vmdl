@@ -36,7 +36,7 @@
 						filename = "addons/lifepunch/lpweapons/aks74u/source/fab_original/aks74u.fbx"
 						import_translation = [ 0.0, 0.0, 0.0 ]
 						import_rotation = [ 0.0, 0.0, 0.0 ]
-						import_scale = 1.0
+						import_scale = 0.3937008
 						align_origin_x_type = "None"
 						align_origin_y_type = "None"
 						align_origin_z_type = "None"
