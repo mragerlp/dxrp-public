@@ -11,6 +11,7 @@
 @using Sandbox.UI
 @using LifePunch.DXRP.Addons
 @inherits PanelComponent
+@implements ILpHubResult
 
 @attribute [StyleSheet]
 
@@ -152,7 +153,15 @@
 				OnSelected: OpenServerHubDoor),
 		});
 
-	private LpBtcVm BtcModel => LpPlayerHubBtcSource.Build( StateHasChanged );
+	// HUB-RACKS-1: the rack upgrade this open hub has asked for, and the host's answer. Per open (the panel is rebuilt on
+	// every open), so a request left unanswered when the hub was closed cannot leave a control disabled next time.
+	private readonly LpBtcUpgradeState _upgrade = new();
+
+	private LpBtcVm BtcModel => LpPlayerHubBtcSource.Build( StateHasChanged, _upgrade );
+
+	/// <summary>The hub result relay (SPINE-1) delivers the Bitcoin hub's purchase answer here, to the caller who asked.</summary>
+	public void OnHubResult( string hubKey, Guid callerId, string kind, string payload )
+		=> LpPlayerHubBtcSource.OnRelayResult( _upgrade, hubKey, callerId, kind, payload, StateHasChanged );
 
 	private LpStatsVm StatsModel => LpPlayerHubFixture.Stats();
 
@@ -349,6 +358,10 @@
 		var live = LpPlayerHubDoors.LiveHashOf( Doors, _activeTab );
 		if ( live.HasValue )
 			hash.Add( live.Value );
+		hash.Add( _upgrade.RackId );
+		hash.Add( _upgrade.Note );
+		if ( _activeTab == LpPlayerHubTab.Btc )
+			hash.Add( LpPlayerHubBtcSource.LiveHash() );
 		return hash.ToHashCode();
 	}
 }

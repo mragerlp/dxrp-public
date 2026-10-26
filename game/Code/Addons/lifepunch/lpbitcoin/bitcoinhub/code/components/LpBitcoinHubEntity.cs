@@ -1359,8 +1359,21 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 	/// stepper renders its states (working → success / rejection) from this, never
 	/// optimistically. Same idiom as <see cref="NotifyCashOutSuccess"/>.</summary>
 	internal void NotifyPurchaseResultToCaller( Guid callerId, LpBitcoinPurchaseResult result )
-		=> NotifyPurchaseResult( callerId, (int)result.Code, result.NewTier, result.CostPaidSats,
+	{
+		NotifyPurchaseResult( callerId, (int)result.Code, result.NewTier, result.CostPaidSats,
 			result.NewClockGhz, result.NewBufferCap, result.ShortfallSats );
+
+		// HUB-RACKS-1: the same envelope, once more, through the shared hub result relay (host to the asking caller
+		// only), so the Player Hub can show the answer to an upgrade it asked for. Added on this host-side funnel
+		// because the relay is host-only; the broadcast above is unchanged and HASHD still receives its own copy.
+		LpHubResultRelay.SendToCaller( RelayHubKey, callerId, RelayKindComputeTier,
+			(int)result.Code + ";" + result.NewTier + ";" + result.CostPaidSats + ";" + result.ShortfallSats );
+	}
+
+	/// <summary>Product key and result kind this hub publishes on the shared hub result relay (HUB-RACKS-1).</summary>
+	public const string RelayHubKey = "bitcoinhub";
+
+	public const string RelayKindComputeTier = "compute-tier";
 
 	[Rpc.Broadcast]
 	private void NotifyPurchaseResult(
@@ -1373,6 +1386,9 @@ public sealed class LpBitcoinHubEntity : BaseEntity, Component.IPressable, IArea
 			?? Game.ActiveScene?.GetAllComponents<LpHashdPanel>().FirstOrDefault( p => p.IsValid() );
 		if ( panel.IsValid() )
 			panel.OnPurchaseResult( code, newTier, costSats, newClockGhz, newBufferCap, shortfallSats );
+
+		// HUB-UPGRADE-1: the native-shell hub UI reads the same envelope (as NotifyPinResult does for the PIN).
+		LpBtcHubUiHost.OnPurchaseResult( this, code, newTier, costSats, shortfallSats );
 	}
 
 	private LpBitcoinRackEntity ResolveRack( Guid rackId )
