@@ -1,0 +1,260 @@
+// -----------------------------------------------------------------------------
+// PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+//
+// KEYPAD-1 U3 (cc-lp-2). Flex-only s&box SCSS. Colours come from lifepunchcore/LpUiTokens.scss (the lpui- palette);
+// radius, spacing, hit size and font come from the PlayerHub tokens, which re-export that palette. No hex, radius or
+// spacing literal is written in a rule body. The window shell follows the Banker hub root's shell.
+//
+// One standalone class per visual state, and a state class never shares a property with its base class: geometry sits
+// on the base, colour and fill sit on the state classes, so equal-specificity source order never decides anything.
+// -----------------------------------------------------------------------------
+
+@import "../lifepunchcore/LpUiTokens.scss";
+@import "../playerhub/code/ui/LpPlayerHubTokens.scss";
+
+// The window's one dimension and this sheet's type scale (12/14/18/22), each declared once.
+$keypad-w: 360px;
+$type-small: 12px;
+$type-body: 14px;
+$type-title: 18px;
+$type-entry: 22px;
+
+.lp-keypad {
+	position: absolute;
+	top: 0;
+	left: 0;
+	width: 100%;
+	height: 100%;
+	flex-direction: column;
+	align-items: center;
+	justify-content: center;
+	background-color: rgba($lpui-canvas, 0.86);
+	font-family: $font-mono;
+	color: $lpui-text;
+	pointer-events: all;
+
+	.material-icons {
+		font-family: Material Icons;
+		font-weight: normal;
+		font-style: normal;
+		text-transform: none;
+		letter-spacing: normal;
+		white-space: nowrap;
+		line-height: 1;
+		font-size: $type-title;
+	}
+
+	// PANE-BUDGET worst case (owner row shown, help text on two lines). The window is content-sized:
+	// header 82 + body 428 + footer 32 = 542. Body 428 = padding 2x12 + entry 44 + message 34 + key grid 200
+	// (4 rows x 44 + 3 gaps x 8) + owner row 44 + 4 body gaps x 12 + help 34. 542 fits max-height 92% on any
+	// screen at or above 590; nothing scrolls.
+	.window {
+		position: relative;
+		flex-direction: column;
+		flex-shrink: 0;
+		width: $keypad-w;
+		max-width: 94%;
+		max-height: 92%;
+		background-color: $lpui-shell;
+		border: 1px solid $lpui-border;
+		border-radius: $radius-card;
+		overflow: hidden;
+	}
+
+	.hub-shell-header {
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		flex-shrink: 0;
+		min-height: $header-h;
+		padding: $panel-pad;
+		border-bottom: 1px solid $lpui-border;
+		background-color: $lpui-shell;
+	}
+
+	.title-stack {
+		flex-direction: column;
+		gap: $gap-control;
+	}
+
+	.title-primary {
+		font-size: $type-title;
+		color: $lpui-text;
+	}
+
+	.wordmark-life {
+		color: $lpui-text;
+	}
+
+	.wordmark-accent {
+		color: $lpui-blue-highlight;
+	}
+
+	.title-sub {
+		font-size: $type-small;
+		color: $lpui-muted;
+	}
+
+	.header-actions {
+		flex-direction: row;
+		align-items: center;
+		gap: $gap-control;
+	}
+
+	// Header chip: geometry here, tone on chip-set / chip-open.
+	.header-chip {
+		padding: $gap-control;
+		border-radius: $radius-chip;
+		font-size: $type-small;
+	}
+
+	.chip-set {
+		color: $lpui-amber;
+		background-color: $dim-soft;
+	}
+
+	.chip-open {
+		color: $lpui-muted;
+		background-color: $dim-soft;
+	}
+
+	.keypad-close {
+		align-items: center;
+		justify-content: center;
+		width: $hit;
+		height: $hit;
+		border-radius: $radius;
+		color: $lpui-muted;
+		cursor: pointer;
+		opacity: 0.7;
+	}
+
+	.keypad-close:hover {
+		opacity: 1;
+	}
+
+	.keypad-body {
+		flex-direction: column;
+		flex-shrink: 0;
+		padding: $panel-pad;
+		gap: $gap-content;
+	}
+
+	// The code entry box: geometry here, tone on entry-empty / entry-filled.
+	.entry-display {
+		align-items: center;
+		justify-content: center;
+		height: $row-h;
+		border-radius: $radius;
+		border: 1px solid $lpui-border;
+		font-size: $type-entry;
+	}
+
+	.entry-empty {
+		color: $lpui-muted;
+		background-color: $lpui-surface;
+	}
+
+	.entry-filled {
+		color: $lpui-text;
+		background-color: $lpui-surface-raised;
+	}
+
+	// Message line: geometry here, tone on message-idle / message-good / message-bad.
+	.keypad-message {
+		align-items: center;
+		justify-content: center;
+		min-height: $bar-h;
+		font-size: $type-body;
+	}
+
+	.message-idle {
+		color: $lpui-muted;
+	}
+
+	.message-good {
+		color: $lpui-success;
+	}
+
+	.message-bad {
+		color: $lpui-danger;
+	}
+
+	.keypad-grid {
+		flex-direction: column;
+		gap: $gap-control;
+	}
+
+	.keypad-row {
+		flex-direction: row;
+		gap: $gap-control;
+	}
+
+	// Key: geometry here, fill and tone on key-digit / key-clear / key-enter.
+	.key {
+		flex-grow: 1;
+		flex-basis: 0;
+		align-items: center;
+		justify-content: center;
+		height: $hit;
+		border-radius: $radius;
+		font-size: $type-body;
+		cursor: pointer;
+		opacity: 0.85;
+	}
+
+	.key:hover {
+		opacity: 1;
+	}
+
+	.key:active {
+		opacity: 0.6;
+	}
+
+	.key-digit {
+		background-color: $lpui-surface-raised;
+		color: $lpui-text;
+	}
+
+	.key-clear {
+		background-color: $lpui-surface;
+		color: $lpui-muted;
+	}
+
+	.key-enter {
+		background-color: $lpui-success;
+		color: $lpui-text;
+	}
+
+	.owner-row {
+		flex-direction: row;
+		gap: $gap-control;
+	}
+
+	.owner-btn {
+		flex-grow: 1;
+		flex-basis: 0;
+		align-items: center;
+		justify-content: center;
+		height: $hit;
+		border-radius: $radius;
+		font-size: $type-small;
+		background-color: $lpui-blue-fill;
+		color: $lpui-text;
+		cursor: pointer;
+		opacity: 0.85;
+	}
+
+	.owner-btn:hover {
+		opacity: 1;
+	}
+
+	.owner-btn:active {
+		opacity: 0.6;
+	}
+
+	.keypad-help {
+		font-size: $type-small;
+		color: $lpui-muted;
+	}
+}

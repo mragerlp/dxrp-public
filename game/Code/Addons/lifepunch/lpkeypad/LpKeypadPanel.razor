@@ -1,0 +1,268 @@
+@*
+	PROPRIETARY & CONFIDENTIAL - (c) 2026 lifepunch.co. All rights reserved.
+	KEYPAD-1 U3 (cc-lp-2): the keypad panel. Reference artifact: the Banker hub root (lpbanker/hub/LpBankerHubRoot.razor:
+	window shell, header, Esc claim) and PlayerHub's ILpHubResult receiver (playerhub/code/ui/LpPlayerHubRoot.razor:163).
+	Shell colours come from lifepunchcore/LpUiTokens.scss. No money: every act here is a code or a link.
+*@
+@namespace LifePunch.DXRP.Addons.Keypad
+@using System
+@using Sandbox
+@using Sandbox.UI
+@using LifePunch.DXRP.Addons
+@inherits PanelComponent
+@implements ILpHubResult
+
+@attribute [StyleSheet]
+
+<root class="lp-keypad">
+	<div class="window">
+		<div class="hub-shell-header">
+			<div class="title-stack">
+				<span class="title-primary brand-wordmark"><span class="wordmark-life">@LpKeypadIdent.Wordmark</span><span class="wordmark-accent">@LpKeypadIdent.WordmarkAccent</span></span>
+				<span class="title-sub">KEYPAD</span>
+			</div>
+			<div class="header-actions">
+				<div class="@StateChipClass" tooltip="@StateTooltip">@StateChipText</div>
+				<button class="keypad-close" tooltip="Close the keypad (Esc)" onclick="@Close">
+					<i class="material-icons">close</i>
+				</button>
+			</div>
+		</div>
+
+		<div class="keypad-body">
+			<div class="@EntryClass">@EntryText</div>
+			<div class="@MessageClass">@_message</div>
+
+			<div class="keypad-grid">
+				@foreach ( var row in Rows )
+				{
+					<div class="keypad-row">
+						@foreach ( var key in row )
+						{
+							<button class="@KeyClass( key )" tooltip="@KeyTooltip( key )" onclick="@( () => PressKey( key ) )">
+								<span>@KeyLabel( key )</span>
+							</button>
+						}
+					</div>
+				}
+			</div>
+
+			@if ( CanManage )
+			{
+				<div class="owner-row">
+					<button class="owner-btn" tooltip="Save the digits above as this keypad's code" onclick="@SetCode"><span>Set code</span></button>
+					<button class="owner-btn" tooltip="Link the nearest door of yours within reach, so this keypad fades it" onclick="@LinkDoor"><span>Link door</span></button>
+					<button class="owner-btn" tooltip="Remove every door link from this keypad" onclick="@UnlinkDoors"><span>Unlink</span></button>
+				</div>
+			}
+
+			<div class="keypad-help">@HelpText</div>
+		</div>
+
+		<LifePunchUiFooter Product="Keypad" />
+	</div>
+</root>
+
+@code
+{
+	// Instance, not static readonly: hotload keeps a static readonly field's old value (LpPlayerHubRoot.razor:97-99).
+	private readonly string[][] Rows =
+	{
+		new[] { "1", "2", "3" },
+		new[] { "4", "5", "6" },
+		new[] { "7", "8", "9" },
+		new[] { "C", "0", "E" },
+	};
+
+	private const string KeyClear = "C";
+	private const string KeyEnter = "E";
+
+	/// <summary>The keypad this panel talks to. Set by LpKeypadUi.Open right after mount.</summary>
+	public LpKeypadEntity Keypad { get; set; }
+
+	/// <summary>Shows the owner row. The host gates every owner act again; this only hides buttons.</summary>
+	public bool CanManage { get; set; }
+
+	private string _entry = string.Empty;
+	private string _message = string.Empty;
+	private bool _messageGood;
+
+	private bool IsSet => Keypad.IsValid() && Keypad.CodeIsSet;
+
+	private string StateChipText => IsSet ? "CODE SET" : "NO CODE";
+	private string StateChipClass => IsSet ? "header-chip chip-set" : "header-chip chip-open";
+	private string StateTooltip => IsSet
+		? "A code is set. Anyone in reach can try it; wrong tries lock the caller out for a short time."
+		: "No code is set yet. The owner sets one with Set code.";
+
+	private string EntryText => _entry.Length == 0 ? "Enter code" : _entry;
+	private string EntryClass => _entry.Length == 0 ? "entry-display entry-empty" : "entry-display entry-filled";
+
+	private string MessageClass => _message.Length == 0
+		? "keypad-message message-idle"
+		: ( _messageGood ? "keypad-message message-good" : "keypad-message message-bad" );
+
+	private string HelpText => CanManage
+		? "Type digits, press Enter to try. Owner: type a new code, then Set code. Esc closes."
+		: "Type the code, press Enter. Esc closes.";
+
+	private string KeyClass( string key )
+		=> key == KeyEnter ? "key key-enter" : ( key == KeyClear ? "key key-clear" : "key key-digit" );
+
+	private string KeyLabel( string key )
+		=> key == KeyEnter ? "Enter" : ( key == KeyClear ? "Clear" : key );
+
+	private string KeyTooltip( string key )
+		=> key == KeyEnter ? "Try the code" : ( key == KeyClear ? "Clear the digits" : "Digit " + key );
+
+	private void PressKey( string key )
+	{
+		if ( key == KeyClear )
+		{
+			_entry = string.Empty;
+			_message = string.Empty;
+			StateHasChanged();
+			return;
+		}
+
+		if ( key == KeyEnter )
+		{
+			Submit();
+			return;
+		}
+
+		if ( _entry.Length >= LpKeypadRules.MaxDigits )
+		{
+			_message = "A code is " + LpKeypadRules.MinDigits + " to " + LpKeypadRules.MaxDigits + " digits.";
+			_messageGood = false;
+		}
+		else
+		{
+			_entry += key;
+			_message = string.Empty;
+		}
+
+		StateHasChanged();
+	}
+
+	private void Submit()
+	{
+		if ( !Keypad.IsValid() )
+		{
+			Close();
+			return;
+		}
+
+		if ( !LpKeypadRules.IsValidFormat( _entry ) )
+		{
+			Show( LpKeypadRules.KindTry, LpKeypadRules.Compose( LpKeypadRules.BadFormat, 0 ) );
+			return;
+		}
+
+		Keypad.RequestTryCode( _entry );
+		_entry = string.Empty;
+		_message = "Checking...";
+		_messageGood = false;
+		StateHasChanged();
+	}
+
+	private void SetCode()
+	{
+		if ( !Keypad.IsValid() )
+		{
+			Close();
+			return;
+		}
+
+		if ( !LpKeypadRules.IsValidFormat( _entry ) )
+		{
+			Show( LpKeypadRules.KindSet, LpKeypadRules.Compose( LpKeypadRules.BadFormat, 0 ) );
+			return;
+		}
+
+		Keypad.RequestSetCode( _entry );
+		_entry = string.Empty;
+		_message = "Saving...";
+		_messageGood = false;
+		StateHasChanged();
+	}
+
+	private void LinkDoor()
+	{
+		if ( !Keypad.IsValid() )
+		{
+			Close();
+			return;
+		}
+
+		Keypad.RequestLinkNearest();
+	}
+
+	private void UnlinkDoors()
+	{
+		if ( !Keypad.IsValid() )
+		{
+			Close();
+			return;
+		}
+
+		Keypad.RequestUnlinkAll();
+	}
+
+	/// <summary>The hub result relay delivers the keypad's answer here, to the caller who asked.</summary>
+	public void OnHubResult( string hubKey, Guid callerId, string kind, string payload )
+	{
+		if ( hubKey != LpKeypadIdent.HubKey )
+			return;
+
+		Show( kind, payload );
+
+		// A correct code has done its job: the door fades, so the panel gets out of the way.
+		if ( kind == LpKeypadRules.KindTry && LpKeypadRules.IsGood( kind, payload ) )
+			Close();
+	}
+
+	private void Show( string kind, string payload )
+	{
+		_message = LpKeypadRules.Message( kind, payload );
+		_messageGood = LpKeypadRules.IsGood( kind, payload );
+		StateHasChanged();
+	}
+
+	private void Close()
+	{
+		LpHubMount.Close( this );
+	}
+
+	protected override void OnStart()
+	{
+		LifePunchUiScrollPolicy.Apply( Panel );
+		Log.Info( "[lpkeypad] " + LpKeypadIdent.UiMark + " shell=house keys=12 canManage=" + CanManage + " codeSet=" + IsSet + " money=none" );
+	}
+
+	protected override void OnUpdate()
+	{
+		// Esc is routed to this panel ahead of the pause menu (LifePunchEscapeRouter).
+		if ( LifePunchMenuInputBlock.TakeEscape() )
+		{
+			Log.Info( "[lpkeypad] ESC-CONFLICT-1 keypad closed by Esc" );
+			Close();
+			return;
+		}
+
+		// The keypad was destroyed while the panel was open (owner left, entity removed).
+		if ( !Keypad.IsValid() )
+		{
+			Close();
+			return;
+		}
+
+		LpHubMount.OnPanelUpdate( Panel );
+	}
+
+	protected override void OnEnabled() => LpHubMount.OnPanelEnabled( true );
+
+	protected override void OnDisabled() => LpHubMount.OnPanelDisabled( true );
+
+	protected override int BuildHash() => HashCode.Combine( _entry, _message, _messageGood, CanManage, IsSet );
+}
