@@ -14,3 +14,12 @@ writes nothing to game.scene: every object it makes lives in the Play scene and 
 
 Every figure in the hub is FIXTURE data that names its ruling (I1-I6 = DIRECTION_BANKER-HUB_R1 section 8). No command
 moves money, fires a rail or persists anything. Close the hub with Esc or the close button.
+
+## After SPINE-3 (branch `cc-lp-1/SPINE-3-20261022`)
+
+The code on this branch is the SPINE-1 base, so the table above is accurate here. Once SPINE-3 is merged, two rows change:
+
+- `lp_banker_press_pile`: the pile's own `CanPress` now includes the shared hub press gate, so the command logs `canPress=false` when you stand outside hub reach. Stand next to the pile first; before SPINE-3 the command ignored reach.
+- `lp_banker_gate_probe`: editor only (it warns and stops outside the editor). It still logs the job-gate line, then a second line marked `LP_BANKER_SHARED_GATE_PROBE_20261023` with `hubKey`, `pile`, `pressGate`, `hostRange` and `hostWhole` for the pile `lp_banker_spawn_pile` made. Run that command first; with no pile the line reads `pile=none`. `hostWhole=false` on that pile is the expected reading, because the whole gate's ownership permission refuses an object with no entity tag and no owner. That is a static read of the gate, not yet confirmed in the editor.
+
+The editor guard on `lp_banker_gate_probe` is added by SPINE-3. On this base the command has no guard, so the opening line of this file does not yet hold for it.

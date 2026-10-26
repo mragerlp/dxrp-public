@@ -613,33 +613,11 @@ public static class LpPlayerHubFixture
 
 public static class LpPlayerHubTabInfo
 {
-	public static string Label( LpPlayerHubTab tab ) => tab switch
-	{
-		LpPlayerHubTab.Overview => "Overview",
-		LpPlayerHubTab.Btc => "$BTC",
-		LpPlayerHubTab.Skills => "Skills",
-		LpPlayerHubTab.Store => "$LP Store",
-		LpPlayerHubTab.Stats => "Stats",
-		_ => tab.ToString(),
-	};
+	// SPINE-2: the five tabs' label, icon and blurb now live in the door registry (LpPlayerHubDoors); the
+	// fallbacks for a value that is not a built-in tab are the ones the old switches had.
+	public static string Label( LpPlayerHubTab tab ) => LpPlayerHubDoors.TryGetTab( tab, out var door ) ? door!.Label : tab.ToString();
 
-	public static string Icon( LpPlayerHubTab tab ) => tab switch
-	{
-		LpPlayerHubTab.Overview => "dashboard",
-		LpPlayerHubTab.Btc => "currency_bitcoin",
-		LpPlayerHubTab.Skills => "account_tree",
-		LpPlayerHubTab.Store => "storefront",
-		LpPlayerHubTab.Stats => "insights",
-		_ => "circle",
-	};
+	public static string Icon( LpPlayerHubTab tab ) => LpPlayerHubDoors.TryGetTab( tab, out var door ) ? door!.Icon : "circle";
 
-	public static string Blurb( LpPlayerHubTab tab ) => tab switch
-	{
-		LpPlayerHubTab.Btc => "Your Bitcoin Hub and GPU racks. Power, mining, deposit and cash-out on the live rails.",
-		LpPlayerHubTab.Overview => "Fixture-backed progression, currency and route-readiness placeholders.",
-		LpPlayerHubTab.Skills => "Browse five tracks, independent skill ranks and mastery status.",
-		LpPlayerHubTab.Store => "Browse the $LP preview catalog. Purchasing is not open.",
-		LpPlayerHubTab.Stats => "Read-only fixture activity. Unknown lifetime data stays unknown.",
-		_ => string.Empty,
-	};
+	public static string Blurb( LpPlayerHubTab tab ) => LpPlayerHubDoors.TryGetTab( tab, out var door ) ? door!.Blurb : string.Empty;
 }

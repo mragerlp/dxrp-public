@@ -39,10 +39,10 @@
 		</div>
 
 		<div class="hub-shell-tabs">
-			@foreach ( var tab in Tabs )
+			@foreach ( var door in Doors )
 			{
-				<button class="@TabClass( tab )" onclick="@( () => SetTab( tab ) )">
-					<span>@LpPlayerHubTabInfo.Label( tab )</span>
+				<button class="@DoorClass( door )" onclick="@( () => ActivateDoor( door ) )">
+					<span>@door.Label</span>
 				</button>
 			}
 		</div>
@@ -97,14 +97,9 @@
 	// Instance, not static readonly: hotload keeps a static readonly field's OLD value (the engine upgrades
 	// the old instance in place instead of re-running the initialiser), which rendered a stale 4-tab strip
 	// on 2026-10-16. The hub is rebuilt on every open, so an instance field is always current.
-	private readonly LpPlayerHubTab[] Tabs =
-	{
-		LpPlayerHubTab.Overview,
-		LpPlayerHubTab.Btc,
-		LpPlayerHubTab.Store,
-		LpPlayerHubTab.Skills,
-		LpPlayerHubTab.Stats,
-	};
+	// SPINE-2: the strip is read from the door registry (LpPlayerHubDoors.Ordered: the five built-in tabs in the
+	// same order as the array this replaces, then any registered launcher doors), taken once per open.
+	private readonly System.Collections.Generic.IReadOnlyList<LpPlayerHubDoor> Doors = LpPlayerHubDoors.Ordered();
 
 	private static bool _sliceAnnounced;
 
@@ -208,6 +203,30 @@
 		StateHasChanged();
 	}
 
+	private string DoorClass( LpPlayerHubDoor door ) => door.Tab is { } tab ? TabClass( tab ) : "tab";
+
+	// SPINE-2: an in-hub door selects its tab (the same SetTab a nav click always used). A launcher door closes this
+	// hub first, so the target menu captures a released camera lock, then hands over to the other hub's own menu.
+	// The try/catch keeps a failing opener from taking this click handler down.
+	private void ActivateDoor( LpPlayerHubDoor door )
+	{
+		if ( door.Tab is { } tab )
+		{
+			SetTab( tab );
+			return;
+		}
+
+		try
+		{
+			LpPlayerHubHost.RequestClose();
+			door.Open?.Invoke();
+		}
+		catch ( Exception e )
+		{
+			Log.Warning( "[playerhub] door '" + door.Key + "' failed: " + e.Message );
+		}
+	}
+
 	private void SelectSkillTrack( string trackId )
 	{
 		_selectedSkillTrackId = trackId;
@@ -295,16 +314,26 @@
 
 	protected override void OnUpdate()
 	{
+		// Esc is routed to this panel ahead of the pause menu (LifePunchEscapeRouter).
+		if ( LifePunchMenuInputBlock.TakeEscape() )
+		{
+			Log.Info( "[playerhub] ESC-CONFLICT-1 hub closed by Esc" );
+			Close();
+			return;
+		}
+
 		LifePunchUiScrollPolicy.Apply( Panel );
 	}
 
 	protected override void OnEnabled()
 	{
 		LifePunchMenuInputBlock.NotifyMenuOpened();
+		LifePunchMenuInputBlock.ClaimEscape();
 	}
 
 	protected override void OnDisabled()
 	{
+		LifePunchMenuInputBlock.ReleaseEscape();
 		LifePunchMenuInputBlock.NotifyMenuClosed();
 	}
 
@@ -317,8 +346,9 @@
 		hash.Add( _selectedStoreCategoryId );
 		hash.Add( _selectedStoreItemId );
 		hash.Add( VisibleTabIsFixture );
-		if ( _activeTab == LpPlayerHubTab.Btc )
-			hash.Add( LpPlayerHubBtcSource.LiveHash() );
+		var live = LpPlayerHubDoors.LiveHashOf( Doors, _activeTab );
+		if ( live.HasValue )
+			hash.Add( live.Value );
 		return hash.ToHashCode();
 	}
 }
