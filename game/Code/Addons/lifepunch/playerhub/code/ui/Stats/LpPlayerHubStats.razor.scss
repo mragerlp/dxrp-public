@@ -231,8 +231,9 @@
 	align-items: center;
 	justify-content: space-between;
 	flex-grow: 1;
-	min-height: 39px;
-	padding: 6px 9px;
+	flex-shrink: 1;
+	min-height: 0;
+	padding: 3px 9px;
 	border-bottom: 1px solid $border;
 }
 
