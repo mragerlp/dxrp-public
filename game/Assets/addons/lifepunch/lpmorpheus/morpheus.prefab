@@ -117,7 +117,7 @@
             "__enabled": true,
             "Flags": 0,
             "__version": 2,
-            "Billboard": "LookAt",
+            "Billboard": "Always",
             "BlendMode": "Normal",
             "FogStrength": 0,
             "HorizontalAlignment": "Center",
