@@ -1572,12 +1572,15 @@
 		StateHasChanged();
 	}
 
-	/// <summary>Dev preview -- Servers is the upgrade surface now; drill into the first linked rack.</summary>
+	/// <summary>Dev preview -- Servers is the upgrade surface now; drill into the first linked rack, else into the first slot (empty card + back link) rather than stopping on the Servers home grid.</summary>
 	public void DevOpenUpgradesForFirstLinkedRack()
 	{
 		SelectTab( OpsTab.Racks );
-		var slots = GetServersRackSlots().Where( s => s.Rack.IsValid() ).ToList();
-		if ( slots.Count > 0 )
+		var slots = GetServersRackSlots();
+		var linked = slots.Where( s => s.Rack.IsValid() ).ToList();
+		if ( linked.Count > 0 )
+			EnterServerDetail( linked[0] );
+		else if ( slots.Count > 0 )
 			EnterServerDetail( slots[0] );
 	}
 
