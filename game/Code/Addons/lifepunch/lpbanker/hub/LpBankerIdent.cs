@@ -20,6 +20,9 @@ public static class LpBankerIdent
 	public const string WordmarkAccent = ".banker";
 	public const string ProductName = "Banker Hub";
 
+	/// <summary>The key the shared hub kit (LpHubAccess, LpHubResultRelay) knows the Banker hub by (SPINE-3).</summary>
+	public const string HubKey = "banker";
+
 	/// <summary>Positive code-string ID for the menu skeleton. Exists nowhere else in the tree.</summary>
 	public const string SkeletonMark = "LP_BANKER_HUB_SKELETON_20261017";
 
