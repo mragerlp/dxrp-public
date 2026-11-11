@@ -312,7 +312,10 @@
 	protected override void OnEnabled()
 	{
 		EnsureScrollFactory();
+		// The terminal claims Esc (house law W5, the ESC-1 shape of StaffMenu.razor), so Esc closes it
+		// instead of opening the pause menu over it (LifePunchEscapeRouter).
 		LifePunchMenuInputBlock.NotifyMenuOpened();
+		LifePunchMenuInputBlock.ClaimEscape();
 		LpBitcoinHudBridge.SetMenuCursorMode( true );
 		LifePunchUiScrollPolicy.Apply( Panel );
 		ApplyCommandInputChrome();
@@ -365,6 +368,7 @@
 
 	protected override void OnDisabled()
 	{
+		LifePunchMenuInputBlock.ReleaseEscape();
 		LifePunchMenuInputBlock.NotifyMenuClosed();
 		LpBitcoinHudBridge.SetMenuCursorMode( false );
 	}
@@ -832,6 +836,15 @@
 	protected override void OnUpdate()
 	{
 		base.OnUpdate();
+
+		// Esc is routed to this panel ahead of the pause menu (LifePunchEscapeRouter).
+		if ( LifePunchMenuInputBlock.TakeEscape() )
+		{
+			Log.Info( "[lpbitcoin] BTC-POLISH-1 terminal took Esc" );
+			Close();
+			return;
+		}
+
 		LifePunchMenuInputBlock.Apply();
 		LifePunchUiScrollPolicy.Apply( Panel );
 		if ( !_hub.IsValid() )

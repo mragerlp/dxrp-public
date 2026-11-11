@@ -167,6 +167,8 @@ public sealed class LpBitcoinHubStateFixture : ILpBitcoinHubState
 /// The text seam before R-BTCUI-1..4 are ruled. Spec gate G2 forbids writing a format constant
 /// first, so every method prints the invariant default form of the number with no format string.
 /// The ruled formatter replaces this class; no tab changes.
+/// One exception, by dispatch (BTC-POLISH-1 F45): <see cref="Age"/> prints a whole-unit relative age,
+/// because the raw float ("174.99641 s ago") is not readable in the Logs tab.
 /// </summary>
 public sealed class LpBitcoinHubFormatUnruled : ILpBitcoinHubFormat
 {
@@ -182,5 +184,22 @@ public sealed class LpBitcoinHubFormatUnruled : ILpBitcoinHubFormat
 	public string Tier( int tier ) => tier <= 0 ? "STOCK" : "tier " + tier.ToString( CultureInfo.InvariantCulture );
 	public string Yield( float factor ) => factor.ToString( CultureInfo.InvariantCulture ) + "x";
 	public string Payback( float minutes ) => minutes.ToString( CultureInfo.InvariantCulture ) + " min";
-	public string Age( float seconds ) => seconds.ToString( CultureInfo.InvariantCulture ) + " s ago";
+
+	// Whole units, rounded down: "<1 min ago", "3 min ago", "2 h ago", "1 d ago". A negative or
+	// not-a-number age (clock skew between host and client is UNVERIFIED) reads as "<1 min ago".
+	public string Age( float seconds )
+	{
+		if ( !( seconds >= 60f ) )
+			return "<1 min ago";
+
+		if ( seconds < 3600f )
+			return ( (int)( seconds / 60f ) ).ToString( CultureInfo.InvariantCulture ) + " min ago";
+
+		if ( seconds < 86400f )
+			return ( (int)( seconds / 3600f ) ).ToString( CultureInfo.InvariantCulture ) + " h ago";
+
+		// Double division and a long cast: a float this large (or infinity) must not overflow an int.
+		var days = Math.Min( (double)seconds / 86400.0, 99999.0 );
+		return ( (long)days ).ToString( CultureInfo.InvariantCulture ) + " d ago";
+	}
 }
