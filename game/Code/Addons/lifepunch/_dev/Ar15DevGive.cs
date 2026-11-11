@@ -13,14 +13,25 @@ namespace LifePunch.DXRP.Addons.Dev;
 
 /// <summary>
 /// Editor-only equip command for the AR-15 private Portal candidate.
-/// The command deliberately fails closed until the current game-mode roster
-/// contains the real Portal row for the AR-15 world prefab.
+/// When the current game-mode roster has no row for the AR-15 world prefab, the command adds ONE
+/// in-memory, editor-only Equipment row (the ids the editor roster inject table reserves for the
+/// AR-15; never a Portal row, never a market row, gone when Play stops) so the weapon can be tested
+/// without a Portal row. With a real Portal row present it uses that row and adds nothing.
+/// Why: the AR-15 could not be given in an editor without Portal authorization, so none of its
+/// runtime behaviour could be proven (DRIVE-AR15-1). Who may run it: the editor host only.
+/// Shape followed: WeaponDevRosterInject.cs:50 (EnsureEditorContent + one in-memory row).
 /// </summary>
 public static class Ar15DevGive
 {
 	private const string Command = "lp_give_ar15";
 	private const string WorldPrefabPath = "addons/lifepunch/lpweapons/ar15/equipment/w_ar15/w_ar15.prefab";
 	private const string ViewPrefabPath = "addons/lifepunch/lpweapons/ar15/equipment/vm_ar15/vm_ar15.prefab";
+	private const string DisplayName = "AR-15";
+
+	// The ids WeaponRosterInjectTable reserves for the AR-15 (its inject flag stays off; this command
+	// only adds the same row for itself).
+	private static readonly Guid ContentId = new( "eef46616-a741-41d8-afb8-7984ae69a924" );
+	private static readonly Guid RowId = new( "9eeb7f78-a2cd-46a7-94ee-90221310a625" );
 
 	[ConCmd( Command )]
 	public static void GiveAr15()
@@ -54,7 +65,7 @@ public static class Ar15DevGive
 			return false;
 		}
 
-		var resource = ResolveResource();
+		var resource = EnsureRow( logPrefix );
 		if ( !resource.IsValid() || !string.Equals(
 			resource!.SecondaryPrefabPath(), ViewPrefabPath, StringComparison.OrdinalIgnoreCase ) )
 		{
@@ -128,19 +139,56 @@ public static class Ar15DevGive
 		return true;
 	}
 
-	private static GameModeEquipmentDto? ResolveResource()
+	/// <summary>The row for the world prefab, adding one in-memory editor-only row when none exists.</summary>
+	private static GameModeEquipmentDto? EnsureRow( string logPrefix )
 	{
-		var pathRows = GameModeEquipments.All
-			.Where( row => string.Equals(
-				row.PrefabPath(), WorldPrefabPath, StringComparison.OrdinalIgnoreCase ) )
-			.ToArray();
-		if ( pathRows.Length != 1 ) return null;
+		var gameMode = Config.Current?.GameMode;
+		if ( gameMode?.Equipments is null )
+		{
+			Log.Error( $"{logPrefix}: Config.GameMode.Equipments unavailable." );
+			return null;
+		}
+
+		var equipments = gameMode.Equipments;
+		var pathRows = PathRows( equipments );
+		if ( pathRows.Length == 0 )
+		{
+			if ( equipments.Any( row => row.Id == RowId || row.GameModeAddonContentId == ContentId ) )
+			{
+				Log.Error( $"{logPrefix}: editor ids already claimed by another row." );
+				return null;
+			}
+
+			GameModeAddonContents.EnsureEditorContent(
+				ContentId, $"{DisplayName} (editor)", WorldPrefabPath, ViewPrefabPath, EquipmentSlot.Primary.ToString() );
+
+			equipments.Add( new GameModeEquipmentDto
+			{
+				Id = RowId,
+				GameModeAddonContentId = ContentId,
+				NameOverride = DisplayName,
+				DescriptionOverride = "Editor inject, not Portal or market.",
+				Limit = -1
+			} );
+			Log.Info( $"{logPrefix}: added in-memory editor row {RowId} gameMode='{gameMode.Name}' isReady={Config.Current!.IsReady}" );
+			pathRows = PathRows( equipments );
+		}
+
+		if ( pathRows.Length != 1 )
+		{
+			return null;
+		}
 
 		var resource = pathRows[0];
-		var contentRows = GameModeEquipments.All
-			.Where( row => row.GameModeAddonContentId == resource.GameModeAddonContentId )
-			.ToArray();
+		var contentRows = equipments.Where( row => row.GameModeAddonContentId == resource.GameModeAddonContentId ).ToArray();
 		return contentRows.Length == 1 && contentRows[0].Id == resource.Id ? resource : null;
+	}
+
+	private static GameModeEquipmentDto[] PathRows( System.Collections.Generic.IEnumerable<GameModeEquipmentDto> rows )
+	{
+		return rows
+			.Where( row => string.Equals( row.PrefabPath(), WorldPrefabPath, StringComparison.OrdinalIgnoreCase ) )
+			.ToArray();
 	}
 
 	private static void RemoveExisting( Player player, Guid equipmentId, Equipment except )
