@@ -69,6 +69,12 @@ public sealed class LpPumpShotgunCycle : WeaponComponent, IGameEvents, IEquipmen
 	[Group( "Reload" )]
 	public bool RackOnlyFromEmpty { get; set; } = true;
 
+	/// <summary>
+	/// Counts strokes on this client: it goes up by one at the moment a stroke's sound is issued (after
+	/// a shot or after a reload). Other visuals, such as a hand animation, watch it to move in step.
+	/// </summary>
+	public int StrokeCount { get; private set; }
+
 	private LpPumpState _state;
 	private bool _wasReloading;
 	private ViewModel? _slideViewModel;
@@ -99,6 +105,11 @@ public sealed class LpPumpShotgunCycle : WeaponComponent, IGameEvents, IEquipmen
 		}
 
 		_state = LpPumpShotgunRules.Tick( _state, Time.Delta, Timings, out var effects );
+
+		if ( (effects & LpPumpEffect.PumpSound) != 0 )
+		{
+			StrokeCount++;
+		}
 
 		// ShootWeaponComponent.cs:224 - no effects on a dedicated server.
 		if ( Application.IsDedicatedServer )
