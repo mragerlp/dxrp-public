@@ -1630,7 +1630,7 @@ internal static class StaffMenuHost
 		}
 
 		// Mask, never Math.Abs: the hash above is unchecked, so int.MinValue is reachable and
-		// Math.Abs( int.MinValue ) throws OverflowException. This runs once per rendered row AND
+		// Math.Abs( int.MinValue ) throws on overflow. This runs once per rendered row AND
 		// once per catalog pill, inside the render tree — a throw here takes the whole staff menu
 		// down, not just the Audit tab. Masking the sign bit is total and allocation-free.
 		return AuditActionTones[( hash & 0x7FFFFFFF ) % AuditActionTones.Length];
