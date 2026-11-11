@@ -97,7 +97,7 @@
 	private const string SkeletonTooltip =
 		"Fixture data: no balance, no rail, no money path. Every figure names the ruling it waits on (I1-I6, DIRECTION section 8).";
 	private const string GateTooltip =
-		"Banker-only: the job system enforces the one Banker slot. No Banker job exists in this tree yet, so the gate opens in the editor only.";
+		"Banker-only: the job system enforces the one Banker slot. The gate opens for a player whose job carries the banker tag.";
 
 	// Instance, not static readonly: hotload keeps a static readonly field's old value (LpPlayerHubRoot.razor:97-99).
 	private readonly LpBankerHubTab[] Tabs =

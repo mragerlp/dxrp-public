@@ -9,7 +9,7 @@ writes nothing to game.scene: every object it makes lives in the Play scene and 
 | `lp_banker_press_pile` | Presses the first pile through its own `Press`, which opens the Banker hub. |
 | `lp_banker_hub [tab]` | Opens the Banker hub on a tab: 0 Overview, 1 Investments, 2 Dividends, 3 Premiums, 4 Upgrades, 5 Vault, 6 Logs. |
 | `lp_banker_hub_tab <tab>` | Switches the open hub to a tab (0..6). An out-of-range tab prints a warning. |
-| `lp_banker_gate_probe` | Logs what the Banker job gate would decide for you (`JobGateEnabled` is false until a Banker job exists). |
+| `lp_banker_gate_probe` | Logs what the Banker job gate decides for you. `JobGateEnabled` is on: a real game needs the `banker` job tag; the editor always passes. |
 | `lp_banker_spawn_lineup` | Every landed lpbanker model plus a citizen reference, in a line across your aim (bank assets, BANK-ASSETS-2). |
 | `lp_bank_vault_spawn` | One bank vault in front of where you aim, with a keypad beside it already linked to the vault (editor host). |
 | `lp_bank_vault_open` | Opens the nearest vault as a Banker, or closes it when it is open. A locked-down vault refuses and says why. |
