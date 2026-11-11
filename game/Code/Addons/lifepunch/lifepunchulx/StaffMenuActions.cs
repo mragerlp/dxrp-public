@@ -325,30 +325,23 @@ public static class StaffMenuConfig
 			return false;
 		}
 
-		TimeSpan? duration;
-		try
+		// Bounded before conversion so TimeSpan cannot overflow; int minutes always fit.
+		TimeSpan? duration = token[^1] switch
 		{
-			duration = token[^1] switch
-			{
-				'm' => TimeSpan.FromMinutes( value ),
-				'h' => TimeSpan.FromHours( value ),
-				'd' => TimeSpan.FromDays( value ),
-				_ => null
-			};
-		}
-		catch ( OverflowException )
-		{
-			return false;
-		}
-		catch ( ArgumentOutOfRangeException )
-		{
-			return false;
-		}
+			'm' => TimeSpan.FromMinutes( value ),
+			'h' when value <= MaxDurationHours => TimeSpan.FromHours( value ),
+			'd' when value <= MaxDurationDays => TimeSpan.FromDays( value ),
+			_ => null
+		};
 
 		if ( duration is null ) return false;
 		normalized = value.ToString( System.Globalization.CultureInfo.InvariantCulture ) + token[^1];
 		return true;
 	}
+
+	// Same bounds as DXRP CommandHelper.ParseDuration, which parses the token this method approves.
+	private const int MaxDurationHours = 240_000_000;
+	private const int MaxDurationDays = 10_000_000;
 
 	/// <summary>
 	/// Validate native duration syntax. Portal permission and host targeting authorize a ban;
