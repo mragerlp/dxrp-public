@@ -474,6 +474,12 @@
                     },
                     "RenderType": "On",
                     "Tint": "1,1,1,1"
+                  },
+                  {
+                    "__type": "LifePunch.DXRP.Addons.Weapons.M870.LpPumpSlideVisual",
+                    "__guid": "6f2a9d17-8c43-4e5b-a1f0-7d39c5e8b264",
+                    "__enabled": true,
+                    "StrokeOffset": "-3.5,0,0"
                   }
                 ],
                 "Children": []

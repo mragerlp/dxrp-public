@@ -299,7 +299,7 @@
             "BurstAmount": 3,
             "BurstEndDelay": 0.2,
             "CurrentFireMode": "Semi",
-            "Delay": 0.4,
+            "Delay": 0.6,
             "DryFireSound": "sounds/equipment/gun_dryfire.sound",
             "DryShootDelay": 0.15,
             "EjectionPrefab": {
@@ -492,6 +492,19 @@
             "OnComponentStart": null,
             "OnComponentUpdate": null,
             "Size": 5
+          },
+          {
+            "__type": "LifePunch.DXRP.Addons.Weapons.M870.LpPumpShotgunCycle",
+            "__guid": "3b7e2c94-5a1d-4f68-9c03-e2d1a7b64f58",
+            "__enabled": true,
+            "BackSeconds": 0.18,
+            "EjectionPrefab": null,
+            "ForwardSeconds": 0.18,
+            "HoldSeconds": 0.04,
+            "LeadSeconds": 0.1,
+            "PumpSound": "gameplay/equipment/weapons/spaghelli/sounds/reload/shotgun_load.sound",
+            "RackAfterReload": false,
+            "RackOnlyFromEmpty": true
           }
         ],
         "Children": []
