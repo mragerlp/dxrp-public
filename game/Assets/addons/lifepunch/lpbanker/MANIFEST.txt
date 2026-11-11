@@ -9,7 +9,7 @@ use_scope=<OWED - the CHEMIST clause "in-game in LIFEPUNCH, not redistributed/re
 license_status_local=UNVERIFIED (intake fab-listings.json: license_field ABSENT for both listings; no licence file in either source)
 attestation_ref=C:\cavelux\comms\outbox\cc-drive-1\CC-DRIVE-1_DRIVE-BANK-ASSETS-1_RETURN_2026-10-17-R1.md (GO + attestation, line 8; gate B-G1, line 32)
 large_file_rule=R-b (board 2832; recommended text, ruling OWED): no file > 50 MB in git; originals in the ark, sha-referenced; no git LFS
-ark_path=<OWED - no ark path is named in any searched file>
+ark_path=%USERPROFILE%\ark\bank-sources\20261111T015306Z on VENGEANCE (BANK-ARK-1, 2026-11-11): 35 files, 300559055 B; ark MANIFEST.txt 5841 B / sha256 469A7825708DBBD1245E0DB64089DE72E9E0C809E343F85870A4691F791609C2
 
 pack_1_name=Heist Essentials & Tools Collection
 pack_1_fab_listing=bea59f39 (short id; full UUID and seller absent from the intake metadata)
@@ -79,3 +79,8 @@ landed	Vault	D11EB2756DFE64BDF915D5E97594CC4E87898F8D7E807870B48453B1EADB21D0	16
 scale	money_stacked_01..06	0.4082	R-M6-1	DRAFT until ruled
 scale	money_bag_closed_01/open_01/open_full_01	0.4082	R-M6-2	DRAFT until ruled
 scale	safe_vault/safe_vault_door	0.8567	R-M6-3	DRAFT until ruled
+# BANK-ARK-1 2026-11-11 (CC-OPUS-4): where the sources are. Nothing below changes a landed or derived row.
+sources_in_git=no (the 35 landed and derived files above, under bankreserve/assets/{source,textures} and bankvault/assets/{source,textures}, are in no commit of this repository; a clean checkout cannot compile the lpbanker models)
+sources_on_disk=the ark folder in ark_path, the editor's working tree, and the BANK-ASSETS-2 worktree; all three read 2026-11-11
+sources_verified=35/35 SHA-256 equal to the landed and derived rows above, re-hashed from each of the three places (0 mismatches)
+sources_home=<OWED - the ark is one machine's second copy, not a shared store; where the binaries live for other checkouts is the owner's ruling>
