@@ -325,6 +325,19 @@ public static class StaffMenuConfig
 			return false;
 		}
 
+		// A TimeSpan holds at most 10,675,199 days (256,204,778 hours). Refuse a longer value here,
+		// before the conversion can throw.
+		var maxValue = token[^1] switch
+		{
+			'h' => 256_204_778,
+			'd' => 10_675_199,
+			_ => int.MaxValue
+		};
+		if ( value > maxValue )
+		{
+			return false;
+		}
+
 		TimeSpan? duration;
 		try
 		{
@@ -335,10 +348,6 @@ public static class StaffMenuConfig
 				'd' => TimeSpan.FromDays( value ),
 				_ => null
 			};
-		}
-		catch ( OverflowException )
-		{
-			return false;
 		}
 		catch ( ArgumentOutOfRangeException )
 		{

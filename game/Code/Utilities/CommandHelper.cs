@@ -15,6 +15,17 @@ public static class CommandHelper
 		if ( !int.TryParse( input[..^1], out var value ) || value <= 0 )
 			return null;
 
+		// A TimeSpan holds at most 10,675,199 days (256,204,778 hours). Refuse a longer value here,
+		// before the conversion can throw.
+		var maxValue = unit switch
+		{
+			'h' => 256_204_778,
+			'd' => 10_675_199,
+			_ => int.MaxValue
+		};
+		if ( value > maxValue )
+			return null;
+
 		try
 		{
 			return unit switch
@@ -25,7 +36,7 @@ public static class CommandHelper
 				_ => null
 			};
 		}
-		catch ( OverflowException )
+		catch ( ArgumentOutOfRangeException )
 		{
 			return null;
 		}
