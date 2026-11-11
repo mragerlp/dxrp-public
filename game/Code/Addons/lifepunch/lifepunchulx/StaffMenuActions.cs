@@ -325,39 +325,23 @@ public static class StaffMenuConfig
 			return false;
 		}
 
-		// A TimeSpan holds at most 10,675,199 days (256,204,778 hours). Refuse a longer value here,
-		// before the conversion can throw.
-		var maxValue = token[^1] switch
+		// Bounded before conversion so TimeSpan cannot overflow; int minutes always fit.
+		TimeSpan? duration = token[^1] switch
 		{
-			'h' => 256_204_778,
-			'd' => 10_675_199,
-			_ => int.MaxValue
+			'm' => TimeSpan.FromMinutes( value ),
+			'h' when value <= MaxDurationHours => TimeSpan.FromHours( value ),
+			'd' when value <= MaxDurationDays => TimeSpan.FromDays( value ),
+			_ => null
 		};
-		if ( value > maxValue )
-		{
-			return false;
-		}
-
-		TimeSpan? duration;
-		try
-		{
-			duration = token[^1] switch
-			{
-				'm' => TimeSpan.FromMinutes( value ),
-				'h' => TimeSpan.FromHours( value ),
-				'd' => TimeSpan.FromDays( value ),
-				_ => null
-			};
-		}
-		catch ( ArgumentOutOfRangeException )
-		{
-			return false;
-		}
 
 		if ( duration is null ) return false;
 		normalized = value.ToString( System.Globalization.CultureInfo.InvariantCulture ) + token[^1];
 		return true;
 	}
+
+	// Same bounds as DXRP CommandHelper.ParseDuration, which parses the token this method approves.
+	private const int MaxDurationHours = 240_000_000;
+	private const int MaxDurationDays = 10_000_000;
 
 	/// <summary>
 	/// Validate native duration syntax. Portal permission and host targeting authorize a ban;

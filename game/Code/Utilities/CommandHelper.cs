@@ -15,32 +15,18 @@ public static class CommandHelper
 		if ( !int.TryParse( input[..^1], out var value ) || value <= 0 )
 			return null;
 
-		// A TimeSpan holds at most 10,675,199 days (256,204,778 hours). Refuse a longer value here,
-		// before the conversion can throw.
-		var maxValue = unit switch
+		// Bounded before conversion so TimeSpan cannot overflow; int minutes always fit.
+		return unit switch
 		{
-			'h' => 256_204_778,
-			'd' => 10_675_199,
-			_ => int.MaxValue
+			'm' => TimeSpan.FromMinutes( value ),
+			'h' when value <= MaxDurationHours => TimeSpan.FromHours( value ),
+			'd' when value <= MaxDurationDays => TimeSpan.FromDays( value ),
+			_ => null
 		};
-		if ( value > maxValue )
-			return null;
-
-		try
-		{
-			return unit switch
-			{
-				'm' => TimeSpan.FromMinutes( value ),
-				'h' => TimeSpan.FromHours( value ),
-				'd' => TimeSpan.FromDays( value ),
-				_ => null
-			};
-		}
-		catch ( ArgumentOutOfRangeException )
-		{
-			return null;
-		}
 	}
+
+	private const int MaxDurationHours = 240_000_000;
+	private const int MaxDurationDays = 10_000_000;
 
 	/// <summary>
 	/// Resolves a player by Steam ID or name. Sends error messages to the caller on failure.
