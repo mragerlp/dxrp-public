@@ -239,9 +239,9 @@
             "__type": "Dxura.RP.Game.AmmoComponent",
             "__guid": "a9f23a01-b92d-4b63-b6a3-b9ae9ec4f3d7",
             "__enabled": true,
-            "Ammo": 6,
+            "Ammo": 8,
             "HasAmmo": true,
-            "MaxAmmo": 6,
+            "MaxAmmo": 8,
             "MaxReserveAmmo": 24,
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
@@ -299,13 +299,10 @@
             "BurstAmount": 3,
             "BurstEndDelay": 0.2,
             "CurrentFireMode": "Semi",
-            "Delay": 0.4,
+            "Delay": 0.6,
             "DryFireSound": "sounds/equipment/gun_dryfire.sound",
             "DryShootDelay": 0.15,
-            "EjectionPrefab": {
-              "_type": "gameobject",
-              "prefab": "prefabs/weapon_effects/12g_casing.prefab"
-            },
+            "EjectionPrefab": null,
             "FireModeSwitchDelay": 0.3,
             "FireRate": 175,
             "HeadshotDamageMultiplier": 2,
@@ -492,6 +489,22 @@
             "OnComponentStart": null,
             "OnComponentUpdate": null,
             "Size": 5
+          },
+          {
+            "__type": "LifePunch.DXRP.Addons.Weapons.M870.LpPumpShotgunCycle",
+            "__guid": "3b7e2c94-5a1d-4f68-9c03-e2d1a7b64f58",
+            "__enabled": true,
+            "BackSeconds": 0.18,
+            "EjectionPrefab": {
+              "_type": "gameobject",
+              "prefab": "prefabs/weapon_effects/12g_casing.prefab"
+            },
+            "ForwardSeconds": 0.18,
+            "HoldSeconds": 0.04,
+            "LeadSeconds": 0.1,
+            "PumpSound": "gameplay/equipment/weapons/spaghelli/sounds/reload/shotgun_load.sound",
+            "RackAfterReload": true,
+            "RackOnlyFromEmpty": true
           }
         ],
         "Children": []
