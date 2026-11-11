@@ -41,20 +41,22 @@ public static class LpBankerIdent
 /// Design (exemplar: the market whitelist, GameModeMarketItems.cs:187-192, JobTags.HasNamedTag at JobTags.cs:92):
 /// the host resolves the caller (GameUtils.GetPlayerByConnectionId, GameUtils.cs:40) and asks whether the caller's
 /// job carries the named tag <see cref="BankerJobTag"/>; the one slot is that job's MaxCount in the job config.
-/// No Banker job exists in this tree, so <see cref="JobGateEnabled"/> stays false and the gate is the editor seam:
-/// it fails closed outside the editor and opens for nobody in a real game.
+/// BANK-GATE-1 (cc-opus-4): <see cref="JobGateEnabled"/> is on. In a real game the gate is the job tag alone, and it
+/// fails closed: with no job carrying the tag (the Portal rows not entered yet) it opens for nobody. The editor seam
+/// is kept: inside the editor the gate passes without the job, so the dev commands and the proof still run.
 /// </summary>
 public static class LpBankerAccess
 {
-	/// <summary>The named job tag a Banker job will carry (PLACEHOLDER until the job exists).</summary>
+	/// <summary>The named job tag the Banker job carries in its Portal row (ruled 2026-11-11: "banker").</summary>
 	public const string BankerJobTag = "banker";
 
-	/// <summary>Flip to true in the slice that lands the Banker job; until then the editor seam decides.</summary>
-	public static bool JobGateEnabled { get; } = false;
+	/// <summary>On since BANK-GATE-1. Off = the editor seam alone decides (nobody passes in a real game).</summary>
+	public static bool JobGateEnabled { get; } = true;
 
 	public static bool IsBanker( Player player ) => player.IsValid() && JobTags.HasNamedTag( player.Job, BankerJobTag );
 
-	public static bool CanUse( Player player ) => JobGateEnabled ? IsBanker( player ) : Application.IsEditor;
+	/// <summary>The editor always passes (the seam); a real game passes a player whose job carries the Banker tag.</summary>
+	public static bool CanUse( Player player ) => Application.IsEditor || ( JobGateEnabled && IsBanker( player ) );
 
 	public static bool CanUseLocal() => CanUse( GameUtils.GetPlayerByConnectionId( Connection.Local.Id ) );
 }
