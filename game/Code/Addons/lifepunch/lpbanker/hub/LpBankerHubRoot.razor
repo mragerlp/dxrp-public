@@ -5,6 +5,8 @@
 	BANKER-HUB-2 (DRIVE-AWAY-2-U1): the tabs read a read-only view model (ILpBankerHubState, fixture today); every
 	figure names its ruling (I1-I6 = DIRECTION_BANKER-HUB_R1 section 8). No money path: every action is inert.
 	SPINE-3 (SPINE-1 R1 U2): Close goes through the shared LpHubMount, so a panel on the DXRP HUD root is removed alone.
+	BANK-VAULT-1 (cc-opus-4): the Vault tab reads the vault's live door and alarm rows and carries live door and alarm
+	buttons that only ask the host. Still no money path: every money action stays inert.
 *@
 @namespace LifePunch.DXRP.Addons.Banker
 @using System
@@ -71,6 +73,15 @@
 							<button class="bank-action-inert" tooltip="Inert: binds after its ruling and its own GO">@action</button>
 						}
 					</div>
+					@if ( _activeTab == LpBankerHubTab.Vault )
+					{
+						<div class="bank-actions">
+							@foreach ( var live in LpBankVaultTabState.Actions() )
+							{
+								<button class="bank-action" tooltip="@live.Tooltip" onclick="@( () => RunVaultAction( live.Id ) )">@live.Label</button>
+							}
+						</div>
+					}
 				</div>
 			</div>
 		</div>
@@ -100,7 +111,7 @@
 		LpBankerHubTab.Logs,
 	};
 
-	private readonly ILpBankerHubState State = new LpBankerHubFixture();
+	private readonly ILpBankerHubState State = new LpBankerHubLive();
 
 	private LpBankerHubTab _activeTab = LpBankerHubTab.Overview;
 
@@ -125,6 +136,12 @@
 
 		_activeTab = tab;
 		StateHasChanged();
+	}
+
+	// BANK-VAULT-1: a live Vault tab button. It only asks the host; the host answers on the HUD. No money path.
+	private void RunVaultAction( string id )
+	{
+		LpBankVaultTabState.Run( id );
 	}
 
 	private void Close()
@@ -171,5 +188,5 @@
 		LifePunchMenuInputBlock.NotifyMenuClosed();
 	}
 
-	protected override int BuildHash() => HashCode.Combine( (int)_activeTab );
+	protected override int BuildHash() => HashCode.Combine( (int)_activeTab, _activeTab == LpBankerHubTab.Vault ? State.Version : 0 );
 }

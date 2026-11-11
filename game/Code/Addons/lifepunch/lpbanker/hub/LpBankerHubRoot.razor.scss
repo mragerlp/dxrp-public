@@ -364,6 +364,25 @@
 		opacity: 0.6;
 	}
 
+	// BANK-VAULT-1: a live (non-money) action. Same box as the inert one, full strength, with a hover.
+	.bank-action {
+		flex-direction: row;
+		align-items: center;
+		min-height: 30px;
+		padding: 0 $gap-dense;
+		border: 1px solid $border;
+		border-radius: $radius-chip;
+		background-color: transparent;
+		color: $text-main;
+		font-size: 12px;
+		cursor: pointer;
+	}
+
+	.bank-action:hover {
+		background-color: $surface;
+		border-color: $banker-core;
+	}
+
 	.lp-source-footer .lp-mark {
 		color: $banker-text;
 	}

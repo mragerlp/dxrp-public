@@ -201,6 +201,9 @@ public sealed class LpKeypadEntity : BaseEntity, Component.IPressable, ILpHub
 
 		if ( lockedNow )
 		{
+			// BANK-VAULT-1 U4: tell the scene a caller was locked out (the bank alarm listens). Host only; no money.
+			var keypadId = GameObject.Id;
+			ILpKeypadEvent.Post( x => x.OnKeypadLockout( keypadId, callerId ) );
 			Log.Info( $"[lpkeypad] {LpKeypadIdent.TryMark} keypad={GameObject.Id} result=locked caller={callerId} remaining={(int)LpKeypadRules.LockoutSeconds} onset=true" );
 			return LpKeypadRules.Compose( LpKeypadRules.Locked, (int)LpKeypadRules.LockoutSeconds );
 		}

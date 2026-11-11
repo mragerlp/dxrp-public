@@ -31,7 +31,7 @@ public static class LpBankerHubTabInfo
 		LpBankerHubTab.Dividends => "What the bank pays investors, tick by tick",
 		LpBankerHubTab.Premiums => "What the Banker collects",
 		LpBankerHubTab.Upgrades => "Hub upgrades: the pile itself",
-		LpBankerHubTab.Vault => "The crypto vault (sequence 2) and vault security (sequence 3): stubs",
+		LpBankerHubTab.Vault => "The vault door, its keypad and the alarm (live, no money); contents and the crypto vault are stubs",
 		LpBankerHubTab.Logs => "Investments, payouts, premiums and raids",
 		_ => string.Empty,
 	};
@@ -43,7 +43,7 @@ public static class LpBankerHubTabInfo
 		LpBankerHubTab.Dividends => "waits on I1",
 		LpBankerHubTab.Premiums => "waits on I1",
 		LpBankerHubTab.Upgrades => "waits on I1, I4, R-M6-1",
-		LpBankerHubTab.Vault => "sequence 2 and 3; waits on I3, I5",
+		LpBankerHubTab.Vault => "live door and alarm; contents wait on LAW-B, I3, I5",
 		LpBankerHubTab.Logs => "waits on the rails",
 		_ => string.Empty,
 	};
@@ -61,6 +61,7 @@ public static class LpBankerHubTabInfo
 	public static string Empty( LpBankerHubTab tab ) => tab switch
 	{
 		LpBankerHubTab.Logs => "No log rows: investments, payouts and raids log here once their rails exist.",
+		LpBankerHubTab.Vault => "The door and alarm rows are live and move no money. Contents are fixture: the vault holds no balance and nothing can be taken.",
 		_ => "Fixture data: no balance, no rail, no money path. Each figure binds after its ruling and its own GO.",
 	};
 }
