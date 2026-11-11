@@ -2,6 +2,8 @@
 //
 // BANKER-HUB-1 skeleton (DRIVE-AWAY-1-D): mounts the Banker hub on its own ScreenPanel (the LpHashdUiHost
 // fallback path, UH:54-63). One open at a time.
+// SPINE-3 (SPINE-1 R1 U2): mounts through the shared LpHubMount - the DXRP HUD root first, the ScreenPanel
+// fallback when there is none - and closes only the object it created.
 
 using System.Linq;
 using Sandbox;
@@ -14,31 +16,14 @@ public static class LpBankerHubUi
 
 	public static LpBankerHubRoot Open( int tabIndex )
 	{
-		CloseOpen();
-		var scene = Game.ActiveScene;
-		if ( scene is null )
-			return null;
+		var root = LpHubMount.Mount<LpBankerHubRoot>( PanelObjectName, "lpbanker" );
+		if ( root.IsValid() )
+			root.InitialTabIndex = tabIndex;
 
-		var go = scene.CreateObject();
-		go.Name = PanelObjectName;
-		go.AddComponent<ScreenPanel>();
-		var root = go.AddComponent<LpBankerHubRoot>();
-		root.InitialTabIndex = tabIndex;
 		return root;
 	}
 
 	public static LpBankerHubRoot Current => Game.ActiveScene?.GetAllComponents<LpBankerHubRoot>().FirstOrDefault();
 
-	public static void CloseOpen()
-	{
-		var open = Game.ActiveScene?.GetAllComponents<LpBankerHubRoot>().ToList();
-		if ( open is null )
-			return;
-
-		foreach ( var root in open )
-		{
-			if ( root.IsValid() )
-				root.GameObject.Destroy();
-		}
-	}
+	public static void CloseOpen() => LpHubMount.CloseAll<LpBankerHubRoot>();
 }
