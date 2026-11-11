@@ -90,6 +90,19 @@
         "OnComponentUpdate": null
       },
       {
+        "__type": "LifePunch.DXRP.Addons.AK47.Ak47MagazineDrop",
+        "__guid": "5e1f7a2c-8b34-4d69-a0c7-3f9d2b6e41d8",
+        "__enabled": true,
+        "Flags": 0,
+        "Anchor": null,
+        "OnComponentDestroy": null,
+        "OnComponentDisabled": null,
+        "OnComponentEnabled": null,
+        "OnComponentFixedUpdate": null,
+        "OnComponentStart": null,
+        "OnComponentUpdate": null
+      },
+      {
         "__type": "LifePunch.DXRP.Addons.Weapons.Attachments.WeaponAttachmentState",
         "__guid": "f09af975-5f82-4cd8-9325-43d525f188ad",
         "__enabled": true,
