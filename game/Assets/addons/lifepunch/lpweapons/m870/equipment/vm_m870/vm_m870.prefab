@@ -145,6 +145,19 @@
         },
         "Tint": "1,1,1,1",
         "UseAnimGraph": true
+      },
+      {
+        "__type": "LifePunch.DXRP.Addons.Weapons.M870.LpDonorShellVisibility",
+        "__guid": "a4c81f36-2d7b-4e95-b6a0-193e5f7c2d84",
+        "__enabled": true,
+        "Donor": {
+          "_type": "component",
+          "component_id": "b7bc0c56-c85a-4612-bbdf-4a05ac4c327f",
+          "go": "2465e9b4-a7e2-49d5-8c5d-40e955f54bdb",
+          "component_type": "SkinnedModelRenderer"
+        },
+        "Hidden": "addons/lifepunch/lpweapons/m870/equipment/vm_m870/invisible.vmat",
+        "KeepMaterial": "12g_shell"
       }
     ],
     "Children": [

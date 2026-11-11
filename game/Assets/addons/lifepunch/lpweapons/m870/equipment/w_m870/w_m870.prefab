@@ -239,9 +239,9 @@
             "__type": "Dxura.RP.Game.AmmoComponent",
             "__guid": "a9f23a01-b92d-4b63-b6a3-b9ae9ec4f3d7",
             "__enabled": true,
-            "Ammo": 6,
+            "Ammo": 8,
             "HasAmmo": true,
-            "MaxAmmo": 6,
+            "MaxAmmo": 8,
             "MaxReserveAmmo": 24,
             "OnComponentDestroy": null,
             "OnComponentDisabled": null,
@@ -503,7 +503,7 @@
             "HoldSeconds": 0.04,
             "LeadSeconds": 0.1,
             "PumpSound": "gameplay/equipment/weapons/spaghelli/sounds/reload/shotgun_load.sound",
-            "RackAfterReload": false,
+            "RackAfterReload": true,
             "RackOnlyFromEmpty": true
           }
         ],
