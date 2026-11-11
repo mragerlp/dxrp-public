@@ -15,21 +15,18 @@ public static class CommandHelper
 		if ( !int.TryParse( input[..^1], out var value ) || value <= 0 )
 			return null;
 
-		try
+		// Bounded before conversion so TimeSpan cannot overflow; int minutes always fit.
+		return unit switch
 		{
-			return unit switch
-			{
-				'm' => TimeSpan.FromMinutes( value ),
-				'h' => TimeSpan.FromHours( value ),
-				'd' => TimeSpan.FromDays( value ),
-				_ => null
-			};
-		}
-		catch ( OverflowException )
-		{
-			return null;
-		}
+			'm' => TimeSpan.FromMinutes( value ),
+			'h' when value <= MaxDurationHours => TimeSpan.FromHours( value ),
+			'd' when value <= MaxDurationDays => TimeSpan.FromDays( value ),
+			_ => null
+		};
 	}
+
+	private const int MaxDurationHours = 240_000_000;
+	private const int MaxDurationDays = 10_000_000;
 
 	/// <summary>
 	/// Resolves a player by Steam ID or name. Sends error messages to the caller on failure.
