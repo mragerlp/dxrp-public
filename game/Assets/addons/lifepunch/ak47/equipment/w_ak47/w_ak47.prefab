@@ -239,6 +239,10 @@
             "DeployDelay": 0.5,
             "DryFireSound": "sounds/equipment/gun_dryfire.sound",
             "DryShootDelay": 0.15,
+            "EjectionPrefab": {
+              "_type": "gameobject",
+              "prefab": "prefabs/weapon_effects/556_casing.prefab"
+            },
             "FireModeSwitchDelay": 0.3,
             "FireRate": 600,
             "HeadshotDamageMultiplier": 2,
