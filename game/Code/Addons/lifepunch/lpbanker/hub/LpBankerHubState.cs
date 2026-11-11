@@ -20,6 +20,9 @@ public static class LpBankerRulings
 	public const string I6 = "I6";
 	public const string Seq2 = "SEQ2";
 	public const string M6Scale = "R-M6-1";
+	public const string VaultRule = "W-VAULT";
+	public const string AlarmRule = "W-ALARM";
+	public const string Rail = "LAW-B";
 
 	public static string Describe( string id ) => id switch
 	{
@@ -31,6 +34,9 @@ public static class LpBankerRulings
 		I6 => "what happens to the pile when no Banker is in play",
 		Seq2 => "DIRECTION section 5 sequence 2: the crypto vault slice",
 		M6Scale => "the money_stacked import scale (M6 recommendation, PROVISIONAL)",
+		VaultRule => "the vault open rule: who opens, closes, locks and what the keypad code does (BANK-1 WAITS)",
+		AlarmRule => "the alarm rule: who arms and resets it and who is told when it trips (BANK-1 WAITS)",
+		Rail => "the Law B rail ruling: what a vault balance and heist loot may be (BANK-RAILS.md)",
 		_ => "unnamed ruling",
 	};
 }
@@ -46,6 +52,9 @@ public interface ILpBankerHubState
 {
 	bool IsFixture { get; }
 
+	/// <summary>Changes when a live row would read differently (BANK-VAULT-1); a pure fixture never changes.</summary>
+	int Version { get; }
+
 	IReadOnlyList<LpBankerFigure> Figures( LpBankerHubTab tab );
 }
 
@@ -53,6 +62,8 @@ public interface ILpBankerHubState
 public sealed class LpBankerHubFixture : ILpBankerHubState
 {
 	public bool IsFixture => true;
+
+	public int Version => 0;
 
 	public IReadOnlyList<LpBankerFigure> Figures( LpBankerHubTab tab ) => tab switch
 	{
