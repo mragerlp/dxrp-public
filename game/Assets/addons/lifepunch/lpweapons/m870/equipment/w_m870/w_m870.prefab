@@ -302,10 +302,7 @@
             "Delay": 0.6,
             "DryFireSound": "sounds/equipment/gun_dryfire.sound",
             "DryShootDelay": 0.15,
-            "EjectionPrefab": {
-              "_type": "gameobject",
-              "prefab": "prefabs/weapon_effects/12g_casing.prefab"
-            },
+            "EjectionPrefab": null,
             "FireModeSwitchDelay": 0.3,
             "FireRate": 175,
             "HeadshotDamageMultiplier": 2,
@@ -498,7 +495,10 @@
             "__guid": "3b7e2c94-5a1d-4f68-9c03-e2d1a7b64f58",
             "__enabled": true,
             "BackSeconds": 0.18,
-            "EjectionPrefab": null,
+            "EjectionPrefab": {
+              "_type": "gameobject",
+              "prefab": "prefabs/weapon_effects/12g_casing.prefab"
+            },
             "ForwardSeconds": 0.18,
             "HoldSeconds": 0.04,
             "LeadSeconds": 0.1,
