@@ -11,9 +11,31 @@ writes nothing to game.scene: every object it makes lives in the Play scene and 
 | `lp_banker_hub_tab <tab>` | Switches the open hub to a tab (0..6). An out-of-range tab prints a warning. |
 | `lp_banker_gate_probe` | Logs what the Banker job gate would decide for you (`JobGateEnabled` is false until a Banker job exists). |
 | `lp_banker_spawn_lineup` | Every landed lpbanker model plus a citizen reference, in a line across your aim (bank assets, BANK-ASSETS-2). |
+| `lp_bank_vault_spawn` | One bank vault in front of where you aim, with a keypad beside it already linked to the vault (editor host). |
+| `lp_bank_vault_open` | Opens the nearest vault as a Banker, or closes it when it is open. A locked-down vault refuses and says why. |
+| `lp_bank_vault_lock` | Locks the nearest vault down, or unlocks it when it is locked down. |
+| `lp_bank_alarm_spawn` | One bank alarm in front of where you aim (editor host). It watches vaults within 600 units. |
+| `lp_bank_alarm_trip` | Arms the nearest alarm if it is disarmed, then trips it the way an opened vault does. |
+| `lp_bank_alarm_reset` | Resets the nearest alarm as bank staff: armed again, or disarmed while a watched vault is still open. |
 
 Every figure in the hub is FIXTURE data that names its ruling (I1-I6 = DIRECTION_BANKER-HUB_R1 section 8). No command
 moves money, fires a rail or persists anything. Close the hub with Esc or the close button.
+
+## The vault and the alarm (BANK-VAULT-1)
+
+A proof run, in order: `lp_bank_vault_spawn`, `lp_bank_alarm_spawn`, `lp_keypad_set 1234`, `lp_bank_alarm_trip`,
+`lp_bank_alarm_reset`, `lp_keypad_try 1234` (the keypad code opens the closed vault; with the alarm armed that trips
+it), `lp_bank_vault_lock`, `lp_keypad_try 1234` again (a locked-down vault stays shut), `lp_banker_hub 5` (the Vault
+tab shows the live door and alarm rows), Esc. The keypad commands act on the keypad nearest you, so stand by the
+vault's keypad.
+
+The vault and the alarm are plain components and are never written to the host's world save. The keypad that
+`lp_bank_vault_spawn` makes is a DXRP entity, and a host auto-save that fires during Play can write it into the save:
+spawn right after a save and stop Play before the next one.
+
+The bank models need their source files (fbx and png under `game/Assets/addons/lifepunch/lpbanker/*/assets/source`
+and `textures`). They are not in git. Without them `lp_bank_vault_spawn` warns that the vault model is missing and
+spawns nothing.
 
 ## SPINE-3 is in this tree (carried by BANK-CARRY-1)
 
