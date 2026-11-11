@@ -1043,16 +1043,50 @@
 		return items;
 	}
 
+	// BTC-POLISH-1 F47: the Servers rail entry names the view it is showing. On an entity's detail
+	// page (hub, terminal or one rack: the upgrade surface since the Upgrades tab was retired) it
+	// reads UPGRADES with the icon of the Upgrades quick button; on the Servers index and the rack
+	// chooser it stays SERVERS. The entry stays the selected one and a press still returns to the
+	// Servers index (SelectTab). Returns null when no detail page is showing.
+	private string ServersDetailName()
+	{
+		if ( _active != OpsTab.Racks )
+			return null;
+
+		if ( _serversView == ServersView.HubDetail )
+			return "Bitcoin Hub";
+
+		if ( _serversView == ServersView.TerminalDetail )
+			return "Terminal";
+
+		if ( _serversView == ServersView.RackDetail )
+			return GetServerDetailSlot()?.DisplayLabel;
+
+		return null;
+	}
+
+	private string NavLabel( OpsTab tab )
+		=> tab == OpsTab.Racks && ServersDetailName() is not null ? "UPGRADES" : TabLabel( tab );
+
+	private string NavIcon( OpsTab tab )
+		=> tab == OpsTab.Racks && ServersDetailName() is not null ? "upgrade" : TabIcon( tab );
+
+	private string NavTooltip( OpsTab tab )
+	{
+		var detail = tab == OpsTab.Racks ? ServersDetailName() : null;
+		return detail is null ? TabLabel( tab ) : "Servers / " + detail + " upgrades";
+	}
+
 	private LpMenuShell.NavItem ShellNavItem( OpsTab tab, bool isSettings = false )
 	{
 		return new LpMenuShell.NavItem
 		{
 			Route = tab.ToString().ToLowerInvariant(),
-			Label = TabLabel( tab ),
-			Icon = TabIcon( tab ),
-			Tooltip = TabLabel( tab ),
-			PageIcon = TabIcon( tab ),
-			PageTitle = tab == OpsTab.Overview ? "Dashboard" : TabLabel( tab ),
+			Label = NavLabel( tab ),
+			Icon = NavIcon( tab ),
+			Tooltip = NavTooltip( tab ),
+			PageIcon = NavIcon( tab ),
+			PageTitle = tab == OpsTab.Overview ? "Dashboard" : NavLabel( tab ),
 			Callout = tab == OpsTab.Overview
 				? "This home page is your setup and status checkpoint. Detailed management lives in Servers, Wallet, Transfers, and Upgrades."
 				: string.Empty,
