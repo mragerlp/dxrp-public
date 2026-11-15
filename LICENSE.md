@@ -13,8 +13,6 @@ Dxura grants only the following limited permissions:
 - You may access, download, install, play, and use the official DXRP release through s&box, dxrp.net, or other Dxura-approved release channels for normal gameplay and community participation.
 - You may host and operate DXRP dedicated servers using Dxura-provided server workflows, images, packages, or documentation where those are made available, subject to any limits stated with those workflows.
 - You may view this repository for transparency and evaluation.
-- You may submit contributions to Dxura through approved contribution channels, subject to [CLA.md](CLA.md) and [CONTRIBUTING.md](CONTRIBUTING.md).
-- If public pull requests are enabled, you may create a fork only as needed to prepare and submit a contribution back to Dxura. That fork may not be used to publish, distribute, host, operate, or promote a separate version of DXRP.
 
 No other rights are granted.
 
