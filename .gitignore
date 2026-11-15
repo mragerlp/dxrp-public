@@ -512,3 +512,11 @@ game/Libraries/*
 /.codex/
 /.cursor/hooks/state/
 /exceptions.txt
+
+# upstream dxura/dxrp
+# !*.shader_c  (disabled UPSTREAM-MERGE-1: develop neutralized this line in WORKBENCH-P2 Act 3)
+**/.claude/*
+!**/.claude/skills/
+# /game*  (disabled UPSTREAM-MERGE-1: would ignore new files in our tracked game/ tree)
+/platform*
+# /maps*  (disabled UPSTREAM-MERGE-1: would ignore new files in our tracked maps/ tree)
